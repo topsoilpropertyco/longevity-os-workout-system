@@ -1,0 +1,27 @@
+{
+  "name": "@longevity/worker",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Mac mini worker — polls Supabase for llm_jobs, runs them against LM Studio, writes results back. Outbound connections only.",
+  "main": "./src/index.ts",
+  "scripts": {
+    "start": "node --env-file=.env --import tsx ./src/index.ts",
+    "dev": "node --env-file=.env --import tsx --watch ./src/index.ts",
+    "once": "node --env-file=.env --import tsx ./src/index.ts --once",
+    "health": "node --env-file=.env --import tsx ./src/index.ts --health",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@longevity/integrations": "file:../packages/integrations",
+    "@supabase/supabase-js": "^2.47.10",
+    "tsx": "^4.19.2"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "typescript": "^5.7.2"
+  },
+  "engines": {
+    "node": ">=20.6"
+  }
+}

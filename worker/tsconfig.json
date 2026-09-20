@@ -1,0 +1,15 @@
+{
+  "extends": "../tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": "./src",
+    "outDir": "./dist",
+    "types": ["node"],
+    "moduleResolution": "bundler",
+    "paths": {
+      "@longevity/integrations": ["../packages/integrations/src/index.ts"],
+      "@longevity/engine": ["../packages/engine/src/index.ts"]
+    }
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["dist", "node_modules"]
+}

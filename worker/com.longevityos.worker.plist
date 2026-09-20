@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  Longevity OS — Mac mini worker, launchd job.
+
+  INSTALL
+    1. Edit the three paths below marked EDIT ME (your username, your node,
+       your checkout).
+    2. cp com.longevityos.worker.plist ~/Library/LaunchAgents/
+    3. launchctl load -w ~/Library/LaunchAgents/com.longevityos.worker.plist
+    4. tail -f /Users/seth/Library/Logs/longevity-worker.log
+
+  UNINSTALL
+       launchctl unload -w ~/Library/LaunchAgents/com.longevityos.worker.plist
+
+  WHY A LaunchAgent AND NOT A LaunchDaemon
+    A LaunchAgent runs as Seth, in his login session. That matters because
+    LM Studio is a GUI app running as Seth — a LaunchDaemon (root, before
+    login) would start the worker before LM Studio exists and could not reach
+    it. RunAtLoad + KeepAlive gives us "starts at login, restarts if it dies",
+    which is exactly what is wanted.
+
+  ── KEEPING THE MINI AWAKE (read this; it is the usual reason jobs stall) ────
+  A sleeping mini claims no jobs. Nothing breaks — a job unclaimed for 60 s
+  goes to Vercel's Gemini fallback — but the local model is free and Gemini's
+  quota is not, so it is worth keeping the mini up.
+
+  Option A, the settings (preferred, survives reboots, nothing to remember):
+      System Settings → Energy (or Battery → Options)
+        • "Prevent automatic sleeping when the display is off" → ON
+        • "Wake for network access" → ON
+        • "Start up automatically after a power failure" → ON
+      Then confirm:  pmset -g   ->  sleep should read 0
+
+  Option B, caffeinate, for a temporary session:
+      caffeinate -dimsu
+        -d  keep the display awake      -i  prevent idle sleep
+        -m  prevent disk sleep          -s  prevent system sleep on AC
+        -u  declare user activity
+      Scoped to this worker only:
+        caffeinate -is npm start
+      Note that `caffeinate` does NOT survive a reboot. If you want it managed,
+      uncomment the caffeinate wrapper in ProgramArguments below — but the
+      Energy settings in Option A are the better answer, because caffeinate
+      also keeps the mini awake when there is no work to do.
+
+  Option C, scheduled wake, if you would rather it sleep most of the time:
+      sudo pmset repeat wakeorpoweron MTWRFSU 06:00:00
+      The 06:30 Telegram brief then finds an awake mini.
+
+  ── OUTBOUND ONLY ───────────────────────────────────────────────────────────
+  This job opens no listening socket. It needs no port forwarding, no tunnel,
+  and no inbound firewall rule. macOS may never prompt about incoming
+  connections; if it does, the answer is Deny — nothing here accepts them.
+-->
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.longevityos.worker</string>
+
+    <!--
+      EDIT ME: absolute paths. launchd has almost no PATH, so `node` must be
+      spelled out. Find yours with `which node`:
+        Homebrew (Apple silicon):  /opt/homebrew/bin/node
+        Homebrew (Intel):          /usr/local/bin/node
+        nvm:                       /Users/seth/.nvm/versions/node/v20.x.x/bin/node
+      nvm users: point at the real versioned path, not the shim.
+    -->
+    <key>ProgramArguments</key>
+    <array>
+        <string>/opt/homebrew/bin/node</string>
+        <string>--env-file=/Users/seth/code/longevity-os/worker/.env</string>
+        <string>--import</string>
+        <string>tsx</string>
+        <string>/Users/seth/code/longevity-os/worker/src/index.ts</string>
+    </array>
+
+    <!--
+      Alternative ProgramArguments that wraps the worker in caffeinate, if you
+      chose Option B above instead of the Energy settings:
+
+      <array>
+          <string>/usr/bin/caffeinate</string>
+          <string>-is</string>
+          <string>/opt/homebrew/bin/node</string>
+          <string>--env-file=/Users/seth/code/longevity-os/worker/.env</string>
+          <string>--import</string>
+          <string>tsx</string>
+          <string>/Users/seth/code/longevity-os/worker/src/index.ts</string>
+      </array>
+    -->
+
+    <!-- EDIT ME: the worker directory, so relative module resolution works. -->
+    <key>WorkingDirectory</key>
+    <string>/Users/seth/code/longevity-os/worker</string>
+
+    <key>RunAtLoad</key>
+    <true/>
+
+    <!-- Restart whenever the process exits, for any reason. -->
+    <key>KeepAlive</key>
+    <true/>
+
+    <!--
+      Do not hammer a broken config. With a bad .env the worker exits 78
+      immediately; this makes launchd wait 30 s between attempts instead of
+      spinning, which is the difference between a log file and a log flood.
+    -->
+    <key>ThrottleInterval</key>
+    <integer>30</integer>
+
+    <!-- EDIT ME: log paths. Rotate them with newsyslog if they ever grow. -->
+    <key>StandardOutPath</key>
+    <string>/Users/seth/Library/Logs/longevity-worker.log</string>
+    <key>StandardErrorPath</key>
+    <string>/Users/seth/Library/Logs/longevity-worker.error.log</string>
+
+    <key>EnvironmentVariables</key>
+    <dict>
+        <!--
+          launchd gives a job an almost empty PATH. `tsx` and any native module
+          need node's bin directory on it. EDIT ME to match `which node`.
+        -->
+        <key>PATH</key>
+        <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+        <key>NODE_ENV</key>
+        <string>production</string>
+        <!--
+          Secrets live in worker/.env (loaded by --env-file), NOT here: a plist
+          in ~/Library/LaunchAgents is world-readable and gets backed up.
+          Nothing secret belongs in this file.
+        -->
+    </dict>
+
+    <!-- Be a background job: never steal CPU from whatever Seth is doing. -->
+    <key>ProcessType</key>
+    <string>Background</string>
+    <key>Nice</key>
+    <integer>5</integer>
+
+    <!--
+      Give the in-flight job time to finish and write its result back on
+      SIGTERM before launchd escalates to SIGKILL. A local 14B model can take
+      a while to finish a generation.
+    -->
+    <key>ExitTimeOut</key>
+    <integer>60</integer>
+</dict>
+</plist>
