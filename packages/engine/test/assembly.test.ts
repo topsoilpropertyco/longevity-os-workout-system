@@ -152,6 +152,47 @@ describe('assembly', () => {
     expect(seen).toEqual([...seen].sort((a, b) => a - b));
   });
 
+  it('takes its dose from the program standard, not the goal mode', () => {
+    const result = assemble(input({ type: 'kot', program: KOT, budgetMin: 60 }));
+    const program = result.blocks.find((b) => b.kind === 'program');
+    const tib = program?.exercises.find((e) => e.exercise.slug === 'tibialis-raise');
+    // The KOT standard is 3 × 25, not the 'tone' goal mode's 3 × 10.
+    expect(tib?.sets).toHaveLength(3);
+    expect(tib?.sets[0]!.reps).toBe(25);
+  });
+
+  it('prescribes timed program work as a clock, not as reps', () => {
+    const result = assemble(input({ type: 'kot', program: KOT, budgetMin: 60 }));
+    const program = result.blocks.find((b) => b.kind === 'program');
+    const walk = program?.exercises.find((e) => e.exercise.slug === 'backward-walk');
+    expect(walk?.sets[0]!.reps).toBe(0);
+    expect(walk?.sets[0]!.duration_s).toBeGreaterThan(0);
+    // "Hold this for ten minutes at RPE 8" is not an instruction anyone can follow.
+    expect(walk?.sets[0]!.rpe_target).toBeUndefined();
+  });
+
+  it('charges timed work its duration, so a ten-minute walk costs ten minutes', () => {
+    const result = assemble(input({ type: 'kot', program: KOT, budgetMin: 90 }));
+    const walk = result.blocks
+      .find((b) => b.kind === 'program')
+      ?.exercises.find((e) => e.exercise.slug === 'backward-walk');
+    expect(walk!.estimated_min).toBeGreaterThan(5);
+  });
+
+  it('compresses timed program work rather than dropping the signature movement', () => {
+    // On a short day the ATG split squat must survive. A shortened backward walk
+    // is still Knees Over Toes; a session without the split squat is not.
+    const result = assemble(input({ type: 'kot', program: KOT, budgetMin: 30 }));
+    const slugs = result.blocks.flatMap((b) => b.exercises.map((e) => e.exercise.slug));
+    expect(slugs).toContain('atg-split-squat');
+    expect(slugs).toContain('backward-walk');
+    const walk = result.blocks
+      .find((b) => b.kind === 'program')
+      ?.exercises.find((e) => e.exercise.slug === 'backward-walk');
+    expect(walk!.sets[0]!.duration_s).toBeLessThan(600);
+    expect(walk!.sets[0]!.duration_s).toBeGreaterThanOrEqual(180);
+  });
+
   it('follows the program ground-up ordering', () => {
     const result = assemble(input({ type: 'kot', program: KOT, budgetMin: 60 }));
     const program = result.blocks.find((b) => b.kind === 'program');

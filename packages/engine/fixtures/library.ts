@@ -384,8 +384,11 @@ export const KOT: Program = {
     },
     {
       id: 'kot-tib-raise', order: 1, block: 'lower-legs', name: 'Tibialis raise',
-      standard_text: '25 reps bodyweight; 25% BW × 5×5 with a tib bar',
-      exercise_slug: 'tibialis-raise', standard: { reps: 25, pct_bodyweight: 0.25, sets: 5 },
+      // The public standard offers two routes: 25 bodyweight reps, OR 25% BW for
+      // 5×5 with a tib bar. Encoding both at once would prescribe 5 × 25 loaded
+      // reps, which is neither.
+      standard_text: '3 × 25 reps bodyweight (tib bar route: 25% BW, 5 × 5)',
+      exercise_slug: 'tibialis-raise', standard: { reps: 25, sets: 3 },
     },
     {
       id: 'kot-patrick-step', order: 2, block: 'step-ups', name: 'Patrick step',

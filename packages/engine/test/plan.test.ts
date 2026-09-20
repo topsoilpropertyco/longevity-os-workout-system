@@ -217,6 +217,30 @@ describe('the week', () => {
     }
   });
 
+  it('does not prescribe the same hard session every day of the week', () => {
+    // The projected week must accumulate against itself. Without that, every
+    // future day recomputes the dose from real history alone, sees "no VO2 yet
+    // this week", and picks VO2 — seven days running.
+    const types = result.week.map((d) => d.session.type);
+    expect(new Set(types).size).toBeGreaterThan(2);
+  });
+
+  it('never projects more than one VO2 session in the week', () => {
+    for (const fixture of Object.values(ALL_FIXTURES)) {
+      const vo2Days = plan(fixture).week.filter((d) => d.session.type === 'vo2').length;
+      expect(vo2Days).toBeLessThanOrEqual(1);
+    }
+  });
+
+  it('never projects power work on consecutive days', () => {
+    for (const fixture of Object.values(ALL_FIXTURES)) {
+      const types = plan(fixture).week.map((d) => d.session.type);
+      for (let i = 1; i < types.length; i++) {
+        expect(types[i] === 'power' && types[i - 1] === 'power').toBe(false);
+      }
+    }
+  });
+
   it('projects future days under neutral readiness rather than forecasting Oura', () => {
     for (const day of result.week.slice(1)) {
       expect(day.session.readiness.source).toBe('default');

@@ -71,14 +71,14 @@ exports[`golden plans > cold_start is unchanged 1`] = `
             "id": "couch-stretch",
             "load_lb": 0,
             "reps": 8,
-            "rpe": 8,
+            "rpe": undefined,
             "sets": 2,
           },
           {
             "id": "deep-squat-hold",
             "load_lb": 0,
             "reps": 8,
-            "rpe": 8,
+            "rpe": undefined,
             "sets": 2,
           },
         ],
@@ -132,33 +132,33 @@ exports[`golden plans > cold_start is unchanged 1`] = `
     },
     {
       "date": "2026-09-23",
-      "minutes": 56.7,
-      "type": "vo2",
+      "minutes": 35.8,
+      "type": "strength",
     },
     {
       "date": "2026-09-24",
-      "minutes": 56.7,
-      "type": "vo2",
+      "minutes": 54.7,
+      "type": "zone2",
     },
     {
       "date": "2026-09-25",
-      "minutes": 56.7,
-      "type": "vo2",
+      "minutes": 34.1,
+      "type": "power",
     },
     {
       "date": "2026-09-26",
-      "minutes": 56.7,
-      "type": "vo2",
+      "minutes": 30.5,
+      "type": "mobility",
     },
     {
       "date": "2026-09-27",
-      "minutes": 56.7,
-      "type": "vo2",
+      "minutes": 34.1,
+      "type": "power",
     },
     {
       "date": "2026-09-28",
-      "minutes": 56.7,
-      "type": "vo2",
+      "minutes": 54.7,
+      "type": "zone2",
     },
   ],
   "weekly": {
@@ -183,7 +183,7 @@ exports[`golden plans > cold_start is unchanged 1`] = `
 exports[`golden plans > fifteen_min_home is unchanged 1`] = `
 {
   "blocked_regions": [],
-  "signature": "5b6955bc",
+  "signature": "e134acc2",
   "today": {
     "blocks": [
       {
@@ -199,20 +199,20 @@ exports[`golden plans > fifteen_min_home is unchanged 1`] = `
           {
             "id": "backward-walk",
             "load_lb": 0,
-            "reps": 10,
-            "rpe": 8,
-            "sets": 3,
+            "reps": 0,
+            "rpe": undefined,
+            "sets": 1,
           },
           {
             "id": "tibialis-raise",
             "load_lb": 0,
-            "reps": 10,
+            "reps": 25,
             "rpe": 8,
             "sets": 3,
           },
         ],
         "kind": "program",
-        "minutes": 9.5,
+        "minutes": 11.38,
         "title": "Knees Over Toes — ground up",
       },
       {
@@ -225,7 +225,7 @@ exports[`golden plans > fifteen_min_home is unchanged 1`] = `
     ],
     "date": "2026-09-22",
     "deload": false,
-    "estimated_min": 14.5,
+    "estimated_min": 16.4,
     "readiness": {
       "band": "as_planned",
       "score": 78.7,
@@ -239,38 +239,38 @@ exports[`golden plans > fifteen_min_home is unchanged 1`] = `
   "week": [
     {
       "date": "2026-09-22",
-      "minutes": 14.5,
+      "minutes": 16.4,
       "type": "kot",
     },
     {
       "date": "2026-09-23",
-      "minutes": 14.5,
-      "type": "kot",
+      "minutes": 29.5,
+      "type": "zone2",
     },
     {
       "date": "2026-09-24",
-      "minutes": 14.5,
-      "type": "kot",
+      "minutes": 28.8,
+      "type": "zone2",
     },
     {
       "date": "2026-09-25",
-      "minutes": 14.5,
-      "type": "kot",
+      "minutes": 12.6,
+      "type": "strength",
     },
     {
       "date": "2026-09-26",
-      "minutes": 14.5,
+      "minutes": 16.4,
       "type": "kot",
     },
     {
       "date": "2026-09-27",
       "minutes": 14.5,
-      "type": "kot",
+      "type": "mobility",
     },
     {
       "date": "2026-09-28",
-      "minutes": 14.5,
-      "type": "kot",
+      "minutes": 28.8,
+      "type": "zone2",
     },
   ],
   "weekly": {
@@ -295,7 +295,7 @@ exports[`golden plans > fifteen_min_home is unchanged 1`] = `
 exports[`golden plans > high_readiness is unchanged 1`] = `
 {
   "blocked_regions": [],
-  "signature": "61a08b01",
+  "signature": "cdfe18da",
   "today": {
     "blocks": [
       {
@@ -311,169 +311,14 @@ exports[`golden plans > high_readiness is unchanged 1`] = `
           {
             "id": "backward-walk",
             "load_lb": 0,
-            "reps": 10,
-            "rpe": 8,
-            "sets": 4,
+            "reps": 0,
+            "rpe": undefined,
+            "sets": 1,
           },
           {
             "id": "tibialis-raise",
             "load_lb": 0,
-            "reps": 10,
-            "rpe": 8,
-            "sets": 4,
-          },
-          {
-            "id": "patrick-step",
-            "load_lb": 0,
-            "reps": 10,
-            "rpe": 8,
-            "sets": 4,
-          },
-          {
-            "id": "atg-split-squat",
-            "load_lb": 55,
-            "reps": 10,
-            "rpe": 8,
-            "sets": 4,
-          },
-          {
-            "id": "deep-squat-hold",
-            "load_lb": 0,
-            "reps": 10,
-            "rpe": 8,
-            "sets": 4,
-          },
-        ],
-        "kind": "program",
-        "minutes": 31.65,
-        "title": "Knees Over Toes — ground up",
-      },
-      {
-        "cardio": undefined,
-        "exercises": [
-          {
-            "id": "atg-split-squat",
-            "load_lb": 55,
-            "reps": 10,
-            "rpe": 8,
-            "sets": 4,
-          },
-          {
-            "id": "nordic-curl",
-            "load_lb": 0,
-            "reps": 10,
-            "rpe": 8,
-            "sets": 3,
-          },
-        ],
-        "kind": "strength",
-        "minutes": 11.08,
-        "title": "Upper body — pairs with the knee work",
-      },
-      {
-        "cardio": undefined,
-        "exercises": [],
-        "kind": "cooldown",
-        "minutes": 5,
-        "title": "Cool-down",
-      },
-    ],
-    "date": "2026-09-22",
-    "deload": false,
-    "estimated_min": 52.7,
-    "readiness": {
-      "band": "push",
-      "score": 94.4,
-      "source": "blend",
-    },
-    "title": "Knees Over Toes",
-    "type": "kot",
-    "why": "Knees Over Toes. Readiness 94 — green light, take the extra set. 0/3 KOT sessions done this week. 45 minutes.",
-  },
-  "warnings": [],
-  "week": [
-    {
-      "date": "2026-09-22",
-      "minutes": 52.7,
-      "type": "kot",
-    },
-    {
-      "date": "2026-09-23",
-      "minutes": 62.2,
-      "type": "vo2",
-    },
-    {
-      "date": "2026-09-24",
-      "minutes": 52.7,
-      "type": "vo2",
-    },
-    {
-      "date": "2026-09-25",
-      "minutes": 52.7,
-      "type": "vo2",
-    },
-    {
-      "date": "2026-09-26",
-      "minutes": 52.7,
-      "type": "vo2",
-    },
-    {
-      "date": "2026-09-27",
-      "minutes": 52.7,
-      "type": "vo2",
-    },
-    {
-      "date": "2026-09-28",
-      "minutes": 52.7,
-      "type": "vo2",
-    },
-  ],
-  "weekly": {
-    "mobility_sessions": 0,
-    "plyo_contacts": 0,
-    "sessions": 1,
-    "steps_avg": 7500,
-    "strength_min": 40,
-    "strength_target_min": [
-      60,
-      120,
-    ],
-    "tonnage_lb": 10950,
-    "vo2_sessions": 0,
-    "zone2_ceiling_min": 55,
-    "zone2_min": 25,
-    "zone2_target_min": 180,
-  },
-}
-`;
-
-exports[`golden plans > injury_flare is unchanged 1`] = `
-{
-  "blocked_regions": [],
-  "signature": "1a29bf8a",
-  "today": {
-    "blocks": [
-      {
-        "cardio": undefined,
-        "exercises": [],
-        "kind": "warmup",
-        "minutes": 5,
-        "title": "Warm-up",
-      },
-      {
-        "cardio": undefined,
-        "exercises": [
-          {
-            "id": "backward-walk",
-            "load_lb": 0,
-            "reps": 10,
-            "rpe": 8,
-            "sets": 3,
-          },
-          {
-            "id": "tibialis-raise",
-            "load_lb": 0,
-            "reps": 10,
+            "reps": 25,
             "rpe": 8,
             "sets": 3,
           },
@@ -486,21 +331,21 @@ exports[`golden plans > injury_flare is unchanged 1`] = `
           },
           {
             "id": "atg-split-squat",
-            "load_lb": 55,
-            "reps": 10,
+            "load_lb": 75,
+            "reps": 5,
             "rpe": 8,
             "sets": 3,
           },
           {
             "id": "deep-squat-hold",
             "load_lb": 0,
-            "reps": 10,
-            "rpe": 8,
-            "sets": 3,
+            "reps": 0,
+            "rpe": undefined,
+            "sets": 1,
           },
         ],
         "kind": "program",
-        "minutes": 23.75,
+        "minutes": 28.01,
         "title": "Knees Over Toes — ground up",
       },
       {
@@ -508,8 +353,8 @@ exports[`golden plans > injury_flare is unchanged 1`] = `
         "exercises": [
           {
             "id": "atg-split-squat",
-            "load_lb": 55,
-            "reps": 10,
+            "load_lb": 75,
+            "reps": 5,
             "rpe": 8,
             "sets": 3,
           },
@@ -522,7 +367,7 @@ exports[`golden plans > injury_flare is unchanged 1`] = `
           },
         ],
         "kind": "strength",
-        "minutes": 9.5,
+        "minutes": 8.63,
         "title": "Upper body — pairs with the knee work",
       },
       {
@@ -557,7 +402,184 @@ exports[`golden plans > injury_flare is unchanged 1`] = `
     ],
     "date": "2026-09-22",
     "deload": false,
-    "estimated_min": 52.8,
+    "estimated_min": 56.1,
+    "readiness": {
+      "band": "push",
+      "score": 94.4,
+      "source": "blend",
+    },
+    "title": "Knees Over Toes",
+    "type": "kot",
+    "why": "Knees Over Toes. Readiness 94 — green light, take the extra set. 0/3 KOT sessions done this week. 45 minutes.",
+  },
+  "warnings": [],
+  "week": [
+    {
+      "date": "2026-09-22",
+      "minutes": 56.1,
+      "type": "kot",
+    },
+    {
+      "date": "2026-09-23",
+      "minutes": 52.7,
+      "type": "vo2",
+    },
+    {
+      "date": "2026-09-24",
+      "minutes": 69.7,
+      "type": "zone2",
+    },
+    {
+      "date": "2026-09-25",
+      "minutes": 55,
+      "type": "mobility",
+    },
+    {
+      "date": "2026-09-26",
+      "minutes": 43.7,
+      "type": "strength",
+    },
+    {
+      "date": "2026-09-27",
+      "minutes": 55,
+      "type": "mobility",
+    },
+    {
+      "date": "2026-09-28",
+      "minutes": 55,
+      "type": "strength",
+    },
+  ],
+  "weekly": {
+    "mobility_sessions": 0,
+    "plyo_contacts": 0,
+    "sessions": 1,
+    "steps_avg": 7500,
+    "strength_min": 40,
+    "strength_target_min": [
+      60,
+      120,
+    ],
+    "tonnage_lb": 10950,
+    "vo2_sessions": 0,
+    "zone2_ceiling_min": 55,
+    "zone2_min": 25,
+    "zone2_target_min": 180,
+  },
+}
+`;
+
+exports[`golden plans > injury_flare is unchanged 1`] = `
+{
+  "blocked_regions": [],
+  "signature": "554399e6",
+  "today": {
+    "blocks": [
+      {
+        "cardio": undefined,
+        "exercises": [],
+        "kind": "warmup",
+        "minutes": 5,
+        "title": "Warm-up",
+      },
+      {
+        "cardio": undefined,
+        "exercises": [
+          {
+            "id": "backward-walk",
+            "load_lb": 0,
+            "reps": 0,
+            "rpe": undefined,
+            "sets": 1,
+          },
+          {
+            "id": "tibialis-raise",
+            "load_lb": 0,
+            "reps": 25,
+            "rpe": 8,
+            "sets": 3,
+          },
+          {
+            "id": "patrick-step",
+            "load_lb": 0,
+            "reps": 10,
+            "rpe": 8,
+            "sets": 3,
+          },
+          {
+            "id": "atg-split-squat",
+            "load_lb": 75,
+            "reps": 5,
+            "rpe": 8,
+            "sets": 3,
+          },
+          {
+            "id": "deep-squat-hold",
+            "load_lb": 0,
+            "reps": 0,
+            "rpe": undefined,
+            "sets": 1,
+          },
+        ],
+        "kind": "program",
+        "minutes": 28.01,
+        "title": "Knees Over Toes — ground up",
+      },
+      {
+        "cardio": undefined,
+        "exercises": [
+          {
+            "id": "atg-split-squat",
+            "load_lb": 75,
+            "reps": 5,
+            "rpe": 8,
+            "sets": 3,
+          },
+          {
+            "id": "nordic-curl",
+            "load_lb": 0,
+            "reps": 10,
+            "rpe": 8,
+            "sets": 3,
+          },
+        ],
+        "kind": "strength",
+        "minutes": 8.63,
+        "title": "Upper body — pairs with the knee work",
+      },
+      {
+        "cardio": undefined,
+        "exercises": [
+          {
+            "id": "bird-dog",
+            "load_lb": 0,
+            "reps": 10,
+            "rpe": 8,
+            "sets": 3,
+          },
+          {
+            "id": "mcgill-curl-up",
+            "load_lb": 0,
+            "reps": 10,
+            "rpe": 8,
+            "sets": 3,
+          },
+        ],
+        "kind": "strength",
+        "minutes": 9.5,
+        "title": "Core",
+      },
+      {
+        "cardio": undefined,
+        "exercises": [],
+        "kind": "cooldown",
+        "minutes": 5,
+        "title": "Cool-down",
+      },
+    ],
+    "date": "2026-09-22",
+    "deload": false,
+    "estimated_min": 56.1,
     "readiness": {
       "band": "as_planned",
       "score": 77.9,
@@ -571,7 +593,7 @@ exports[`golden plans > injury_flare is unchanged 1`] = `
   "week": [
     {
       "date": "2026-09-22",
-      "minutes": 52.8,
+      "minutes": 56.1,
       "type": "kot",
     },
     {
@@ -581,28 +603,28 @@ exports[`golden plans > injury_flare is unchanged 1`] = `
     },
     {
       "date": "2026-09-24",
-      "minutes": 52.7,
-      "type": "vo2",
+      "minutes": 69.7,
+      "type": "zone2",
     },
     {
       "date": "2026-09-25",
-      "minutes": 52.7,
-      "type": "vo2",
+      "minutes": 55,
+      "type": "mobility",
     },
     {
       "date": "2026-09-26",
-      "minutes": 52.7,
-      "type": "vo2",
+      "minutes": 43.7,
+      "type": "strength",
     },
     {
       "date": "2026-09-27",
-      "minutes": 52.7,
-      "type": "vo2",
+      "minutes": 55,
+      "type": "mobility",
     },
     {
       "date": "2026-09-28",
-      "minutes": 52.7,
-      "type": "vo2",
+      "minutes": 55,
+      "type": "strength",
     },
   ],
   "weekly": {
@@ -627,7 +649,7 @@ exports[`golden plans > injury_flare is unchanged 1`] = `
 exports[`golden plans > low_readiness is unchanged 1`] = `
 {
   "blocked_regions": [],
-  "signature": "57616249",
+  "signature": "4761981e",
   "today": {
     "blocks": [
       {
@@ -666,33 +688,33 @@ exports[`golden plans > low_readiness is unchanged 1`] = `
             "id": "couch-stretch",
             "load_lb": 0,
             "reps": 8,
-            "rpe": 4,
+            "rpe": undefined,
             "sets": 2,
           },
           {
             "id": "deep-squat-hold",
             "load_lb": 0,
-            "reps": 8,
-            "rpe": 4,
-            "sets": 2,
+            "reps": 0,
+            "rpe": undefined,
+            "sets": 1,
           },
           {
             "id": "elephant-walk",
             "load_lb": 0,
             "reps": 8,
-            "rpe": 4,
+            "rpe": undefined,
             "sets": 2,
           },
           {
             "id": "thoracic-opener",
             "load_lb": 0,
             "reps": 8,
-            "rpe": 4,
+            "rpe": undefined,
             "sets": 2,
           },
         ],
         "kind": "mobility",
-        "minutes": 11.72,
+        "minutes": 11.79,
         "title": "Recovery",
       },
       {
@@ -713,7 +735,7 @@ exports[`golden plans > low_readiness is unchanged 1`] = `
     ],
     "date": "2026-09-22",
     "deload": true,
-    "estimated_min": 50.5,
+    "estimated_min": 50.6,
     "readiness": {
       "band": "recovery",
       "score": 44.8,
@@ -727,22 +749,22 @@ exports[`golden plans > low_readiness is unchanged 1`] = `
   "week": [
     {
       "date": "2026-09-22",
-      "minutes": 50.5,
+      "minutes": 50.6,
       "type": "recovery",
     },
     {
       "date": "2026-09-23",
-      "minutes": 50,
+      "minutes": 47.2,
       "type": "kot",
     },
     {
       "date": "2026-09-24",
-      "minutes": 55,
-      "type": "strength",
+      "minutes": 69.7,
+      "type": "zone2",
     },
     {
       "date": "2026-09-25",
-      "minutes": 52.8,
+      "minutes": 55,
       "type": "strength",
     },
     {
@@ -752,13 +774,13 @@ exports[`golden plans > low_readiness is unchanged 1`] = `
     },
     {
       "date": "2026-09-27",
-      "minutes": 52.7,
-      "type": "vo2",
+      "minutes": 43.7,
+      "type": "strength",
     },
     {
       "date": "2026-09-28",
-      "minutes": 52.7,
-      "type": "vo2",
+      "minutes": 55,
+      "type": "mobility",
     },
   ],
   "weekly": {
@@ -783,7 +805,7 @@ exports[`golden plans > low_readiness is unchanged 1`] = `
 exports[`golden plans > ninety_min_pf is unchanged 1`] = `
 {
   "blocked_regions": [],
-  "signature": "bb3a32d4",
+  "signature": "de58b697",
   "today": {
     "blocks": [
       {
@@ -799,41 +821,41 @@ exports[`golden plans > ninety_min_pf is unchanged 1`] = `
           {
             "id": "backward-walk",
             "load_lb": 0,
-            "reps": 6,
-            "rpe": 9,
-            "sets": 4,
+            "reps": 0,
+            "rpe": undefined,
+            "sets": 1,
           },
           {
             "id": "tibialis-raise",
             "load_lb": 0,
-            "reps": 6,
+            "reps": 25,
             "rpe": 9,
-            "sets": 4,
+            "sets": 3,
           },
           {
             "id": "patrick-step",
             "load_lb": 0,
-            "reps": 6,
+            "reps": 10,
             "rpe": 9,
-            "sets": 4,
+            "sets": 3,
           },
           {
             "id": "atg-split-squat",
-            "load_lb": 60,
-            "reps": 6,
+            "load_lb": 80,
+            "reps": 5,
             "rpe": 9,
-            "sets": 4,
+            "sets": 3,
           },
           {
             "id": "deep-squat-hold",
             "load_lb": 0,
-            "reps": 6,
-            "rpe": 9,
-            "sets": 4,
+            "reps": 0,
+            "rpe": undefined,
+            "sets": 1,
           },
         ],
         "kind": "program",
-        "minutes": 42,
+        "minutes": 36.01,
         "title": "Knees Over Toes — ground up",
       },
       {
@@ -841,10 +863,10 @@ exports[`golden plans > ninety_min_pf is unchanged 1`] = `
         "exercises": [
           {
             "id": "atg-split-squat",
-            "load_lb": 60,
-            "reps": 6,
+            "load_lb": 80,
+            "reps": 5,
             "rpe": 9,
-            "sets": 4,
+            "sets": 3,
           },
           {
             "id": "leg-press",
@@ -869,7 +891,7 @@ exports[`golden plans > ninety_min_pf is unchanged 1`] = `
           },
         ],
         "kind": "strength",
-        "minutes": 26.55,
+        "minutes": 24.03,
         "title": "Upper body — pairs with the knee work",
       },
       {
@@ -908,19 +930,19 @@ exports[`golden plans > ninety_min_pf is unchanged 1`] = `
             "id": "couch-stretch",
             "load_lb": 0,
             "reps": 8,
-            "rpe": 8,
+            "rpe": undefined,
             "sets": 2,
           },
           {
             "id": "deep-squat-hold",
             "load_lb": 0,
-            "reps": 8,
-            "rpe": 8,
-            "sets": 2,
+            "reps": 0,
+            "rpe": undefined,
+            "sets": 1,
           },
         ],
         "kind": "mobility",
-        "minutes": 7.86,
+        "minutes": 6.93,
         "title": "Mobility",
       },
       {
@@ -933,7 +955,7 @@ exports[`golden plans > ninety_min_pf is unchanged 1`] = `
     ],
     "date": "2026-09-22",
     "deload": false,
-    "estimated_min": 98.2,
+    "estimated_min": 88.8,
     "readiness": {
       "band": "as_planned",
       "score": 82.9,
@@ -947,7 +969,7 @@ exports[`golden plans > ninety_min_pf is unchanged 1`] = `
   "week": [
     {
       "date": "2026-09-22",
-      "minutes": 98.2,
+      "minutes": 88.8,
       "type": "kot",
     },
     {
@@ -957,28 +979,28 @@ exports[`golden plans > ninety_min_pf is unchanged 1`] = `
     },
     {
       "date": "2026-09-24",
-      "minutes": 56.2,
-      "type": "strength",
+      "minutes": 84.7,
+      "type": "zone2",
     },
     {
       "date": "2026-09-25",
-      "minutes": 38.1,
+      "minutes": 56.2,
       "type": "strength",
     },
     {
       "date": "2026-09-26",
-      "minutes": 56.2,
-      "type": "strength",
+      "minutes": 36.6,
+      "type": "mobility",
     },
     {
       "date": "2026-09-27",
-      "minutes": 38.1,
-      "type": "strength",
+      "minutes": 36.6,
+      "type": "mobility",
     },
     {
       "date": "2026-09-28",
-      "minutes": 56.2,
-      "type": "strength",
+      "minutes": 36.6,
+      "type": "mobility",
     },
   ],
   "weekly": {
@@ -1003,7 +1025,7 @@ exports[`golden plans > ninety_min_pf is unchanged 1`] = `
 exports[`the worked example in docs/ENGINE.md > is unchanged 1`] = `
 {
   "blocked_regions": [],
-  "signature": "3a850454",
+  "signature": "2d3798b7",
   "today": {
     "blocks": [
       {
@@ -1019,14 +1041,14 @@ exports[`the worked example in docs/ENGINE.md > is unchanged 1`] = `
           {
             "id": "backward-walk",
             "load_lb": 0,
-            "reps": 10,
-            "rpe": 8,
-            "sets": 3,
+            "reps": 0,
+            "rpe": undefined,
+            "sets": 1,
           },
           {
             "id": "tibialis-raise",
             "load_lb": 0,
-            "reps": 10,
+            "reps": 25,
             "rpe": 8,
             "sets": 3,
           },
@@ -1039,37 +1061,22 @@ exports[`the worked example in docs/ENGINE.md > is unchanged 1`] = `
           },
           {
             "id": "atg-split-squat",
-            "load_lb": 55,
-            "reps": 10,
+            "load_lb": 75,
+            "reps": 5,
             "rpe": 8,
             "sets": 3,
           },
           {
             "id": "deep-squat-hold",
             "load_lb": 0,
-            "reps": 10,
-            "rpe": 8,
-            "sets": 3,
+            "reps": 0,
+            "rpe": undefined,
+            "sets": 1,
           },
         ],
         "kind": "program",
-        "minutes": 23.75,
+        "minutes": 25.01,
         "title": "Knees Over Toes — ground up",
-      },
-      {
-        "cardio": undefined,
-        "exercises": [
-          {
-            "id": "bird-dog",
-            "load_lb": 0,
-            "reps": 10,
-            "rpe": 8,
-            "sets": 3,
-          },
-        ],
-        "kind": "strength",
-        "minutes": 4.75,
-        "title": "Core",
       },
       {
         "cardio": undefined,
@@ -1081,7 +1088,7 @@ exports[`the worked example in docs/ENGINE.md > is unchanged 1`] = `
     ],
     "date": "2026-09-22",
     "deload": false,
-    "estimated_min": 38.5,
+    "estimated_min": 35,
     "readiness": {
       "band": "as_planned",
       "score": 72,
@@ -1095,38 +1102,38 @@ exports[`the worked example in docs/ENGINE.md > is unchanged 1`] = `
   "week": [
     {
       "date": "2026-09-22",
-      "minutes": 38.5,
+      "minutes": 35,
       "type": "kot",
     },
     {
       "date": "2026-09-23",
-      "minutes": 56.7,
+      "minutes": 66.2,
       "type": "vo2",
     },
     {
       "date": "2026-09-24",
-      "minutes": 56.7,
-      "type": "vo2",
+      "minutes": 54.7,
+      "type": "zone2",
     },
     {
       "date": "2026-09-25",
-      "minutes": 56.7,
-      "type": "vo2",
+      "minutes": 31.1,
+      "type": "strength",
     },
     {
       "date": "2026-09-26",
-      "minutes": 56.7,
-      "type": "vo2",
+      "minutes": 30.6,
+      "type": "mobility",
     },
     {
       "date": "2026-09-27",
-      "minutes": 56.7,
-      "type": "vo2",
+      "minutes": 54.7,
+      "type": "zone2",
     },
     {
       "date": "2026-09-28",
-      "minutes": 56.7,
-      "type": "vo2",
+      "minutes": 31.1,
+      "type": "strength",
     },
   ],
   "weekly": {

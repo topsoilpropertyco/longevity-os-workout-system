@@ -586,6 +586,13 @@ export interface PrescribedSet {
   warmup?: boolean;
   /** Mirrors `SetLog.is_assisted`; set from the exercise's load style. */
   is_assisted?: boolean;
+  /**
+   * For timed work — holds, carries, and locomotion. When set, `reps` is 0 and
+   * the runtime shows a clock rather than a rep counter.
+   */
+  duration_s?: number;
+  /** For distance work. */
+  distance_mi?: number;
 }
 
 export interface PredictionBand {

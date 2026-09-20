@@ -68,9 +68,18 @@ export interface AssemblyResult {
   estimatedMin: number;
 }
 
-/** Minutes one prescribed exercise will take, including its rest. */
+/**
+ * Minutes one prescribed exercise will take, including its rest.
+ *
+ * A timed set costs its duration, not its (zero) rep count — without this a ten
+ * minute backward walk is budgeted at one minute of setup and the session
+ * silently overruns by nine.
+ */
 export function estimateMinutes(sets: PrescribedSet[]): number {
-  const work = sets.reduce((a, s) => a + s.reps * ASSEMBLY.seconds_per_rep, 0);
+  const work = sets.reduce(
+    (a, s) => a + (s.duration_s ?? s.reps * ASSEMBLY.seconds_per_rep),
+    0,
+  );
   const rest = sets.slice(0, -1).reduce((a, s) => a + s.rest_s, 0);
   return round((ASSEMBLY.setup_s_per_exercise + work + rest) / 60, 2);
 }
@@ -128,17 +137,35 @@ export function prescribe(args: {
   programStepId?: string;
   repOverride?: [number, number];
   setOverride?: number;
+  /**
+   * Ceiling for TIMED work. Ten minutes of backward walking is the standard, but
+   * on a thirty-minute day it would eat the budget and push the ATG split squat
+   * — the movement the program is actually named for — out of the session. A
+   * shortened walk is still the program; a missing split squat is not.
+   */
+  timeCapMin?: number;
 }): PrescribedExercise {
   const { exercise, input, isPrimary, why, programStepId } = args;
   const { readiness, goal, history, bodyweightLb, location, deloadVolumeMultiplier, deloadLoadMultiplier } = input;
 
   const base = setsAndReps({ goal, readiness, isPrimary, deloadVolumeMultiplier });
-  const repRange = args.repOverride ?? base.reps;
-  const setCount = args.setOverride ?? base.sets;
+  const step = findProgramStep(input.program, exercise.slug);
+
+  // A program step carries its own dose. Knees Over Toes says 10 minutes of
+  // backward walking and 25 tibialis raises; overriding that with the goal
+  // mode's 3×10 would not be running the program, it would be running something
+  // else with the program's name on it.
+  const std = step?.standard;
+  const repRange: [number, number] =
+    args.repOverride ?? (std?.reps ? [std.reps, std.reps] : base.reps);
+  const setCount =
+    args.setOverride ?? (std?.sets ? Math.max(1, Math.round(std.sets * deloadVolumeMultiplier)) : base.sets);
   // Prescribe at the bottom of the range: double progression climbs from there.
   const reps = repRange[0];
 
-  const step = findProgramStep(input.program, exercise.slug);
+  // Timed and distance work has no rep count at all.
+  const holdSeconds = std?.hold_s ?? (std?.duration_min ? std.duration_min * 60 : undefined);
+  const isTimed = holdSeconds !== undefined || exercise.pattern === 'gait';
   const prediction = predictionBand({
     exerciseId: exercise.id,
     reps,
@@ -160,13 +187,32 @@ export function prescribe(args: {
   const cap = loadCapability(exercise, location);
   const { load_lb, capped } = achievableLoad(desired, cap);
 
-  const rpe = Math.min(base.rpe, readiness.rpe_cap ?? 10) as PrescribedSet['rpe_target'];
-  const sets: PrescribedSet[] = Array.from({ length: setCount }, (_, i) => ({
+  // Timed and mobility work does not get an RPE target: "hold this stretch at
+  // RPE 8" is not an instruction anyone can follow.
+  const rpe =
+    isTimed || exercise.pattern === 'mobility'
+      ? undefined
+      : (Math.min(base.rpe, readiness.rpe_cap ?? 10) as PrescribedSet['rpe_target']);
+
+  const timedSetCount = isTimed ? (std?.sets ?? 1) : setCount;
+
+  // Apply the time cap, with a floor: below three minutes backward walking stops
+  // being the rehab dose and becomes a gesture, so we drop the movement instead
+  // of pretending a 40-second version counts.
+  const rawHold = Math.round((holdSeconds ?? 600) / (std?.sets ?? 1));
+  const capSeconds = args.timeCapMin
+    ? Math.max(180, Math.round((args.timeCapMin * 60 - ASSEMBLY.setup_s_per_exercise) / timedSetCount))
+    : rawHold;
+  const cappedHoldSeconds = Math.min(rawHold, capSeconds);
+
+  const sets: PrescribedSet[] = Array.from({ length: timedSetCount }, (_, i) => ({
     set_index: i,
-    reps,
+    reps: isTimed ? 0 : reps,
     load_lb: exercise.load_style === 'none' ? 0 : load_lb,
     rpe_target: rpe,
-    rest_s: base.rest_s,
+    rest_s: isTimed ? 30 : base.rest_s,
+    ...(isTimed ? { duration_s: cappedHoldSeconds } : {}),
+    ...(std?.distance_mi ? { distance_mi: std.distance_mi } : {}),
     // The database's non-negative-load CHECK is waived only for assisted work,
     // so the flag has to travel with the prescription rather than be inferred later.
     is_assisted: exercise.load_style === 'assisted',
@@ -226,10 +272,15 @@ export function assemble(input: AssemblyInput): AssemblyResult {
   const tryAdd = (
     kind: SessionBlock['kind'],
     title: string,
-    items: { exercise: Exercise; why: string; isPrimary: boolean; stepId?: string; reps?: [number, number]; sets?: number }[],
+    items: {
+      exercise: Exercise; why: string; isPrimary: boolean; stepId?: string;
+      reps?: [number, number]; sets?: number; timeShare?: number;
+    }[],
   ): void => {
     const prescribed: PrescribedExercise[] = [];
+    let index = 0;
     for (const item of items) {
+      index++;
       if (remaining < ASSEMBLY.min_block_min) break;
 
       const conflict = violatedExclusion(item.exercise, chosen, { flaggedRegions: flagged });
@@ -246,6 +297,9 @@ export function assemble(input: AssemblyInput): AssemblyResult {
         programStepId: item.stepId,
         repOverride: item.reps,
         setOverride: item.sets,
+        // Divide what is left between the steps still to come, so the first
+        // movement in a ground-up program cannot consume the whole session.
+        ...(item.timeShare ? { timeCapMin: remaining * item.timeShare } : {}),
       });
 
       if (p.estimated_min > remaining + ASSEMBLY.overrun_tolerance_min) {
@@ -287,11 +341,14 @@ export function assemble(input: AssemblyInput): AssemblyResult {
         return ex ? { step, ex } : null;
       })
       .filter((x): x is { step: ProgramStep; ex: Exercise } => x !== null)
-      .map(({ step, ex }) => ({
+      .map(({ step, ex }, i, all) => ({
         exercise: ex,
         why: `${input.program?.name ?? 'Program'} — ${step.standard_text}`,
         isPrimary: true,
         stepId: step.id,
+        // An equal share of the remaining budget, so the ground-up ordering does
+        // not mean the ground gets everything.
+        timeShare: 1 / Math.max(1, all.length - i),
       }));
 
     if (items.length === 0) {

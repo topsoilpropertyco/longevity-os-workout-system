@@ -28,12 +28,14 @@ import { currentE1rm } from './progression.js';
 import { assessReadiness, neutralReadiness } from './readiness.js';
 import { chooseSessionType } from './template.js';
 import type {
+  CardioLog,
   CardioPrescription,
   Exercise,
   PlanInput,
   PlanResult,
   PrescribedSession,
   SessionBlock,
+  SessionLog,
   SessionType,
   WeekDay,
   ReadinessAssessment,
@@ -73,6 +75,7 @@ export function plan(input: PlanInput): PlanResult {
     hrMax: hr_max,
     e1rmByExercise,
     priorPlanned: [],
+    projected: { sessions: [], cardio: [] },
   });
 
   // The week: each day sees the projected load of the days before it, so a
@@ -85,18 +88,28 @@ export function plan(input: PlanInput): PlanResult {
     { date: input.today, blocks: todaySession.session.blocks },
   ];
 
+  // Today counts toward the week as soon as it is planned, so tomorrow does not
+  // re-prescribe it.
+  const accumulated: { sessions: SessionLog[]; cardio: CardioLog[] } = {
+    sessions: [asLoggedSession(todaySession.session)],
+    cardio: asLoggedCardio(todaySession.session),
+  };
+
   for (let i = 1; i <= 6; i++) {
     const date = addDays(input.today, i);
-    const projected = planDay({
+    const projectedDay = planDay({
       input,
       date,
       isToday: false,
       hrMax: hr_max,
       e1rmByExercise,
       priorPlanned: plannedSoFar,
+      projected: { sessions: [...accumulated.sessions], cardio: [...accumulated.cardio] },
     });
-    week.push({ date, day_index: dayOfWeek(date), session: projected.session, is_today: false });
-    plannedSoFar.push({ date, blocks: projected.session.blocks });
+    week.push({ date, day_index: dayOfWeek(date), session: projectedDay.session, is_today: false });
+    plannedSoFar.push({ date, blocks: projectedDay.session.blocks });
+    accumulated.sessions.push(asLoggedSession(projectedDay.session));
+    accumulated.cardio.push(...asLoggedCardio(projectedDay.session));
   }
 
   const ledger = todaySession.ledger;
@@ -149,6 +162,62 @@ export function plan(input: PlanInput): PlanResult {
   };
 }
 
+/**
+ * A projected session, expressed as though it had been logged exactly as
+ * prescribed. Only ever fed back into the SAME plan call's later days — it is
+ * never persisted and never mixed with real history outside this function.
+ */
+function asLoggedSession(session: PrescribedSession): SessionLog {
+  return {
+    id: `projected:${session.date}`,
+    date: session.date,
+    type: session.type,
+    location_id: session.location_id,
+    duration_min: session.estimated_min,
+    completed: true,
+    exercises: session.blocks.flatMap((b) =>
+      b.exercises.map((pe) => ({
+        exercise_id: pe.exercise_id,
+        sets: pe.sets.map((s) => ({
+          set_index: s.set_index,
+          reps: s.reps,
+          load_lb: s.load_lb,
+          rpe: s.rpe_target,
+          completed: true,
+          ...(s.duration_s ? { duration_s: s.duration_s } : {}),
+        })),
+      })),
+    ),
+  };
+}
+
+/** The cardio blocks of a projected session, as logs. */
+function asLoggedCardio(session: PrescribedSession): CardioLog[] {
+  return session.blocks
+    .filter((b) => b.cardio)
+    .map((b) => {
+      const c = b.cardio!;
+      const zone = c.target_zone;
+      const minutes = c.duration_min;
+      return {
+        date: session.date,
+        modality: c.modality,
+        duration_min: minutes,
+        distance_mi: c.distance_mi,
+        source: 'manual' as const,
+        // Credit the prescribed zone only. A projected 4×4 should count as one
+        // VO2 session, not as 28 minutes of Zone 2.
+        zone_minutes: {
+          z1: zone === 'z1' ? minutes : 0,
+          z2: zone === 'z2' ? minutes : 0,
+          z3: zone === 'z3' ? minutes : 0,
+          z4: zone === 'z4' ? minutes : 0,
+          z5: zone === 'z5' ? minutes : 0,
+        },
+      };
+    });
+}
+
 interface DayPlanArgs {
   input: PlanInput;
   date: string;
@@ -156,10 +225,26 @@ interface DayPlanArgs {
   hrMax: number;
   e1rmByExercise: Map<string, number>;
   priorPlanned: { date: string; blocks: SessionBlock[] }[];
+  /**
+   * The earlier days of this week's projection, as if they had been logged.
+   *
+   * Without these, every projected day recomputes the weekly dose from real
+   * history alone, sees "no VO2 session yet this week", and picks VO2 — six days
+   * running. A projected week has to accumulate against itself or it is not a
+   * week, it is the same day drawn seven times.
+   */
+  projected: { sessions: SessionLog[]; cardio: CardioLog[] };
 }
 
 function planDay(args: DayPlanArgs): { session: PrescribedSession; ledger: Ledger; deload: DeloadState } {
-  const { input, date, isToday, hrMax, e1rmByExercise, priorPlanned } = args;
+  const { input, date, isToday, hrMax, e1rmByExercise, priorPlanned, projected } = args;
+
+  // Real history plus whatever this week's earlier projected days imply. Used
+  // for the ledger, the weekly dose and the session-type choice. Predictions
+  // deliberately keep using REAL history only — projecting a load off a load we
+  // projected yesterday compounds a guess into a number Seth would read as fact.
+  const effectiveHistory = [...input.history, ...projected.sessions];
+  const effectiveCardio = [...input.cardio_history, ...projected.cardio];
 
   // ── Readiness ──────────────────────────────────────────────────────────────
   const readiness: ReadinessAssessment = isToday
@@ -174,7 +259,7 @@ function planDay(args: DayPlanArgs): { session: PrescribedSession; ledger: Ledge
   // ── Ledger, including whatever the earlier days of the week have planned ───
   let ledger = buildLedger({
     today: date,
-    history: input.history,
+    history: effectiveHistory,
     exercises: input.exercises,
     e1rmByExercise,
   });
@@ -199,14 +284,14 @@ function planDay(args: DayPlanArgs): { session: PrescribedSession; ledger: Ledge
     today: date,
     ouraHistory: input.oura_history,
     selfReports: input.recent_self_reports,
-    history: input.history,
+    history: effectiveHistory,
   });
 
   // ── Weekly dose and session type ───────────────────────────────────────────
   const dose = weeklyDose({
     today: date,
-    history: input.history,
-    cardioHistory: input.cardio_history,
+    history: effectiveHistory,
+    cardioHistory: effectiveCardio,
     exercises: input.exercises,
   });
 
@@ -215,8 +300,8 @@ function planDay(args: DayPlanArgs): { session: PrescribedSession; ledger: Ledge
     readiness,
     dose,
     ledger,
-    history: input.history,
-    cardioHistory: input.cardio_history,
+    history: effectiveHistory,
+    cardioHistory: effectiveCardio,
     injuries: input.injuries,
     goal: input.goals.mode,
     budgetMin: input.budget_min,
