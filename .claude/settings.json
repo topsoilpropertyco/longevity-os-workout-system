@@ -1,0 +1,7 @@
+{
+  "model": "opusplan",
+  "effortLevel": "high",
+  "advisorModel": "opus",
+  "plansDirectory": "./.claude/plans",
+  "fallbackModel": ["sonnet", "haiku"]
+}

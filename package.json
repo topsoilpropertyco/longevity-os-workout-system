@@ -1,0 +1,33 @@
+{
+  "name": "longevity-os",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Seth's personal training brain \u2014 decides today's session from Oura, time, location, and history.",
+  "workspaces": [
+    "packages/*",
+    "apps/*",
+    "worker"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "npm run dev --workspace=@longevity/web",
+    "build": "npm run build --workspace=@longevity/engine && npm run build --workspace=@longevity/web",
+    "test": "npm run test --workspace=@longevity/engine",
+    "test:watch": "npm run test:watch --workspace=@longevity/engine",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "lint": "npm run lint --workspaces --if-present",
+    "ingest:exercises": "tsx scripts/ingest-exercises.ts",
+    "ingest:kot": "tsx scripts/ingest-kot.ts",
+    "check": "npm run check:contracts && npm run typecheck && npm run test && npm run check:data",
+    "check:contracts": "tsx scripts/check-contracts.ts",
+    "check:data": "tsx scripts/validate-data.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
+  }
+}
