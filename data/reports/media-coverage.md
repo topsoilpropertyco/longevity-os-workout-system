@@ -30,10 +30,10 @@ An exercise counts once per equipment slug it can be performed with.
 
 | Equipment | Exercises | GIF | Static only | None | GIF % |
 | --- | ---: | ---: | ---: | ---: | ---: |
-| `bodyweight` | 529 | 376 | 153 | 0 | 71.1% |
+| `bodyweight` | 523 | 371 | 152 | 0 | 70.9% |
 | `dumbbell` | 389 | 305 | 84 | 0 | 78.4% |
 | `barbell` | 282 | 174 | 108 | 0 | 61.7% |
-| `cable_machine` | 223 | 176 | 47 | 0 | 78.9% |
+| `cable_machine` | 222 | 175 | 47 | 0 | 78.8% |
 | `selectorized_machine` | 136 | 101 | 35 | 0 | 74.3% |
 | `kettlebell` | 81 | 41 | 37 | 3 | 50.6% |
 | `resistance_bands` | 81 | 64 | 17 | 0 | 79.0% |
@@ -51,13 +51,18 @@ An exercise counts once per equipment slug it can be performed with.
 | `track_or_open_space` | 5 | 0 | 5 | 0 | 0.0% |
 | `dip_station` | 4 | 2 | 2 | 0 | 50.0% |
 | `bosu` | 3 | 3 | 0 | 0 | 100.0% |
+| `ab_wheel` | 2 | 2 | 0 | 0 | 100.0% |
 | `jump_rope` | 2 | 1 | 1 | 0 | 50.0% |
+| `sledgehammer` | 2 | 1 | 1 | 0 | 50.0% |
 | `stationary_bike` | 2 | 1 | 1 | 0 | 50.0% |
 | `wall_space` | 2 | 1 | 1 | 0 | 50.0% |
+| `arm_ergometer` | 1 | 1 | 0 | 0 | 100.0% |
 | `back_extension_bench` | 1 | 1 | 0 | 0 | 100.0% |
+| `battle_rope` | 1 | 1 | 0 | 0 | 100.0% |
 | `elliptical` | 1 | 1 | 0 | 0 | 100.0% |
 | `ski_erg` | 1 | 1 | 0 | 0 | 100.0% |
 | `stair_climber` | 1 | 1 | 0 | 0 | 100.0% |
+| `tire` | 1 | 1 | 0 | 0 | 100.0% |
 | `trap_bar` | 1 | 1 | 0 | 0 | 100.0% |
 | `treadmill` | 1 | 0 | 1 | 0 | 0.0% |
 
@@ -135,11 +140,7 @@ Values the source datasets use that have no canonical equivalent in `packages/en
 
 | Source | Value | Rows | Example |
 | --- | --- | ---: | --- |
-| gym-visual | `hammer` | 1 | Sledge Hammer |
 | gym-visual | `rope` | 10 | Battling Ropes |
-| gym-visual | `tire` | 1 | Tire Flip |
-| gym-visual | `upper body ergometer` | 1 | Hands Bike |
-| gym-visual | `wheel roller` | 2 | Standing Wheel Rollerout |
 
 _Every source muscle mapped to a region._
 

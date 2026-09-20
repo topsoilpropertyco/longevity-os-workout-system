@@ -9002,7 +9002,7 @@
     "barbell_free": true,
     "eccentric_dominant": false,
     "equipment": [
-      "cable_machine"
+      "battle_rope"
     ],
     "force": "push",
     "id": "battling-ropes",
@@ -9013,7 +9013,7 @@
       "Continue alternating your left and right arms, whipping the ropes up and down as fast as you can."
     ],
     "level": "beginner",
-    "load_style": "stack",
+    "load_style": "bodyweight",
     "mechanic": "compound",
     "media": {
       "attribution": "© Gym visual — https://gymvisual.com/",
@@ -36594,7 +36594,7 @@
     "barbell_free": true,
     "eccentric_dominant": false,
     "equipment": [
-      "bodyweight"
+      "arm_ergometer"
     ],
     "force": "unknown",
     "id": "hands-bike",
@@ -60826,7 +60826,7 @@
     "barbell_free": true,
     "eccentric_dominant": false,
     "equipment": [
-      "bodyweight"
+      "sledgehammer"
     ],
     "force": "unknown",
     "id": "sledge-hammer",
@@ -60863,7 +60863,7 @@
     "barbell_free": true,
     "eccentric_dominant": false,
     "equipment": [
-      "bodyweight"
+      "sledgehammer"
     ],
     "force": "pull",
     "id": "sledgehammer-swings",
@@ -60874,7 +60874,7 @@
       "Repeat on the other side."
     ],
     "level": "beginner",
-    "load_style": "bodyweight",
+    "load_style": "single_implement",
     "mechanic": "compound",
     "media": {
       "image_urls": [
@@ -66481,7 +66481,7 @@
     "barbell_free": true,
     "eccentric_dominant": false,
     "equipment": [
-      "bodyweight"
+      "ab_wheel"
     ],
     "force": "unknown",
     "id": "standing-wheel-rollerout",
@@ -68038,7 +68038,7 @@
     "barbell_free": true,
     "eccentric_dominant": false,
     "equipment": [
-      "bodyweight"
+      "tire"
     ],
     "force": "pull",
     "id": "tire-flip",
@@ -71172,7 +71172,7 @@
     "barbell_free": true,
     "eccentric_dominant": false,
     "equipment": [
-      "bodyweight"
+      "ab_wheel"
     ],
     "force": "unknown",
     "id": "wheel-rollerout",

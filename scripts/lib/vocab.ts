@@ -68,15 +68,18 @@ export const GYM_VISUAL_EQUIPMENT: Record<string, Equipment[] | null> = {
   'bosu ball': ['bosu'],
   'medicine ball': ['medicine_ball'],
   roller: ['foam_roller'],
-  rope: null, // mixed bag: battle ropes, jump rope, stretching strap — see hints
-  'wheel roller': null, // ab wheel — no canonical slug yet (AUDIT: add one?)
-  hammer: null, // sledgehammer — not in our equipment universe
-  tire: null, // tire flip — not in our equipment universe
+  // Still null: Gym Visual's `rope` covers battle ropes, jump ropes and
+  // stretching straps, so the NAME hints below decide which. A blanket mapping
+  // here would call a jump rope a battle rope.
+  rope: null,
+  'wheel roller': ['ab_wheel'],
+  hammer: ['sledgehammer'],
+  tire: ['tire'],
   'stationary bike': ['stationary_bike'],
   'elliptical machine': ['elliptical'],
   'stepmill machine': ['stair_climber'],
   'skierg machine': ['ski_erg'],
-  'upper body ergometer': null, // arm bike — no canonical slug (AUDIT: add one?)
+  'upper body ergometer': ['arm_ergometer'],
 };
 
 /**
@@ -96,7 +99,11 @@ export const NAME_EQUIPMENT_HINTS: { pattern: RegExp; equipment: Equipment[] }[]
   { pattern: /\brecumbent\b/, equipment: ['recumbent_bike'] },
   { pattern: /\b(bicycling|stationary bike|spin bike)\b/, equipment: ['stationary_bike'] },
   { pattern: /\b(jump rope|rope jumping|skipping rope)\b/, equipment: ['jump_rope'] },
-  { pattern: /\bbattl(e|ing) ropes?\b/, equipment: ['cable_machine'] },
+  { pattern: /\bbattl(e|ing) ropes?\b/, equipment: ['battle_rope'] },
+  { pattern: /\b(ab wheel|wheel rollout|wheel roller)\b/, equipment: ['ab_wheel'] },
+  { pattern: /\b(sledgehammer|sledge hammer|hammer (swing|strike))\b/, equipment: ['sledgehammer'] },
+  { pattern: /\btire (flip|strike|jump)\b/, equipment: ['tire'] },
+  { pattern: /\b(upper body ergometer|arm (bike|ergometer)|ubo)\b/, equipment: ['arm_ergometer'] },
   { pattern: /\bslant ?board\b/, equipment: ['slant_board'] },
   { pattern: /\btib(ialis)? bar\b/, equipment: ['tibialis_bar'] },
   { pattern: /\b(box jump|depth jump|step[- ]?up onto a box|plyo box)\b/, equipment: ['plyo_box'] },
