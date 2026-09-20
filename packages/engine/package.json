@@ -1,0 +1,27 @@
+{
+  "name": "@longevity/engine",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Deterministic rules engine \u2014 owns every prescription in the Longevity OS.",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "coverage": "vitest run --coverage",
+    "clean:stale": "node -e \"const{readdirSync,statSync,rmSync}=require('fs'),{join}=require('path');const walk=d=>{for(const e of readdirSync(d)){const p=join(d,e);if(statSync(p).isDirectory()){if(e!=='node_modules')walk(p)}else if(/\\.(js|d\\.ts|js\\.map|d\\.ts\\.map)$/.test(e)){rmSync(p);console.log('removed stale artifact',p)}}};for(const d of ['src','fixtures','test'])walk(d)\"",
+    "pretest": "npm run clean:stale",
+    "pretypecheck": "npm run clean:stale",
+    "prebuild": "npm run clean:stale"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
+  }
+}

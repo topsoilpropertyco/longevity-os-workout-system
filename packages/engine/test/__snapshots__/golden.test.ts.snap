@@ -1,0 +1,1149 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`golden plans > cold_start is unchanged 1`] = `
+{
+  "blocked_regions": [],
+  "signature": "dfc2c574",
+  "today": {
+    "blocks": [
+      {
+        "cardio": undefined,
+        "exercises": [],
+        "kind": "warmup",
+        "minutes": 5,
+        "title": "Warm-up",
+      },
+      {
+        "cardio": undefined,
+        "exercises": [
+          {
+            "id": "bird-dog",
+            "load_lb": 0,
+            "reps": 10,
+            "rpe": 8,
+            "sets": 3,
+          },
+          {
+            "id": "mcgill-curl-up",
+            "load_lb": 0,
+            "reps": 10,
+            "rpe": 8,
+            "sets": 3,
+          },
+        ],
+        "kind": "strength",
+        "minutes": 9.5,
+        "title": "Core",
+      },
+      {
+        "cardio": undefined,
+        "exercises": [
+          {
+            "id": "mcgill-curl-up",
+            "load_lb": 0,
+            "reps": 8,
+            "rpe": 8,
+            "sets": 2,
+          },
+          {
+            "id": "side-plank",
+            "load_lb": 0,
+            "reps": 8,
+            "rpe": 8,
+            "sets": 2,
+          },
+          {
+            "id": "bird-dog",
+            "load_lb": 0,
+            "reps": 8,
+            "rpe": 8,
+            "sets": 2,
+          },
+        ],
+        "kind": "mobility",
+        "minutes": 8.79,
+        "title": "McGill Big 3",
+      },
+      {
+        "cardio": undefined,
+        "exercises": [
+          {
+            "id": "couch-stretch",
+            "load_lb": 0,
+            "reps": 8,
+            "rpe": 8,
+            "sets": 2,
+          },
+          {
+            "id": "deep-squat-hold",
+            "load_lb": 0,
+            "reps": 8,
+            "rpe": 8,
+            "sets": 2,
+          },
+        ],
+        "kind": "mobility",
+        "minutes": 5.86,
+        "title": "Mobility",
+      },
+      {
+        "cardio": {
+          "bpm": [
+            164,
+            177,
+          ],
+          "minutes": 32,
+          "modality": "run",
+          "structure": "intervals",
+        },
+        "exercises": [],
+        "kind": "conditioning",
+        "minutes": 32,
+        "title": "8 × 2 min",
+      },
+      {
+        "cardio": undefined,
+        "exercises": [],
+        "kind": "cooldown",
+        "minutes": 5,
+        "title": "Cool-down",
+      },
+    ],
+    "date": "2026-09-22",
+    "deload": false,
+    "estimated_min": 66.2,
+    "readiness": {
+      "band": "as_planned",
+      "score": 75,
+      "source": "default",
+    },
+    "title": "VO2 intervals",
+    "type": "vo2",
+    "why": "VO2 day. Readiness 75 — run it as written. The single highest-leverage session for lifespan. 30 minutes.",
+  },
+  "warnings": [
+    "Session estimates 66 min against a 30 min budget.",
+  ],
+  "week": [
+    {
+      "date": "2026-09-22",
+      "minutes": 66.2,
+      "type": "vo2",
+    },
+    {
+      "date": "2026-09-23",
+      "minutes": 56.7,
+      "type": "vo2",
+    },
+    {
+      "date": "2026-09-24",
+      "minutes": 56.7,
+      "type": "vo2",
+    },
+    {
+      "date": "2026-09-25",
+      "minutes": 56.7,
+      "type": "vo2",
+    },
+    {
+      "date": "2026-09-26",
+      "minutes": 56.7,
+      "type": "vo2",
+    },
+    {
+      "date": "2026-09-27",
+      "minutes": 56.7,
+      "type": "vo2",
+    },
+    {
+      "date": "2026-09-28",
+      "minutes": 56.7,
+      "type": "vo2",
+    },
+  ],
+  "weekly": {
+    "mobility_sessions": 0,
+    "plyo_contacts": 0,
+    "sessions": 0,
+    "steps_avg": undefined,
+    "strength_min": 0,
+    "strength_target_min": [
+      60,
+      120,
+    ],
+    "tonnage_lb": 0,
+    "vo2_sessions": 0,
+    "zone2_ceiling_min": 60,
+    "zone2_min": 0,
+    "zone2_target_min": 180,
+  },
+}
+`;
+
+exports[`golden plans > fifteen_min_home is unchanged 1`] = `
+{
+  "blocked_regions": [],
+  "signature": "5b6955bc",
+  "today": {
+    "blocks": [
+      {
+        "cardio": undefined,
+        "exercises": [],
+        "kind": "warmup",
+        "minutes": 3,
+        "title": "Warm-up",
+      },
+      {
+        "cardio": undefined,
+        "exercises": [
+          {
+            "id": "backward-walk",
+            "load_lb": 0,
+            "reps": 10,
+            "rpe": 8,
+            "sets": 3,
+          },
+          {
+            "id": "tibialis-raise",
+            "load_lb": 0,
+            "reps": 10,
+            "rpe": 8,
+            "sets": 3,
+          },
+        ],
+        "kind": "program",
+        "minutes": 9.5,
+        "title": "Knees Over Toes — ground up",
+      },
+      {
+        "cardio": undefined,
+        "exercises": [],
+        "kind": "cooldown",
+        "minutes": 2,
+        "title": "Cool-down",
+      },
+    ],
+    "date": "2026-09-22",
+    "deload": false,
+    "estimated_min": 14.5,
+    "readiness": {
+      "band": "as_planned",
+      "score": 78.7,
+      "source": "blend",
+    },
+    "title": "Knees Over Toes",
+    "type": "kot",
+    "why": "Knees Over Toes. Readiness 79 — run it as written. 0/3 KOT sessions done this week. 15 minutes.",
+  },
+  "warnings": [],
+  "week": [
+    {
+      "date": "2026-09-22",
+      "minutes": 14.5,
+      "type": "kot",
+    },
+    {
+      "date": "2026-09-23",
+      "minutes": 14.5,
+      "type": "kot",
+    },
+    {
+      "date": "2026-09-24",
+      "minutes": 14.5,
+      "type": "kot",
+    },
+    {
+      "date": "2026-09-25",
+      "minutes": 14.5,
+      "type": "kot",
+    },
+    {
+      "date": "2026-09-26",
+      "minutes": 14.5,
+      "type": "kot",
+    },
+    {
+      "date": "2026-09-27",
+      "minutes": 14.5,
+      "type": "kot",
+    },
+    {
+      "date": "2026-09-28",
+      "minutes": 14.5,
+      "type": "kot",
+    },
+  ],
+  "weekly": {
+    "mobility_sessions": 0,
+    "plyo_contacts": 0,
+    "sessions": 1,
+    "steps_avg": 7500,
+    "strength_min": 40,
+    "strength_target_min": [
+      60,
+      120,
+    ],
+    "tonnage_lb": 10950,
+    "vo2_sessions": 0,
+    "zone2_ceiling_min": 55,
+    "zone2_min": 25,
+    "zone2_target_min": 180,
+  },
+}
+`;
+
+exports[`golden plans > high_readiness is unchanged 1`] = `
+{
+  "blocked_regions": [],
+  "signature": "61a08b01",
+  "today": {
+    "blocks": [
+      {
+        "cardio": undefined,
+        "exercises": [],
+        "kind": "warmup",
+        "minutes": 5,
+        "title": "Warm-up",
+      },
+      {
+        "cardio": undefined,
+        "exercises": [
+          {
+            "id": "backward-walk",
+            "load_lb": 0,
+            "reps": 10,
+            "rpe": 8,
+            "sets": 4,
+          },
+          {
+            "id": "tibialis-raise",
+            "load_lb": 0,
+            "reps": 10,
+            "rpe": 8,
+            "sets": 4,
+          },
+          {
+            "id": "patrick-step",
+            "load_lb": 0,
+            "reps": 10,
+            "rpe": 8,
+            "sets": 4,
+          },
+          {
+            "id": "atg-split-squat",
+            "load_lb": 55,
+            "reps": 10,
+            "rpe": 8,
+            "sets": 4,
+          },
+          {
+            "id": "deep-squat-hold",
+            "load_lb": 0,
+            "reps": 10,
+            "rpe": 8,
+            "sets": 4,
+          },
+        ],
+        "kind": "program",
+        "minutes": 31.65,
+        "title": "Knees Over Toes — ground up",
+      },
+      {
+        "cardio": undefined,
+        "exercises": [
+          {
+            "id": "atg-split-squat",
+            "load_lb": 55,
+            "reps": 10,
+            "rpe": 8,
+            "sets": 4,
+          },
+          {
+            "id": "nordic-curl",
+            "load_lb": 0,
+            "reps": 10,
+            "rpe": 8,
+            "sets": 3,
+          },
+        ],
+        "kind": "strength",
+        "minutes": 11.08,
+        "title": "Upper body — pairs with the knee work",
+      },
+      {
+        "cardio": undefined,
+        "exercises": [],
+        "kind": "cooldown",
+        "minutes": 5,
+        "title": "Cool-down",
+      },
+    ],
+    "date": "2026-09-22",
+    "deload": false,
+    "estimated_min": 52.7,
+    "readiness": {
+      "band": "push",
+      "score": 94.4,
+      "source": "blend",
+    },
+    "title": "Knees Over Toes",
+    "type": "kot",
+    "why": "Knees Over Toes. Readiness 94 — green light, take the extra set. 0/3 KOT sessions done this week. 45 minutes.",
+  },
+  "warnings": [],
+  "week": [
+    {
+      "date": "2026-09-22",
+      "minutes": 52.7,
+      "type": "kot",
+    },
+    {
+      "date": "2026-09-23",
+      "minutes": 62.2,
+      "type": "vo2",
+    },
+    {
+      "date": "2026-09-24",
+      "minutes": 52.7,
+      "type": "vo2",
+    },
+    {
+      "date": "2026-09-25",
+      "minutes": 52.7,
+      "type": "vo2",
+    },
+    {
+      "date": "2026-09-26",
+      "minutes": 52.7,
+      "type": "vo2",
+    },
+    {
+      "date": "2026-09-27",
+      "minutes": 52.7,
+      "type": "vo2",
+    },
+    {
+      "date": "2026-09-28",
+      "minutes": 52.7,
+      "type": "vo2",
+    },
+  ],
+  "weekly": {
+    "mobility_sessions": 0,
+    "plyo_contacts": 0,
+    "sessions": 1,
+    "steps_avg": 7500,
+    "strength_min": 40,
+    "strength_target_min": [
+      60,
+      120,
+    ],
+    "tonnage_lb": 10950,
+    "vo2_sessions": 0,
+    "zone2_ceiling_min": 55,
+    "zone2_min": 25,
+    "zone2_target_min": 180,
+  },
+}
+`;
+
+exports[`golden plans > injury_flare is unchanged 1`] = `
+{
+  "blocked_regions": [],
+  "signature": "1a29bf8a",
+  "today": {
+    "blocks": [
+      {
+        "cardio": undefined,
+        "exercises": [],
+        "kind": "warmup",
+        "minutes": 5,
+        "title": "Warm-up",
+      },
+      {
+        "cardio": undefined,
+        "exercises": [
+          {
+            "id": "backward-walk",
+            "load_lb": 0,
+            "reps": 10,
+            "rpe": 8,
+            "sets": 3,
+          },
+          {
+            "id": "tibialis-raise",
+            "load_lb": 0,
+            "reps": 10,
+            "rpe": 8,
+            "sets": 3,
+          },
+          {
+            "id": "patrick-step",
+            "load_lb": 0,
+            "reps": 10,
+            "rpe": 8,
+            "sets": 3,
+          },
+          {
+            "id": "atg-split-squat",
+            "load_lb": 55,
+            "reps": 10,
+            "rpe": 8,
+            "sets": 3,
+          },
+          {
+            "id": "deep-squat-hold",
+            "load_lb": 0,
+            "reps": 10,
+            "rpe": 8,
+            "sets": 3,
+          },
+        ],
+        "kind": "program",
+        "minutes": 23.75,
+        "title": "Knees Over Toes — ground up",
+      },
+      {
+        "cardio": undefined,
+        "exercises": [
+          {
+            "id": "atg-split-squat",
+            "load_lb": 55,
+            "reps": 10,
+            "rpe": 8,
+            "sets": 3,
+          },
+          {
+            "id": "nordic-curl",
+            "load_lb": 0,
+            "reps": 10,
+            "rpe": 8,
+            "sets": 3,
+          },
+        ],
+        "kind": "strength",
+        "minutes": 9.5,
+        "title": "Upper body — pairs with the knee work",
+      },
+      {
+        "cardio": undefined,
+        "exercises": [
+          {
+            "id": "bird-dog",
+            "load_lb": 0,
+            "reps": 10,
+            "rpe": 8,
+            "sets": 3,
+          },
+          {
+            "id": "mcgill-curl-up",
+            "load_lb": 0,
+            "reps": 10,
+            "rpe": 8,
+            "sets": 3,
+          },
+        ],
+        "kind": "strength",
+        "minutes": 9.5,
+        "title": "Core",
+      },
+      {
+        "cardio": undefined,
+        "exercises": [],
+        "kind": "cooldown",
+        "minutes": 5,
+        "title": "Cool-down",
+      },
+    ],
+    "date": "2026-09-22",
+    "deload": false,
+    "estimated_min": 52.8,
+    "readiness": {
+      "band": "as_planned",
+      "score": 77.9,
+      "source": "blend",
+    },
+    "title": "Knees Over Toes",
+    "type": "kot",
+    "why": "Knees Over Toes. Readiness 78 — run it as written. 0/3 KOT sessions done this week. 45 minutes.",
+  },
+  "warnings": [],
+  "week": [
+    {
+      "date": "2026-09-22",
+      "minutes": 52.8,
+      "type": "kot",
+    },
+    {
+      "date": "2026-09-23",
+      "minutes": 52.7,
+      "type": "vo2",
+    },
+    {
+      "date": "2026-09-24",
+      "minutes": 52.7,
+      "type": "vo2",
+    },
+    {
+      "date": "2026-09-25",
+      "minutes": 52.7,
+      "type": "vo2",
+    },
+    {
+      "date": "2026-09-26",
+      "minutes": 52.7,
+      "type": "vo2",
+    },
+    {
+      "date": "2026-09-27",
+      "minutes": 52.7,
+      "type": "vo2",
+    },
+    {
+      "date": "2026-09-28",
+      "minutes": 52.7,
+      "type": "vo2",
+    },
+  ],
+  "weekly": {
+    "mobility_sessions": 0,
+    "plyo_contacts": 0,
+    "sessions": 1,
+    "steps_avg": 7500,
+    "strength_min": 40,
+    "strength_target_min": [
+      60,
+      120,
+    ],
+    "tonnage_lb": 10950,
+    "vo2_sessions": 0,
+    "zone2_ceiling_min": 55,
+    "zone2_min": 25,
+    "zone2_target_min": 180,
+  },
+}
+`;
+
+exports[`golden plans > low_readiness is unchanged 1`] = `
+{
+  "blocked_regions": [],
+  "signature": "57616249",
+  "today": {
+    "blocks": [
+      {
+        "cardio": undefined,
+        "exercises": [
+          {
+            "id": "mcgill-curl-up",
+            "load_lb": 0,
+            "reps": 8,
+            "rpe": 4,
+            "sets": 2,
+          },
+          {
+            "id": "side-plank",
+            "load_lb": 0,
+            "reps": 8,
+            "rpe": 4,
+            "sets": 2,
+          },
+          {
+            "id": "bird-dog",
+            "load_lb": 0,
+            "reps": 8,
+            "rpe": 4,
+            "sets": 2,
+          },
+        ],
+        "kind": "mobility",
+        "minutes": 8.79,
+        "title": "McGill Big 3",
+      },
+      {
+        "cardio": undefined,
+        "exercises": [
+          {
+            "id": "couch-stretch",
+            "load_lb": 0,
+            "reps": 8,
+            "rpe": 4,
+            "sets": 2,
+          },
+          {
+            "id": "deep-squat-hold",
+            "load_lb": 0,
+            "reps": 8,
+            "rpe": 4,
+            "sets": 2,
+          },
+          {
+            "id": "elephant-walk",
+            "load_lb": 0,
+            "reps": 8,
+            "rpe": 4,
+            "sets": 2,
+          },
+          {
+            "id": "thoracic-opener",
+            "load_lb": 0,
+            "reps": 8,
+            "rpe": 4,
+            "sets": 2,
+          },
+        ],
+        "kind": "mobility",
+        "minutes": 11.72,
+        "title": "Recovery",
+      },
+      {
+        "cardio": {
+          "bpm": [
+            93,
+            112,
+          ],
+          "minutes": 30,
+          "modality": "walk",
+          "structure": "steady",
+        },
+        "exercises": [],
+        "kind": "zone2",
+        "minutes": 30,
+        "title": "Easy walk",
+      },
+    ],
+    "date": "2026-09-22",
+    "deload": true,
+    "estimated_min": 50.5,
+    "readiness": {
+      "band": "recovery",
+      "score": 44.8,
+      "source": "blend",
+    },
+    "title": "Recovery",
+    "type": "recovery",
+    "why": "Recovery day. Deload week — 7-day readiness averaging 62 — below 65.. Readiness 45 — today is mobility, an easy walk, and breathing. 45 minutes.",
+  },
+  "warnings": [],
+  "week": [
+    {
+      "date": "2026-09-22",
+      "minutes": 50.5,
+      "type": "recovery",
+    },
+    {
+      "date": "2026-09-23",
+      "minutes": 50,
+      "type": "kot",
+    },
+    {
+      "date": "2026-09-24",
+      "minutes": 55,
+      "type": "strength",
+    },
+    {
+      "date": "2026-09-25",
+      "minutes": 52.8,
+      "type": "strength",
+    },
+    {
+      "date": "2026-09-26",
+      "minutes": 52.7,
+      "type": "vo2",
+    },
+    {
+      "date": "2026-09-27",
+      "minutes": 52.7,
+      "type": "vo2",
+    },
+    {
+      "date": "2026-09-28",
+      "minutes": 52.7,
+      "type": "vo2",
+    },
+  ],
+  "weekly": {
+    "mobility_sessions": 0,
+    "plyo_contacts": 0,
+    "sessions": 1,
+    "steps_avg": 7500,
+    "strength_min": 40,
+    "strength_target_min": [
+      60,
+      120,
+    ],
+    "tonnage_lb": 10950,
+    "vo2_sessions": 0,
+    "zone2_ceiling_min": 55,
+    "zone2_min": 25,
+    "zone2_target_min": 180,
+  },
+}
+`;
+
+exports[`golden plans > ninety_min_pf is unchanged 1`] = `
+{
+  "blocked_regions": [],
+  "signature": "bb3a32d4",
+  "today": {
+    "blocks": [
+      {
+        "cardio": undefined,
+        "exercises": [],
+        "kind": "warmup",
+        "minutes": 5,
+        "title": "Warm-up",
+      },
+      {
+        "cardio": undefined,
+        "exercises": [
+          {
+            "id": "backward-walk",
+            "load_lb": 0,
+            "reps": 6,
+            "rpe": 9,
+            "sets": 4,
+          },
+          {
+            "id": "tibialis-raise",
+            "load_lb": 0,
+            "reps": 6,
+            "rpe": 9,
+            "sets": 4,
+          },
+          {
+            "id": "patrick-step",
+            "load_lb": 0,
+            "reps": 6,
+            "rpe": 9,
+            "sets": 4,
+          },
+          {
+            "id": "atg-split-squat",
+            "load_lb": 60,
+            "reps": 6,
+            "rpe": 9,
+            "sets": 4,
+          },
+          {
+            "id": "deep-squat-hold",
+            "load_lb": 0,
+            "reps": 6,
+            "rpe": 9,
+            "sets": 4,
+          },
+        ],
+        "kind": "program",
+        "minutes": 42,
+        "title": "Knees Over Toes — ground up",
+      },
+      {
+        "cardio": undefined,
+        "exercises": [
+          {
+            "id": "atg-split-squat",
+            "load_lb": 60,
+            "reps": 6,
+            "rpe": 9,
+            "sets": 4,
+          },
+          {
+            "id": "leg-press",
+            "load_lb": 20,
+            "reps": 6,
+            "rpe": 8,
+            "sets": 3,
+          },
+          {
+            "id": "nordic-curl",
+            "load_lb": 0,
+            "reps": 6,
+            "rpe": 8,
+            "sets": 3,
+          },
+          {
+            "id": "assisted-pull-up",
+            "load_lb": 0,
+            "reps": 6,
+            "rpe": 8,
+            "sets": 3,
+          },
+        ],
+        "kind": "strength",
+        "minutes": 26.55,
+        "title": "Upper body — pairs with the knee work",
+      },
+      {
+        "cardio": undefined,
+        "exercises": [
+          {
+            "id": "mcgill-curl-up",
+            "load_lb": 0,
+            "reps": 8,
+            "rpe": 8,
+            "sets": 2,
+          },
+          {
+            "id": "side-plank",
+            "load_lb": 0,
+            "reps": 8,
+            "rpe": 8,
+            "sets": 2,
+          },
+          {
+            "id": "bird-dog",
+            "load_lb": 0,
+            "reps": 8,
+            "rpe": 8,
+            "sets": 2,
+          },
+        ],
+        "kind": "mobility",
+        "minutes": 11.79,
+        "title": "McGill Big 3",
+      },
+      {
+        "cardio": undefined,
+        "exercises": [
+          {
+            "id": "couch-stretch",
+            "load_lb": 0,
+            "reps": 8,
+            "rpe": 8,
+            "sets": 2,
+          },
+          {
+            "id": "deep-squat-hold",
+            "load_lb": 0,
+            "reps": 8,
+            "rpe": 8,
+            "sets": 2,
+          },
+        ],
+        "kind": "mobility",
+        "minutes": 7.86,
+        "title": "Mobility",
+      },
+      {
+        "cardio": undefined,
+        "exercises": [],
+        "kind": "cooldown",
+        "minutes": 5,
+        "title": "Cool-down",
+      },
+    ],
+    "date": "2026-09-22",
+    "deload": false,
+    "estimated_min": 98.2,
+    "readiness": {
+      "band": "as_planned",
+      "score": 82.9,
+      "source": "blend",
+    },
+    "title": "Knees Over Toes",
+    "type": "kot",
+    "why": "Knees Over Toes. Readiness 83 — run it as written. 0/3 KOT sessions done this week. 90 minutes.",
+  },
+  "warnings": [],
+  "week": [
+    {
+      "date": "2026-09-22",
+      "minutes": 98.2,
+      "type": "kot",
+    },
+    {
+      "date": "2026-09-23",
+      "minutes": 57.7,
+      "type": "vo2",
+    },
+    {
+      "date": "2026-09-24",
+      "minutes": 56.2,
+      "type": "strength",
+    },
+    {
+      "date": "2026-09-25",
+      "minutes": 38.1,
+      "type": "strength",
+    },
+    {
+      "date": "2026-09-26",
+      "minutes": 56.2,
+      "type": "strength",
+    },
+    {
+      "date": "2026-09-27",
+      "minutes": 38.1,
+      "type": "strength",
+    },
+    {
+      "date": "2026-09-28",
+      "minutes": 56.2,
+      "type": "strength",
+    },
+  ],
+  "weekly": {
+    "mobility_sessions": 0,
+    "plyo_contacts": 0,
+    "sessions": 1,
+    "steps_avg": 7500,
+    "strength_min": 40,
+    "strength_target_min": [
+      60,
+      120,
+    ],
+    "tonnage_lb": 10950,
+    "vo2_sessions": 0,
+    "zone2_ceiling_min": 55,
+    "zone2_min": 25,
+    "zone2_target_min": 180,
+  },
+}
+`;
+
+exports[`the worked example in docs/ENGINE.md > is unchanged 1`] = `
+{
+  "blocked_regions": [],
+  "signature": "3a850454",
+  "today": {
+    "blocks": [
+      {
+        "cardio": undefined,
+        "exercises": [],
+        "kind": "warmup",
+        "minutes": 5,
+        "title": "Warm-up",
+      },
+      {
+        "cardio": undefined,
+        "exercises": [
+          {
+            "id": "backward-walk",
+            "load_lb": 0,
+            "reps": 10,
+            "rpe": 8,
+            "sets": 3,
+          },
+          {
+            "id": "tibialis-raise",
+            "load_lb": 0,
+            "reps": 10,
+            "rpe": 8,
+            "sets": 3,
+          },
+          {
+            "id": "patrick-step",
+            "load_lb": 0,
+            "reps": 10,
+            "rpe": 8,
+            "sets": 3,
+          },
+          {
+            "id": "atg-split-squat",
+            "load_lb": 55,
+            "reps": 10,
+            "rpe": 8,
+            "sets": 3,
+          },
+          {
+            "id": "deep-squat-hold",
+            "load_lb": 0,
+            "reps": 10,
+            "rpe": 8,
+            "sets": 3,
+          },
+        ],
+        "kind": "program",
+        "minutes": 23.75,
+        "title": "Knees Over Toes — ground up",
+      },
+      {
+        "cardio": undefined,
+        "exercises": [
+          {
+            "id": "bird-dog",
+            "load_lb": 0,
+            "reps": 10,
+            "rpe": 8,
+            "sets": 3,
+          },
+        ],
+        "kind": "strength",
+        "minutes": 4.75,
+        "title": "Core",
+      },
+      {
+        "cardio": undefined,
+        "exercises": [],
+        "kind": "cooldown",
+        "minutes": 5,
+        "title": "Cool-down",
+      },
+    ],
+    "date": "2026-09-22",
+    "deload": false,
+    "estimated_min": 38.5,
+    "readiness": {
+      "band": "as_planned",
+      "score": 72,
+      "source": "oura",
+    },
+    "title": "Knees Over Toes",
+    "type": "kot",
+    "why": "Knees Over Toes. Readiness 72 — run it as written. 0/3 KOT sessions done this week. 30 minutes.",
+  },
+  "warnings": [],
+  "week": [
+    {
+      "date": "2026-09-22",
+      "minutes": 38.5,
+      "type": "kot",
+    },
+    {
+      "date": "2026-09-23",
+      "minutes": 56.7,
+      "type": "vo2",
+    },
+    {
+      "date": "2026-09-24",
+      "minutes": 56.7,
+      "type": "vo2",
+    },
+    {
+      "date": "2026-09-25",
+      "minutes": 56.7,
+      "type": "vo2",
+    },
+    {
+      "date": "2026-09-26",
+      "minutes": 56.7,
+      "type": "vo2",
+    },
+    {
+      "date": "2026-09-27",
+      "minutes": 56.7,
+      "type": "vo2",
+    },
+    {
+      "date": "2026-09-28",
+      "minutes": 56.7,
+      "type": "vo2",
+    },
+  ],
+  "weekly": {
+    "mobility_sessions": 0,
+    "plyo_contacts": 0,
+    "sessions": 1,
+    "steps_avg": 7500,
+    "strength_min": 40,
+    "strength_target_min": [
+      60,
+      120,
+    ],
+    "tonnage_lb": 10950,
+    "vo2_sessions": 0,
+    "zone2_ceiling_min": 55,
+    "zone2_min": 25,
+    "zone2_target_min": 180,
+  },
+}
+`;
