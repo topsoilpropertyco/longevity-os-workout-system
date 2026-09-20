@@ -1,0 +1,469 @@
+{
+  "_note": "BUILT FROM THE PUBLIC KNEES OVER TOES SCAFFOLD, NOT FROM SETH'S OWN PROGRAM. Every step, standard, rep count and progression below was assembled from the publicly described ATG/KOT structure captured in docs/RESEARCH_FOUNDATION.md §7. It is a placeholder so the engine has something real to plan against today. It MUST be reconciled against Seth's own spreadsheets once he drops them in docs/programs/kot/raw/ — run `npx tsx scripts/ingest-kot.ts`, read data/reports/kot-reconciliation.md, and correct this file. Until that happens, do not present this to Seth as his program: it is the public scaffold.",
+  "slug": "kot",
+  "name": "Knees Over Toes (Public Scaffold)",
+  "description": "Ground-up knee resilience work: backward locomotion, then lower legs, then step-ups, then split squat, then deep squat, with upper-body and posterior-chain accessories at the end. Two phases: Zero (bodyweight, no equipment, 3x/week) and Dense (loaded, sled/slant board/tib bar or their substitutions). Standards are expressed as a percentage of bodyweight.",
+  "ordering": "ground_up",
+  "days_per_week": [2, 3],
+  "target_cycles": 2,
+  "source": "public scaffold — RESEARCH_FOUNDATION.md §7",
+  "attribution": "Structure and standards are the publicly described Knees Over Toes / ATG scaffold. Not affiliated with, endorsed by, or licensed from ATG. Replace with Seth's own program data when available.",
+  "_phases": {
+    "zero": {
+      "name": "Zero",
+      "note": "Bodyweight, no equipment, 3x/week. The entry phase — every step here is doable at home with a wall, a low step and a floor.",
+      "step_ids": [
+        "zero-backward-walk",
+        "zero-tib-raise",
+        "zero-fhl-calf-raise",
+        "zero-single-leg-calf-raise",
+        "zero-patrick-step",
+        "zero-atg-split-squat-assisted",
+        "zero-atg-split-squat-flat",
+        "zero-elephant-walk",
+        "zero-couch-stretch",
+        "zero-deep-squat-hold",
+        "zero-l-sit"
+      ]
+    },
+    "dense": {
+      "name": "Dense",
+      "note": "Loaded phase. Adds sled (or its substitute), Poliquin step, Nordic progressions, reverse Nordic, seated good morning, Jefferson curl on a slant board, and the ATG RDL. Each Dense step lists the Zero step it unlocks from.",
+      "step_ids": [
+        "dense-backward-sled",
+        "dense-tib-bar-raise",
+        "dense-single-leg-calf-raise",
+        "dense-poliquin-step",
+        "dense-atg-split-squat",
+        "dense-atg-squat",
+        "dense-atg-rdl",
+        "dense-nordic",
+        "dense-reverse-nordic",
+        "dense-seated-good-morning",
+        "dense-jefferson-curl",
+        "dense-ql-extension",
+        "dense-incline-db-press",
+        "dense-external-rotation",
+        "dense-cross-bench-pullover"
+      ]
+    }
+  },
+  "blocks": [
+    {
+      "id": "backward_locomotion",
+      "name": "Backward Locomotion",
+      "order": 1,
+      "note": "Always first. Backward walking or sled work — 'reverse out knee pain'. No sled at Home or Planet Fitness: substitute a powered-off treadmill or backward walking outdoors."
+    },
+    {
+      "id": "lower_legs",
+      "name": "Lower Legs",
+      "order": 2,
+      "note": "Tibialis and calves before anything loads the knee from above."
+    },
+    {
+      "id": "step_ups",
+      "name": "Step-Ups",
+      "order": 3,
+      "note": "Patrick step then Poliquin step. Knee travels forward over the toes under control."
+    },
+    {
+      "id": "split_squat",
+      "name": "Split Squat",
+      "order": 4,
+      "note": "ATG split squat assisted, then flat, then loaded. Plus the hip and quad length work (elephant walk, couch stretch) that makes full range possible."
+    },
+    {
+      "id": "deep_squat",
+      "name": "Deep Squat",
+      "order": 5,
+      "note": "Full-depth squat holds and loaded ATG squats, plus the L-sit."
+    },
+    {
+      "id": "upper_body_accessory",
+      "name": "Upper Body & Posterior-Chain Accessory",
+      "order": 6,
+      "note": "Performed after the ground-up lower-body sequence: hamstring/low-back work (Nordic, reverse Nordic, ATG RDL, seated good morning, Jefferson curl, QL extension) and the upper-body standards (incline DB press, external rotation, cross-bench pullover)."
+    }
+  ],
+  "steps": [
+    {
+      "id": "zero-backward-walk",
+      "order": 1,
+      "block": "backward_locomotion",
+      "name": "Backward Walking (Zero)",
+      "exercise_slug": "backward-walk-outdoors",
+      "standard_text": "10 minutes of continuous backward walking, 3x/week.",
+      "standard": { "duration_min": 10 },
+      "substitutions": [
+        {
+          "equipment_missing": "outdoor_route",
+          "use_slug": "backward-treadmill-walk",
+          "note": "Planet Fitness or bad weather: walk backwards on a POWERED-OFF treadmill, driving the belt yourself."
+        }
+      ]
+    },
+    {
+      "id": "dense-backward-sled",
+      "order": 2,
+      "block": "backward_locomotion",
+      "name": "Backward Sled Drag (Dense)",
+      "exercise_slug": "backward-sled-drag",
+      "standard_text": "Backward sled drag at roughly 50% bodyweight, 10 minutes of accumulated work.",
+      "standard": { "pct_bodyweight": 0.5, "duration_min": 10 },
+      "prerequisites": ["zero-backward-walk"],
+      "substitutions": [
+        {
+          "equipment_missing": "sled",
+          "use_slug": "backward-treadmill-walk",
+          "note": "Planet Fitness has no sled: backward walking on a powered-off treadmill is the substitute (RESEARCH §2, §7)."
+        },
+        {
+          "equipment_missing": "sled",
+          "use_slug": "backward-walk-outdoors",
+          "note": "Home: backward walking outdoors, in a hallway, or up a gentle incline."
+        }
+      ]
+    },
+    {
+      "id": "zero-tib-raise",
+      "order": 3,
+      "block": "lower_legs",
+      "name": "Tibialis Raise (Zero)",
+      "exercise_slug": "tibialis-raise",
+      "standard_text": "25 unbroken bodyweight tibialis raises against a wall.",
+      "standard": { "reps": 25, "sets": 1 }
+    },
+    {
+      "id": "dense-tib-bar-raise",
+      "order": 4,
+      "block": "lower_legs",
+      "name": "Tib Bar Raise (Dense)",
+      "exercise_slug": "tib-bar-raise",
+      "standard_text": "Tib bar curl at 25% bodyweight for 5 sets of 5.",
+      "standard": { "pct_bodyweight": 0.25, "reps": 5, "sets": 5 },
+      "prerequisites": ["zero-tib-raise"],
+      "substitutions": [
+        {
+          "equipment_missing": "tibialis_bar",
+          "use_slug": "tibialis-raise-dumbbell",
+          "note": "No tib bar at Home or Planet Fitness: stand a dumbbell on end and pinch it between the feet."
+        },
+        {
+          "equipment_missing": "tibialis_bar",
+          "use_slug": "tibialis-raise-band",
+          "note": "Band looped over the forefoot and anchored low in front — the travel version."
+        }
+      ]
+    },
+    {
+      "id": "zero-fhl-calf-raise",
+      "order": 5,
+      "block": "lower_legs",
+      "name": "FHL Calf Raise (Zero)",
+      "exercise_slug": "fhl-calf-raise",
+      "standard_text": "3 sets of 25 bodyweight calf raises pressing through the big toe (flexor hallucis longus emphasis).",
+      "standard": { "reps": 25, "sets": 3 }
+    },
+    {
+      "id": "zero-single-leg-calf-raise",
+      "order": 6,
+      "block": "lower_legs",
+      "name": "Single-Leg Calf Raise (Zero)",
+      "exercise_slug": "single-leg-calf-raise",
+      "standard_text": "3 sets of 10 bodyweight single-leg calf raises per side, full stretch at the bottom.",
+      "standard": { "reps": 10, "sets": 3 },
+      "prerequisites": ["zero-fhl-calf-raise"]
+    },
+    {
+      "id": "dense-single-leg-calf-raise",
+      "order": 7,
+      "block": "lower_legs",
+      "name": "Loaded Single-Leg Calf Raise (Dense)",
+      "exercise_slug": "single-leg-calf-raise",
+      "standard_text": "25% bodyweight held in one hand, 10 reps per leg, off a step or slant board.",
+      "standard": { "pct_bodyweight": 0.25, "per_hand": true, "reps": 10 },
+      "prerequisites": ["zero-single-leg-calf-raise"],
+      "substitutions": [
+        {
+          "equipment_missing": "slant_board",
+          "use_slug": "single-leg-calf-raise",
+          "note": "No slant board: use a stair edge, a plate stack, or a DIY plywood wedge for the heel drop."
+        }
+      ]
+    },
+    {
+      "id": "zero-patrick-step",
+      "order": 8,
+      "block": "step_ups",
+      "name": "Patrick Step (Zero)",
+      "exercise_slug": "patrick-step",
+      "standard_text": "3 sets of 10 per side off a 2–4 inch step, free leg locked straight, heel taps the floor.",
+      "standard": { "reps": 10, "sets": 3 },
+      "substitutions": [
+        {
+          "equipment_missing": "plyo_box",
+          "use_slug": "patrick-step",
+          "note": "Any stable 2–4 inch rise: a stair, a stack of plates, a low bench."
+        }
+      ]
+    },
+    {
+      "id": "dense-poliquin-step",
+      "order": 9,
+      "block": "step_ups",
+      "name": "Poliquin Step-Up (Dense)",
+      "exercise_slug": "poliquin-step",
+      "standard_text": "66% bodyweight (total load) for 20 reps on a 3–4 inch box, heel elevated.",
+      "standard": { "pct_bodyweight": 0.66, "reps": 20 },
+      "prerequisites": ["zero-patrick-step"],
+      "substitutions": [
+        {
+          "equipment_missing": "slant_board",
+          "use_slug": "poliquin-step",
+          "note": "No slant board for the heel wedge: stack two plates or use a DIY plywood wedge."
+        },
+        {
+          "equipment_missing": "plyo_box",
+          "use_slug": "patrick-step",
+          "note": "No 3–4 inch box: regress to the Patrick step off a stair until a box is available."
+        }
+      ]
+    },
+    {
+      "id": "zero-atg-split-squat-assisted",
+      "order": 10,
+      "block": "split_squat",
+      "name": "ATG Split Squat — Assisted (Zero)",
+      "exercise_slug": "atg-split-squat-assisted",
+      "standard_text": "3 sets of 10 per side holding a rail or band for assistance; hamstring covers the calf at the bottom.",
+      "standard": { "reps": 10, "sets": 3 }
+    },
+    {
+      "id": "zero-atg-split-squat-flat",
+      "order": 11,
+      "block": "split_squat",
+      "name": "ATG Split Squat — Flat (Zero)",
+      "exercise_slug": "atg-split-squat",
+      "standard_text": "3 sets of 10 per side, bodyweight, no hands, full range on flat ground.",
+      "standard": { "reps": 10, "sets": 3 },
+      "prerequisites": ["zero-atg-split-squat-assisted"]
+    },
+    {
+      "id": "dense-atg-split-squat",
+      "order": 12,
+      "block": "split_squat",
+      "name": "ATG Split Squat — Loaded (Dense)",
+      "exercise_slug": "atg-split-squat",
+      "standard_text": "25% of bodyweight PER HAND (dumbbells) through full range, each side.",
+      "standard": { "pct_bodyweight": 0.25, "per_hand": true },
+      "prerequisites": ["zero-atg-split-squat-flat"],
+      "substitutions": [
+        {
+          "equipment_missing": "dumbbell",
+          "use_slug": "atg-split-squat",
+          "note": "Bodyweight or a weight vest / loaded backpack at home until dumbbells are heavy enough."
+        }
+      ]
+    },
+    {
+      "id": "zero-elephant-walk",
+      "order": 13,
+      "block": "split_squat",
+      "name": "Elephant Walk (Zero)",
+      "exercise_slug": "elephant-walk",
+      "standard_text": "20 alternating reps with the hands on the floor and the knee locked on the pressing side.",
+      "standard": { "reps": 20, "sets": 1 }
+    },
+    {
+      "id": "zero-couch-stretch",
+      "order": 14,
+      "block": "split_squat",
+      "name": "Couch Stretch (Zero)",
+      "exercise_slug": "couch-stretch",
+      "standard_text": "90 seconds per side with the pelvis tucked and the glute squeezed.",
+      "standard": { "hold_s": 90, "sets": 2 }
+    },
+    {
+      "id": "zero-deep-squat-hold",
+      "order": 15,
+      "block": "deep_squat",
+      "name": "Deep Squat Hold (Zero)",
+      "exercise_slug": "deep-squat-hold",
+      "standard_text": "3 holds of 60 seconds at full depth with the heels flat.",
+      "standard": { "hold_s": 60, "sets": 3 },
+      "substitutions": [
+        {
+          "equipment_missing": "slant_board",
+          "use_slug": "deep-squat-hold",
+          "note": "Heels lifting: elevate them on a DIY wedge or stacked plates until ankle range allows flat feet."
+        }
+      ]
+    },
+    {
+      "id": "dense-atg-squat",
+      "order": 16,
+      "block": "deep_squat",
+      "name": "ATG Squat (Dense)",
+      "exercise_slug": "atg-squat",
+      "standard_text": "25% of bodyweight for 20 reps at full depth.",
+      "standard": { "pct_bodyweight": 0.25, "reps": 20 },
+      "prerequisites": ["zero-deep-squat-hold", "zero-atg-split-squat-flat"]
+    },
+    {
+      "id": "zero-l-sit",
+      "order": 17,
+      "block": "deep_squat",
+      "name": "L-Sit (Zero)",
+      "exercise_slug": "l-sit",
+      "standard_text": "3 holds of 20 seconds with the knees locked and the heels off the floor.",
+      "standard": { "hold_s": 20, "sets": 3 }
+    },
+    {
+      "id": "dense-atg-rdl",
+      "order": 18,
+      "block": "upper_body_accessory",
+      "name": "ATG RDL (Dense)",
+      "exercise_slug": "atg-rdl",
+      "standard_text": "100% of bodyweight for 10 reps, or 50% of bodyweight for 20 reps.",
+      "standard": { "pct_bodyweight": 1, "reps": 10 },
+      "substitutions": [
+        {
+          "equipment_missing": "barbell",
+          "use_slug": "atg-rdl",
+          "note": "No barbell at Planet Fitness (floor deadlifts are also not permitted): use dumbbells, a fixed bar, or the Smith machine."
+        }
+      ]
+    },
+    {
+      "id": "dense-nordic",
+      "order": 19,
+      "block": "upper_body_accessory",
+      "name": "Nordic Hamstring Curl (Dense)",
+      "exercise_slug": "nordic-hamstring-curl",
+      "standard_text": "Full bodyweight Nordic curl for 10 reps, lowering under control.",
+      "standard": { "pct_bodyweight": 1, "reps": 10 },
+      "prerequisites": ["dense-atg-rdl"],
+      "substitutions": [
+        {
+          "equipment_missing": "nordic_support",
+          "use_slug": "nordic-hamstring-curl",
+          "note": "Home: use the adjustable bench with the Nordic support (ankles anchored under the pad/roller)."
+        },
+        {
+          "equipment_missing": "ghd",
+          "use_slug": "atg-rdl",
+          "note": "Planet Fitness has no GHD and nothing safe to anchor under: run the ATG RDL instead that day."
+        }
+      ]
+    },
+    {
+      "id": "dense-reverse-nordic",
+      "order": 20,
+      "block": "upper_body_accessory",
+      "name": "Reverse Nordic Curl (Dense)",
+      "exercise_slug": "reverse-nordic",
+      "standard_text": "3 sets of 8–10 through the fullest controllable range, hips locked straight.",
+      "standard": { "reps": 10, "sets": 3 },
+      "prerequisites": ["zero-couch-stretch"]
+    },
+    {
+      "id": "dense-seated-good-morning",
+      "order": 21,
+      "block": "upper_body_accessory",
+      "name": "Seated Good Morning (Dense)",
+      "exercise_slug": "seated-good-morning",
+      "standard_text": "50% of bodyweight across the upper back, seated, with the arch held.",
+      "standard": { "pct_bodyweight": 0.5 },
+      "substitutions": [
+        {
+          "equipment_missing": "smith_machine",
+          "use_slug": "seated-good-morning",
+          "note": "No Smith or fixed bar: hold a single heavy dumbbell at the chest and hinge from the hips."
+        }
+      ]
+    },
+    {
+      "id": "dense-jefferson-curl",
+      "order": 22,
+      "block": "upper_body_accessory",
+      "name": "Jefferson Curl (Dense)",
+      "exercise_slug": "jefferson-curl",
+      "standard_text": "25% of bodyweight for 10 reps, rolling down until the wrists are below the toes.",
+      "standard": { "pct_bodyweight": 0.25, "reps": 10 },
+      "prerequisites": ["zero-elephant-walk"],
+      "substitutions": [
+        {
+          "equipment_missing": "slant_board",
+          "use_slug": "jefferson-curl",
+          "note": "No slant board: stand on a DIY wedge, stacked plates, or the end of a flat bench so the wrists can pass below the toes."
+        }
+      ]
+    },
+    {
+      "id": "dense-ql-extension",
+      "order": 23,
+      "block": "upper_body_accessory",
+      "name": "QL Extension (Dense)",
+      "exercise_slug": "ql-extension",
+      "standard_text": "25% of bodyweight for 10 reps, segmental flexion and extension under control.",
+      "standard": { "pct_bodyweight": 0.25, "reps": 10 },
+      "prerequisites": ["dense-seated-good-morning"],
+      "substitutions": [
+        {
+          "equipment_missing": "back_extension_bench",
+          "use_slug": "seated-good-morning",
+          "note": "No back-extension bench: the seated good morning covers the same low-back standard."
+        }
+      ]
+    },
+    {
+      "id": "dense-incline-db-press",
+      "order": 24,
+      "block": "upper_body_accessory",
+      "name": "Incline Dumbbell Press (Dense)",
+      "exercise_slug": "incline-dumbbell-press",
+      "standard_text": "66% of bodyweight (total, both dumbbells) for 10 reps on an incline bench.",
+      "standard": { "pct_bodyweight": 0.66, "reps": 10 },
+      "substitutions": [
+        {
+          "equipment_missing": "bench_adjustable",
+          "use_slug": "incline-dumbbell-press",
+          "note": "No adjustable bench: use the Smith machine incline or a chest-press machine set high."
+        }
+      ]
+    },
+    {
+      "id": "dense-external-rotation",
+      "order": 25,
+      "block": "upper_body_accessory",
+      "name": "Shoulder External Rotation (Dense)",
+      "exercise_slug": "external-rotation",
+      "standard_text": "10% of bodyweight for controlled external rotation reps, each side.",
+      "standard": { "pct_bodyweight": 0.1 },
+      "substitutions": [
+        {
+          "equipment_missing": "dumbbell",
+          "use_slug": "external-rotation-with-band",
+          "note": "Band or cable external rotation is equivalent for this standard."
+        }
+      ]
+    },
+    {
+      "id": "dense-cross-bench-pullover",
+      "order": 26,
+      "block": "upper_body_accessory",
+      "name": "Cross-Bench Pullover (Dense)",
+      "exercise_slug": "dumbbell-pullover",
+      "standard_text": "25% of bodyweight, performed lying ACROSS the bench (hips low) for a full stretch overhead.",
+      "standard": { "pct_bodyweight": 0.25 },
+      "substitutions": [
+        {
+          "equipment_missing": "bench_flat",
+          "use_slug": "dumbbell-pullover",
+          "note": "No bench: lie on the floor and accept the reduced range, or use a stability ball."
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "_note": "REVIEW ARTIFACT ONLY — scripts/import-csv.ts never writes to the database. The app shows `unmatched` on the import review screen; Seth maps or discards each name, and only then is history persisted.",
+  "files": [],
+  "generated_by": "scripts/import-csv.ts",
+  "matched": [],
+  "sets": [],
+  "source_directory": "docs/imports/raw",
+  "summary": {
+    "ambiguous": 0,
+    "distinct_exercise_names": 0,
+    "files": 0,
+    "library_size": 1951,
+    "matched_exact": 0,
+    "matched_fuzzy": 0,
+    "sets": 0,
+    "unmatched": 0
+  },
+  "unmatched": []
+}

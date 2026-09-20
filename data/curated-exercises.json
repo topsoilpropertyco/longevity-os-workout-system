@@ -1,0 +1,1843 @@
+[
+  {
+    "aliases": [
+      "sprint acceleration",
+      "10m sprint",
+      "30m sprint",
+      "short sprint"
+    ],
+    "barbell_free": true,
+    "cue": "Push the ground back, rise gradually — do not pop upright in the first steps.",
+    "eccentric_dominant": false,
+    "equipment": [
+      "track_or_open_space",
+      "outdoor_route"
+    ],
+    "force": "push",
+    "id": "acceleration-sprint",
+    "instructions": [
+      "Warm up thoroughly: 5–10 minutes easy, then drills and 3–4 build-ups at rising effort.",
+      "Sprint 10–30 m from a standing start, accelerating smoothly to top effort.",
+      "Walk back and rest fully — roughly one minute per 10 m sprinted.",
+      "6–10 reps total. Quality only: stop when times or feel drop off.",
+      "Never the day after heavy lower-body eccentric work (RESEARCH §6.5)."
+    ],
+    "level": "intermediate",
+    "load_style": "none",
+    "mechanic": "compound",
+    "name": "Acceleration Sprint (10–30 m)",
+    "pattern": "sprint",
+    "plyo_contacts_per_rep": 0,
+    "preferred_alternatives": [
+      "broad-jump"
+    ],
+    "region_loads": {
+      "calves_achilles": 0.6,
+      "hips_glutes": 0.8,
+      "knees_quads": 0.7,
+      "posterior_chain": 0.9
+    },
+    "slug": "acceleration-sprint",
+    "source": "curated"
+  },
+  {
+    "aliases": [
+      "ankle hops",
+      "ankle bounces",
+      "low amplitude hops"
+    ],
+    "barbell_free": true,
+    "cue": "Small, quiet, rhythmic — the ankle does the work.",
+    "eccentric_dominant": false,
+    "equipment": [
+      "bodyweight"
+    ],
+    "force": "push",
+    "id": "ankle-hop",
+    "instructions": [
+      "Stand tall, weight on the balls of the feet.",
+      "Hop 2–4 inches off the ground using ankle action only.",
+      "Land quietly through the forefoot with the knees soft but nearly straight.",
+      "Sets of 20–30 contacts, resting fully between sets.",
+      "Progress to pogo hops, then box jumps, before any depth work."
+    ],
+    "level": "beginner",
+    "load_style": "bodyweight",
+    "mechanic": "compound",
+    "name": "Ankle Hop",
+    "pattern": "jump",
+    "plyo_contacts_per_rep": 1,
+    "preferred_alternatives": [
+      "pogo-hop"
+    ],
+    "region_loads": {
+      "calves_achilles": 0.9,
+      "knees_quads": 0.2
+    },
+    "slug": "ankle-hop",
+    "source": "curated"
+  },
+  {
+    "aliases": [
+      "atg romanian deadlift",
+      "knees over toes rdl",
+      "full range rdl"
+    ],
+    "barbell_free": true,
+    "cue": "Knees soft and locked in place, push the hips back, full hamstring stretch, flat back.",
+    "eccentric_dominant": false,
+    "equipment": [
+      "dumbbell",
+      "fixed_barbell",
+      "smith_machine"
+    ],
+    "force": "pull",
+    "id": "atg-rdl",
+    "instructions": [
+      "Stand tall holding dumbbells or a fixed bar at the hips, feet hip width.",
+      "Push the hips straight back, keeping the shins near vertical and the back flat.",
+      "Lower until you reach the end of the hamstring stretch — typically mid-shin — without rounding.",
+      "Drive the hips forward to stand, squeezing the glutes at the top.",
+      "Standard: 100% of bodyweight × 10, or 50% × 20. No floor deadlifts at Planet Fitness."
+    ],
+    "kot_step": "posterior_chain",
+    "level": "intermediate",
+    "load_style": "total_dumbbell_pair",
+    "mechanic": "compound",
+    "name": "ATG RDL",
+    "pattern": "hinge",
+    "plyo_contacts_per_rep": 0,
+    "preferred_alternatives": [
+      "seated-good-morning",
+      "nordic-hamstring-curl"
+    ],
+    "region_loads": {
+      "hips_glutes": 0.7,
+      "low_back": 0.5,
+      "posterior_chain": 1
+    },
+    "rehab_for": [
+      "posterior_chain",
+      "low_back"
+    ],
+    "slug": "atg-rdl",
+    "source": "curated"
+  },
+  {
+    "aliases": [
+      "atg split squat flat",
+      "knees over toes split squat",
+      "full range split squat"
+    ],
+    "barbell_free": true,
+    "cue": "Hamstring covers the calf at the bottom; knee tracks straight over the middle toes.",
+    "eccentric_dominant": false,
+    "equipment": [
+      "bodyweight",
+      "dumbbell"
+    ],
+    "force": "push",
+    "id": "atg-split-squat",
+    "instructions": [
+      "Stand in a long split stance, torso upright, rear leg straight behind you.",
+      "Descend until the front hamstring covers the calf — full range, knee travelling forward over the toes.",
+      "Keep the front heel planted; the rear knee lightly touches or hovers over the floor.",
+      "Drive back up through the front foot without collapsing the knee inward.",
+      "Standard: 25% of bodyweight PER HAND (dumbbells) through full range."
+    ],
+    "kot_step": "split_squat",
+    "level": "intermediate",
+    "load_style": "total_dumbbell_pair",
+    "mechanic": "compound",
+    "name": "ATG Split Squat",
+    "pattern": "lunge",
+    "plyo_contacts_per_rep": 0,
+    "preferred_alternatives": [
+      "atg-split-squat-assisted",
+      "poliquin-step"
+    ],
+    "region_loads": {
+      "calves_achilles": 0.2,
+      "hips_glutes": 0.5,
+      "knees_quads": 1,
+      "posterior_chain": 0.3
+    },
+    "rehab_for": [
+      "knees_quads"
+    ],
+    "slug": "atg-split-squat",
+    "source": "curated"
+  },
+  {
+    "aliases": [
+      "assisted atg split squat",
+      "supported atg split squat",
+      "elevated atg split squat"
+    ],
+    "barbell_free": true,
+    "cue": "Hold the rail, front knee past the toes, back knee down to a full stretch.",
+    "eccentric_dominant": false,
+    "equipment": [
+      "bodyweight",
+      "resistance_bands",
+      "wall_space"
+    ],
+    "force": "push",
+    "id": "atg-split-squat-assisted",
+    "instructions": [
+      "Set up in a long split stance with the rear foot flat and the rear knee heading toward the floor.",
+      "Hold a rail, doorframe, or band anchored in front at chest height, and use the arms to unload the legs.",
+      "Descend until the hamstring covers the calf on the front leg and the rear hip is in a full stretch.",
+      "Use as little arm assistance as you can manage; the goal is to reduce it session over session.",
+      "Front foot may be elevated on a plate to reduce depth demand while ankle mobility improves."
+    ],
+    "kot_step": "split_squat",
+    "level": "beginner",
+    "load_style": "assisted",
+    "mechanic": "compound",
+    "name": "ATG Split Squat (Assisted)",
+    "pattern": "lunge",
+    "plyo_contacts_per_rep": 0,
+    "preferred_alternatives": [
+      "atg-split-squat",
+      "patrick-step"
+    ],
+    "region_loads": {
+      "hips_glutes": 0.4,
+      "knees_quads": 0.8,
+      "posterior_chain": 0.2
+    },
+    "rehab_for": [
+      "knees_quads"
+    ],
+    "slug": "atg-split-squat-assisted",
+    "source": "curated"
+  },
+  {
+    "aliases": [
+      "full depth squat",
+      "knees over toes squat",
+      "goblet atg squat",
+      "heel elevated deep squat"
+    ],
+    "barbell_free": true,
+    "cue": "All the way down, chest up, knees forward over the toes — no bouncing out of the hole.",
+    "eccentric_dominant": false,
+    "equipment": [
+      "dumbbell",
+      "kettlebell",
+      "slant_board",
+      "bodyweight"
+    ],
+    "force": "push",
+    "id": "atg-squat",
+    "instructions": [
+      "Hold a dumbbell or kettlebell at the chest (goblet position), feet shoulder width.",
+      "Squat to full depth — hamstrings on calves — with the heels down and the torso as upright as you can hold.",
+      "Elevate the heels on a wedge or plates while ankle mobility is still building.",
+      "Stand up smoothly without letting the knees cave in.",
+      "Standard: 25% of bodyweight for 20 reps at full depth."
+    ],
+    "kot_step": "deep_squat",
+    "level": "intermediate",
+    "load_style": "single_implement",
+    "mechanic": "compound",
+    "name": "ATG Squat",
+    "pattern": "squat",
+    "plyo_contacts_per_rep": 0,
+    "preferred_alternatives": [
+      "deep-squat-hold",
+      "atg-split-squat"
+    ],
+    "region_loads": {
+      "calves_achilles": 0.3,
+      "core": 0.3,
+      "hips_glutes": 0.7,
+      "knees_quads": 1,
+      "low_back": 0.3
+    },
+    "rehab_for": [
+      "knees_quads"
+    ],
+    "slug": "atg-squat",
+    "source": "curated"
+  },
+  {
+    "aliases": [
+      "sled drag backward",
+      "reverse sled drag",
+      "backwards sled"
+    ],
+    "barbell_free": false,
+    "cue": "Small quick steps, stay tall, let the knee travel forward over the toe under control.",
+    "eccentric_dominant": false,
+    "equipment": [
+      "sled"
+    ],
+    "force": "pull",
+    "id": "backward-sled-drag",
+    "instructions": [
+      "Load the sled to roughly 50% of bodyweight to start; it should be draggable for several unbroken minutes.",
+      "Face the sled, hold the straps or handles at hip height, arms long.",
+      "Walk backwards with short quick steps, planting through the ball of the foot then the heel.",
+      "Keep the torso tall — no leaning back and hanging off the straps.",
+      "Work for time (5–10 minutes) rather than for reps. Knees should feel better afterwards, not worse."
+    ],
+    "kot_step": "backward_locomotion",
+    "level": "beginner",
+    "load_style": "single_implement",
+    "mechanic": "compound",
+    "name": "Backward Sled Drag",
+    "pattern": "gait",
+    "plyo_contacts_per_rep": 0,
+    "preferred_alternatives": [
+      "backward-treadmill-walk",
+      "backward-walk-outdoors"
+    ],
+    "region_loads": {
+      "calves_achilles": 0.4,
+      "core": 0.2,
+      "hips_glutes": 0.3,
+      "knees_quads": 0.8
+    },
+    "rehab_for": [
+      "knees_quads"
+    ],
+    "slug": "backward-sled-drag",
+    "source": "curated"
+  },
+  {
+    "aliases": [
+      "deadmill backward walk",
+      "backward walking treadmill",
+      "reverse treadmill walk"
+    ],
+    "barbell_free": true,
+    "cue": "Belt OFF. You are the motor — push the belt behind you, toe first.",
+    "eccentric_dominant": false,
+    "equipment": [
+      "treadmill"
+    ],
+    "force": "push",
+    "id": "backward-treadmill-walk",
+    "instructions": [
+      "Leave the treadmill powered off. Straddle or stand on the belt and hold the rails lightly.",
+      "Face the console, step backwards, driving the belt with the ball of the foot then rolling to the heel.",
+      "Hold the rails only as much as you need for balance; aim to let go over time.",
+      "Accumulate 5–10 minutes. This is the Planet Fitness substitute for the backward sled.",
+      "Stop if the knee pain rises 2 points or more; reduce to flat-ground backward walking."
+    ],
+    "kot_step": "backward_locomotion",
+    "level": "beginner",
+    "load_style": "bodyweight",
+    "mechanic": "compound",
+    "name": "Backward Treadmill Walk (Powered Off)",
+    "pattern": "gait",
+    "plyo_contacts_per_rep": 0,
+    "preferred_alternatives": [
+      "backward-walk-outdoors",
+      "backward-sled-drag"
+    ],
+    "region_loads": {
+      "calves_achilles": 0.4,
+      "hips_glutes": 0.3,
+      "knees_quads": 0.7
+    },
+    "rehab_for": [
+      "knees_quads"
+    ],
+    "slug": "backward-treadmill-walk",
+    "source": "curated"
+  },
+  {
+    "aliases": [
+      "reverse walking",
+      "rokp",
+      "reverse out knee pain walk",
+      "backwards walk"
+    ],
+    "barbell_free": true,
+    "cue": "Ten minutes, toe down first, glance over one shoulder every few steps.",
+    "eccentric_dominant": false,
+    "equipment": [
+      "outdoor_route",
+      "track_or_open_space"
+    ],
+    "force": "push",
+    "id": "backward-walk-outdoors",
+    "instructions": [
+      "Pick a flat, clear, traffic-free stretch — a track, an empty lot, a long hallway.",
+      "Walk backwards for 10 minutes, landing on the ball of the foot and rolling back to the heel.",
+      "Keep steps short and quick rather than long and reaching.",
+      "Look over alternating shoulders periodically rather than twisting the neck one way the whole time.",
+      "This is the Zero-equipment entry point of the program: 3×/week minimum."
+    ],
+    "kot_step": "backward_locomotion",
+    "level": "beginner",
+    "load_style": "bodyweight",
+    "mechanic": "compound",
+    "name": "Backward Walking (Outdoors)",
+    "pattern": "gait",
+    "plyo_contacts_per_rep": 0,
+    "preferred_alternatives": [
+      "backward-treadmill-walk",
+      "backward-sled-drag"
+    ],
+    "region_loads": {
+      "calves_achilles": 0.3,
+      "hips_glutes": 0.2,
+      "knees_quads": 0.6
+    },
+    "rehab_for": [
+      "knees_quads"
+    ],
+    "slug": "backward-walk-outdoors",
+    "source": "curated"
+  },
+  {
+    "aliases": [
+      "birddog",
+      "quadruped opposite arm leg reach",
+      "big 3 bird dog"
+    ],
+    "barbell_free": true,
+    "cue": "Reach long, not high — keep the hips level enough to balance a glass of water.",
+    "eccentric_dominant": false,
+    "equipment": [
+      "yoga_mat",
+      "bodyweight"
+    ],
+    "force": "static",
+    "id": "bird-dog",
+    "instructions": [
+      "Start on hands and knees with a neutral spine, hands under shoulders, knees under hips.",
+      "Brace the trunk and extend the opposite arm and leg until both are level with the torso.",
+      "Do not arch the low back or let either hip rotate open.",
+      "Hold 10 seconds, return, and sweep the hand and knee toward each other before the next rep.",
+      "Descending pyramids (6/4/2) per side. Daily is fine."
+    ],
+    "level": "beginner",
+    "load_style": "bodyweight",
+    "mechanic": "compound",
+    "name": "Bird Dog",
+    "pattern": "anti_rotation",
+    "plyo_contacts_per_rep": 0,
+    "preferred_alternatives": [
+      "mcgill-curl-up",
+      "side-plank"
+    ],
+    "region_loads": {
+      "core": 0.7,
+      "hips_glutes": 0.4,
+      "low_back": 0.5,
+      "shoulders": 0.2
+    },
+    "rehab_for": [
+      "low_back",
+      "core"
+    ],
+    "slug": "bird-dog",
+    "source": "curated"
+  },
+  {
+    "aliases": [
+      "box jump step down",
+      "box jump with step down",
+      "boxjump"
+    ],
+    "barbell_free": true,
+    "cue": "Jump up, land soft and tall, then STEP down — never jump down.",
+    "eccentric_dominant": false,
+    "equipment": [
+      "plyo_box"
+    ],
+    "force": "push",
+    "id": "box-jump-step-down",
+    "instructions": [
+      "Set a box you can land on with the hips above parallel — height is not the goal.",
+      "Dip, swing the arms, and jump onto the box.",
+      "Land quietly with the whole foot on the box, knees tracking over the toes.",
+      "Stand up fully, then step down one foot at a time.",
+      "Sets of 3–5 reps, full recovery. Stepping down keeps the eccentric cost low."
+    ],
+    "level": "intermediate",
+    "load_style": "bodyweight",
+    "mechanic": "compound",
+    "name": "Box Jump (Step Down)",
+    "pattern": "jump",
+    "plyo_contacts_per_rep": 1,
+    "preferred_alternatives": [
+      "broad-jump",
+      "pogo-hop"
+    ],
+    "region_loads": {
+      "calves_achilles": 0.5,
+      "hips_glutes": 0.7,
+      "knees_quads": 0.8,
+      "posterior_chain": 0.4
+    },
+    "slug": "box-jump-step-down",
+    "source": "curated"
+  },
+  {
+    "aliases": [
+      "standing long jump",
+      "standing broad jump"
+    ],
+    "barbell_free": true,
+    "cue": "Big arm swing, jump out not up, stick the landing.",
+    "eccentric_dominant": false,
+    "equipment": [
+      "track_or_open_space"
+    ],
+    "force": "push",
+    "id": "broad-jump",
+    "instructions": [
+      "Stand with feet hip width behind a line, on grass or a forgiving surface.",
+      "Swing the arms back, dip the hips, and jump forward as far as you can.",
+      "Land on both feet with the hips back and the knees tracking over the toes; stick it without a stumble.",
+      "Sets of 3–5 reps with full recovery — this is a power test as well as training.",
+      "Also used as a monthly athleticism benchmark alongside vertical jump."
+    ],
+    "level": "intermediate",
+    "load_style": "bodyweight",
+    "mechanic": "compound",
+    "name": "Broad Jump",
+    "pattern": "jump",
+    "plyo_contacts_per_rep": 1,
+    "preferred_alternatives": [
+      "box-jump-step-down"
+    ],
+    "region_loads": {
+      "calves_achilles": 0.5,
+      "hips_glutes": 0.9,
+      "knees_quads": 0.8,
+      "posterior_chain": 0.7
+    },
+    "slug": "broad-jump",
+    "source": "curated"
+  },
+  {
+    "aliases": [
+      "quad hip flexor wall stretch",
+      "kneeling quad stretch"
+    ],
+    "barbell_free": true,
+    "cue": "Rear shin up the wall, squeeze the glute, tuck the pelvis — then sit tall.",
+    "eccentric_dominant": false,
+    "equipment": [
+      "wall_space",
+      "yoga_mat"
+    ],
+    "force": "static",
+    "id": "couch-stretch",
+    "instructions": [
+      "Kneel with the rear shin up against a wall and the rear knee in the corner where the wall meets the floor.",
+      "Place the other foot flat in front in a lunge position.",
+      "Squeeze the rear glute and tuck the pelvis under to remove the arch from the low back.",
+      "Raise the torso toward vertical only as far as the pelvic tuck holds.",
+      "Hold 60–90 seconds per side, breathing slowly. Pad the knee."
+    ],
+    "kot_step": "split_squat",
+    "level": "beginner",
+    "load_style": "none",
+    "mechanic": "isolation",
+    "name": "Couch Stretch",
+    "pattern": "mobility",
+    "plyo_contacts_per_rep": 0,
+    "preferred_alternatives": [
+      "reverse-nordic"
+    ],
+    "region_loads": {
+      "hips_glutes": 0.4,
+      "knees_quads": 0.3
+    },
+    "rehab_for": [
+      "knees_quads",
+      "hips_glutes"
+    ],
+    "slug": "couch-stretch",
+    "source": "curated"
+  },
+  {
+    "aliases": [
+      "db cleans",
+      "dumbbell power clean",
+      "double db clean"
+    ],
+    "barbell_free": true,
+    "cue": "Hinge, snap, and meet the dumbbells at the shoulders — do not curl them.",
+    "eccentric_dominant": false,
+    "equipment": [
+      "dumbbell"
+    ],
+    "force": "pull",
+    "id": "db-clean",
+    "instructions": [
+      "Start with dumbbells beside the feet or at the hang, flat back, chest up.",
+      "Extend the hips and knees explosively, shrugging as the dumbbells rise.",
+      "Drop under and catch them at the shoulders in a quarter squat.",
+      "Stand tall, then lower under control to the hang.",
+      "Pairs with thrusters and push presses for barbell-free conditioning."
+    ],
+    "level": "intermediate",
+    "load_style": "total_dumbbell_pair",
+    "mechanic": "compound",
+    "name": "Dumbbell Clean",
+    "pattern": "hinge",
+    "plyo_contacts_per_rep": 0,
+    "preferred_alternatives": [
+      "db-snatch",
+      "db-swing"
+    ],
+    "region_loads": {
+      "elbows_forearms": 0.3,
+      "hips_glutes": 0.8,
+      "posterior_chain": 0.8,
+      "shoulders": 0.4,
+      "upper_back": 0.5
+    },
+    "slug": "db-clean",
+    "source": "curated"
+  },
+  {
+    "aliases": [
+      "db push press",
+      "dumbbell push presses"
+    ],
+    "barbell_free": true,
+    "cue": "Short dip, hard drive, lock out with the biceps by the ears.",
+    "eccentric_dominant": false,
+    "equipment": [
+      "dumbbell"
+    ],
+    "force": "push",
+    "id": "db-push-press",
+    "instructions": [
+      "Hold dumbbells at the shoulders, feet hip width, ribs down.",
+      "Dip 4–6 inches by bending the knees with the torso vertical.",
+      "Drive up explosively and press the dumbbells to lockout overhead.",
+      "Lower to the shoulders under control.",
+      "Substitute for wall balls and barbell push presses at Planet Fitness."
+    ],
+    "level": "beginner",
+    "load_style": "total_dumbbell_pair",
+    "mechanic": "compound",
+    "name": "Dumbbell Push Press",
+    "pattern": "vertical_push",
+    "plyo_contacts_per_rep": 0,
+    "preferred_alternatives": [
+      "db-thruster"
+    ],
+    "region_loads": {
+      "core": 0.4,
+      "elbows_forearms": 0.4,
+      "knees_quads": 0.3,
+      "shoulders": 1
+    },
+    "slug": "db-push-press",
+    "source": "curated"
+  },
+  {
+    "aliases": [
+      "single arm dumbbell snatch",
+      "db snatch",
+      "one arm snatch"
+    ],
+    "barbell_free": true,
+    "cue": "Hips snap, elbow high, punch under and lock out overhead in one motion.",
+    "eccentric_dominant": false,
+    "equipment": [
+      "dumbbell"
+    ],
+    "force": "pull",
+    "id": "db-snatch",
+    "instructions": [
+      "Set a dumbbell between the feet, hinge with a flat back and grip it with one hand.",
+      "Drive through the legs and snap the hips, keeping the dumbbell close to the body.",
+      "Pull high and punch the hand through to lock out overhead with the bicep by the ear.",
+      "Lower under control to the hang or to the floor and repeat; alternate arms per set.",
+      "Load stays modest — this is a power movement, not a grind."
+    ],
+    "level": "intermediate",
+    "load_style": "single_implement",
+    "mechanic": "compound",
+    "name": "Dumbbell Snatch",
+    "pattern": "hinge",
+    "plyo_contacts_per_rep": 0,
+    "preferred_alternatives": [
+      "db-clean",
+      "db-swing"
+    ],
+    "region_loads": {
+      "core": 0.4,
+      "hips_glutes": 0.8,
+      "posterior_chain": 0.8,
+      "shoulders": 0.7,
+      "upper_back": 0.5
+    },
+    "slug": "db-snatch",
+    "source": "curated"
+  },
+  {
+    "aliases": [
+      "dumbbell kettlebell swing",
+      "db swings",
+      "russian swing with dumbbell"
+    ],
+    "barbell_free": true,
+    "cue": "Hips drive, arms are ropes — snap to a plank at the top, do not squat it.",
+    "eccentric_dominant": false,
+    "equipment": [
+      "dumbbell",
+      "kettlebell"
+    ],
+    "force": "pull",
+    "id": "db-swing",
+    "instructions": [
+      "Hold one dumbbell vertically by the head with both hands, feet slightly wider than hips.",
+      "Hinge, hiking the dumbbell back between the legs with the back flat.",
+      "Snap the hips forward to float the dumbbell to chest height; glutes and abs braced at the top.",
+      "Let it fall back into the next hinge; keep a rhythm.",
+      "Kettlebell if the gym has one; the DB version is the Planet Fitness substitute."
+    ],
+    "level": "beginner",
+    "load_style": "single_implement",
+    "mechanic": "compound",
+    "name": "Dumbbell Swing",
+    "pattern": "hinge",
+    "plyo_contacts_per_rep": 0,
+    "preferred_alternatives": [
+      "db-clean",
+      "atg-rdl"
+    ],
+    "region_loads": {
+      "core": 0.4,
+      "hips_glutes": 0.9,
+      "low_back": 0.4,
+      "posterior_chain": 0.9
+    },
+    "slug": "db-swing",
+    "source": "curated"
+  },
+  {
+    "aliases": [
+      "dumbbell thrusters",
+      "db thrusters",
+      "thruster"
+    ],
+    "barbell_free": true,
+    "cue": "One movement: squat, then drive the dumbbells overhead off the leg drive.",
+    "eccentric_dominant": false,
+    "equipment": [
+      "dumbbell"
+    ],
+    "force": "push",
+    "id": "db-thruster",
+    "instructions": [
+      "Hold dumbbells at the shoulders, elbows in front, feet shoulder width.",
+      "Squat to at least parallel with the torso upright.",
+      "Drive out of the bottom and use that momentum to press the dumbbells to lockout overhead.",
+      "Lower to the shoulders and go straight into the next rep.",
+      "The barbell-free metcon staple at Planet Fitness."
+    ],
+    "level": "intermediate",
+    "load_style": "total_dumbbell_pair",
+    "mechanic": "compound",
+    "name": "Dumbbell Thruster",
+    "pattern": "vertical_push",
+    "plyo_contacts_per_rep": 0,
+    "preferred_alternatives": [
+      "db-push-press"
+    ],
+    "region_loads": {
+      "core": 0.4,
+      "elbows_forearms": 0.3,
+      "hips_glutes": 0.5,
+      "knees_quads": 0.7,
+      "shoulders": 0.8
+    },
+    "slug": "db-thruster",
+    "source": "curated"
+  },
+  {
+    "aliases": [
+      "third world squat",
+      "atg squat hold",
+      "bodyweight deep squat hold"
+    ],
+    "barbell_free": true,
+    "cue": "Heels down, chest up, sit all the way in and breathe.",
+    "eccentric_dominant": false,
+    "equipment": [
+      "bodyweight",
+      "slant_board"
+    ],
+    "force": "static",
+    "id": "deep-squat-hold",
+    "instructions": [
+      "Stand with feet roughly shoulder width, toes slightly out.",
+      "Squat all the way down until the hamstrings rest on the calves.",
+      "Keep the heels flat; elevate them on a wedge or plates if they lift.",
+      "Hold, breathing slowly, and gently pry the knees out with the elbows.",
+      "Accumulate 3–5 minutes across the session. Progress toward heels flat and torso vertical."
+    ],
+    "kot_step": "deep_squat",
+    "level": "beginner",
+    "load_style": "bodyweight",
+    "mechanic": "compound",
+    "name": "Deep Squat Hold",
+    "pattern": "squat",
+    "plyo_contacts_per_rep": 0,
+    "preferred_alternatives": [
+      "atg-split-squat",
+      "elephant-walk"
+    ],
+    "region_loads": {
+      "calves_achilles": 0.3,
+      "hips_glutes": 0.5,
+      "knees_quads": 0.6,
+      "low_back": 0.2
+    },
+    "rehab_for": [
+      "knees_quads",
+      "hips_glutes"
+    ],
+    "slug": "deep-squat-hold",
+    "source": "curated"
+  },
+  {
+    "aliases": [
+      "drop jump",
+      "depth jumps"
+    ],
+    "barbell_free": true,
+    "contraindicated_with": [
+      "nordic-hamstring-curl"
+    ],
+    "cue": "Step off, touch and go — off the floor faster than you landed.",
+    "eccentric_dominant": true,
+    "equipment": [
+      "plyo_box"
+    ],
+    "force": "push",
+    "id": "depth-jump",
+    "instructions": [
+      "Use a 12–18 inch box to start. Step off (do not jump off).",
+      "Land on both forefeet and immediately rebound as high as possible.",
+      "Ground contact should be brief and quiet; if you sink, the box is too tall.",
+      "Sets of 3–5 reps, full recovery, never on consecutive days.",
+      "GATED: only after landing mechanics and single-leg control are demonstrated, and never in the same session as Nordics (RESEARCH §6.3)."
+    ],
+    "level": "expert",
+    "load_style": "bodyweight",
+    "mechanic": "compound",
+    "name": "Depth Jump",
+    "pattern": "jump",
+    "plyo_contacts_per_rep": 2,
+    "preferred_alternatives": [
+      "box-jump-step-down",
+      "hurdle-hop"
+    ],
+    "region_loads": {
+      "calves_achilles": 0.8,
+      "hips_glutes": 0.7,
+      "knees_quads": 1,
+      "posterior_chain": 0.7
+    },
+    "slug": "depth-jump",
+    "source": "curated"
+  },
+  {
+    "aliases": [
+      "elephant walks",
+      "straight leg walk stretch"
+    ],
+    "barbell_free": true,
+    "cue": "Hands on the floor, alternate pressing each heel down with the knee locked.",
+    "eccentric_dominant": false,
+    "equipment": [
+      "bodyweight"
+    ],
+    "force": "static",
+    "id": "elephant-walk",
+    "instructions": [
+      "Hinge forward and place both hands on the floor (or on a block if the hamstrings are tight).",
+      "Bend one knee while pressing the opposite heel toward the floor with that leg locked straight.",
+      "Alternate slowly, \"walking\" in place, feeling the stretch move from calf to hamstring.",
+      "Accumulate 20–30 alternating reps.",
+      "Work toward hands flat on the floor with both knees locked."
+    ],
+    "kot_step": "split_squat",
+    "level": "beginner",
+    "load_style": "none",
+    "mechanic": "compound",
+    "name": "Elephant Walk",
+    "pattern": "mobility",
+    "plyo_contacts_per_rep": 0,
+    "preferred_alternatives": [
+      "jefferson-curl",
+      "atg-rdl"
+    ],
+    "region_loads": {
+      "calves_achilles": 0.3,
+      "low_back": 0.2,
+      "posterior_chain": 0.5
+    },
+    "rehab_for": [
+      "posterior_chain"
+    ],
+    "slug": "elephant-walk",
+    "source": "curated"
+  },
+  {
+    "aliases": [
+      "flexor hallucis longus calf raise",
+      "big toe calf raise",
+      "fhl raise"
+    ],
+    "barbell_free": true,
+    "cue": "Rise onto the big toe, not the pinky side — press the big toe into the floor.",
+    "eccentric_dominant": false,
+    "equipment": [
+      "bodyweight",
+      "wall_space"
+    ],
+    "force": "push",
+    "id": "fhl-calf-raise",
+    "instructions": [
+      "Stand tall, fingertips on a wall for balance only.",
+      "Rise onto the balls of the feet, deliberately pressing through the BIG toe so the ankle does not roll outward.",
+      "Pause at the top for one second with the big toe loaded.",
+      "Lower slowly to a full stretch at the bottom.",
+      "This protects the Achilles and the plantar fascia and is the precursor to single-leg calf raise standards."
+    ],
+    "kot_step": "lower_legs",
+    "level": "beginner",
+    "load_style": "bodyweight",
+    "mechanic": "isolation",
+    "name": "FHL Calf Raise",
+    "pattern": "isolation_lower",
+    "plyo_contacts_per_rep": 0,
+    "preferred_alternatives": [
+      "single-leg-calf-raise"
+    ],
+    "region_loads": {
+      "calves_achilles": 1
+    },
+    "rehab_for": [
+      "calves_achilles"
+    ],
+    "slug": "fhl-calf-raise",
+    "source": "curated"
+  },
+  {
+    "aliases": [
+      "hurdle hops",
+      "mini hurdle hops",
+      "cone hops"
+    ],
+    "barbell_free": true,
+    "cue": "Cycle the feet up and over, land and leave — short contacts.",
+    "eccentric_dominant": false,
+    "equipment": [
+      "plyo_box",
+      "track_or_open_space"
+    ],
+    "force": "push",
+    "id": "hurdle-hop",
+    "instructions": [
+      "Set 4–6 low hurdles or cones about 2–3 feet apart.",
+      "Hop over them with both feet, keeping ground contact short.",
+      "Land on the balls of the feet with the knees soft, absorbing through the hips.",
+      "One pass = one set; count each landing as a contact.",
+      "Stop the set the moment contacts get noisy or slow."
+    ],
+    "level": "intermediate",
+    "load_style": "bodyweight",
+    "mechanic": "compound",
+    "name": "Hurdle Hop",
+    "pattern": "jump",
+    "plyo_contacts_per_rep": 1,
+    "preferred_alternatives": [
+      "pogo-hop",
+      "box-jump-step-down"
+    ],
+    "region_loads": {
+      "calves_achilles": 0.8,
+      "hips_glutes": 0.5,
+      "knees_quads": 0.7
+    },
+    "slug": "hurdle-hop",
+    "source": "curated"
+  },
+  {
+    "aliases": [
+      "jefferson curls",
+      "slant board jefferson curl",
+      "loaded spinal flexion"
+    ],
+    "barbell_free": true,
+    "cue": "Chin to chest, roll down one vertebra at a time, wrists finish below the toes.",
+    "eccentric_dominant": true,
+    "equipment": [
+      "slant_board",
+      "dumbbell",
+      "plyo_box"
+    ],
+    "force": "pull",
+    "id": "jefferson-curl",
+    "instructions": [
+      "Stand on a raised platform or slant board holding a light dumbbell or kettlebell with straight arms.",
+      "Tuck the chin and roll down one segment at a time, letting the spine flex deliberately.",
+      "Keep the knees locked and the weight close to the legs.",
+      "Descend until the wrists are below the toes, then roll back up segment by segment.",
+      "Standard: 25% of bodyweight for 10 reps, wrists below the toes. LIGHT only, and only once pain-free (RESEARCH §6.3)."
+    ],
+    "kot_step": "posterior_chain",
+    "level": "expert",
+    "load_style": "single_implement",
+    "mechanic": "compound",
+    "name": "Jefferson Curl",
+    "pattern": "hinge",
+    "plyo_contacts_per_rep": 0,
+    "preferred_alternatives": [
+      "elephant-walk",
+      "atg-rdl"
+    ],
+    "region_loads": {
+      "low_back": 0.8,
+      "posterior_chain": 0.7,
+      "spine": 0.9
+    },
+    "rehab_for": [
+      "low_back",
+      "spine"
+    ],
+    "slug": "jefferson-curl",
+    "source": "curated"
+  },
+  {
+    "aliases": [
+      "l sit hold",
+      "floor l-sit",
+      "parallette l-sit"
+    ],
+    "barbell_free": true,
+    "cue": "Push the floor away, lock the knees, lift the toes above the hips if you can.",
+    "eccentric_dominant": false,
+    "equipment": [
+      "bodyweight",
+      "dip_station"
+    ],
+    "force": "static",
+    "id": "l-sit",
+    "instructions": [
+      "Sit on the floor with legs straight and hands flat beside the hips (or on parallettes/low blocks).",
+      "Press down hard through the hands, depress the shoulders, and lift the hips off the floor.",
+      "Keep the knees locked and lift the heels clear of the ground.",
+      "Hold for time; start with tucked knees and progress to straight legs.",
+      "Target 3 × 20–30 seconds."
+    ],
+    "kot_step": "deep_squat",
+    "level": "intermediate",
+    "load_style": "bodyweight",
+    "mechanic": "compound",
+    "name": "L-Sit",
+    "pattern": "anti_extension",
+    "plyo_contacts_per_rep": 0,
+    "preferred_alternatives": [
+      "mcgill-curl-up",
+      "side-plank"
+    ],
+    "region_loads": {
+      "core": 1,
+      "elbows_forearms": 0.3,
+      "hips_glutes": 0.4,
+      "shoulders": 0.3
+    },
+    "rehab_for": [
+      "core"
+    ],
+    "slug": "l-sit",
+    "source": "curated"
+  },
+  {
+    "aliases": [
+      "mcgill curl up",
+      "modified curl up",
+      "big 3 curl up"
+    ],
+    "barbell_free": true,
+    "cue": "Hands under the low back, one knee bent — lift the head and shoulders an inch, no more.",
+    "eccentric_dominant": false,
+    "equipment": [
+      "yoga_mat",
+      "bodyweight"
+    ],
+    "force": "static",
+    "id": "mcgill-curl-up",
+    "instructions": [
+      "Lie on your back, one knee bent with the foot flat, the other leg straight.",
+      "Slide both hands palm-down under the lumbar spine to preserve its natural arch.",
+      "Brace the abdominals and lift the head, neck, and shoulders as one unit about an inch off the floor.",
+      "Hold 10 seconds, breathing normally; do not flex the low back or push it into the floor.",
+      "Use descending pyramids (6/4/2 reps) rather than long sets. Daily is fine."
+    ],
+    "level": "beginner",
+    "load_style": "bodyweight",
+    "mechanic": "isolation",
+    "name": "McGill Curl-Up",
+    "pattern": "anti_extension",
+    "plyo_contacts_per_rep": 0,
+    "preferred_alternatives": [
+      "side-plank",
+      "bird-dog"
+    ],
+    "region_loads": {
+      "core": 0.8,
+      "spine": 0.2
+    },
+    "rehab_for": [
+      "low_back",
+      "core"
+    ],
+    "slug": "mcgill-curl-up",
+    "source": "curated"
+  },
+  {
+    "aliases": [
+      "ball slam",
+      "slam ball",
+      "medicine ball slams"
+    ],
+    "barbell_free": true,
+    "cue": "Reach tall, then throw it through the floor — exhale on the slam.",
+    "eccentric_dominant": false,
+    "equipment": [
+      "slam_ball",
+      "medicine_ball"
+    ],
+    "force": "push",
+    "id": "med-ball-slam",
+    "instructions": [
+      "Stand with feet hip width holding a slam ball (non-bouncing) at the chest.",
+      "Reach the ball overhead, extending tall through the hips.",
+      "Slam it into the floor between the feet, hinging and folding the torso as you throw.",
+      "Pick it up and repeat, keeping the back flat as you reload.",
+      "Check the club rules — some Planet Fitness locations disallow slams; substitute DB push press if so."
+    ],
+    "level": "beginner",
+    "load_style": "single_implement",
+    "mechanic": "compound",
+    "name": "Medicine Ball Slam",
+    "pattern": "rotation",
+    "plyo_contacts_per_rep": 0,
+    "preferred_alternatives": [
+      "db-push-press"
+    ],
+    "region_loads": {
+      "core": 0.8,
+      "hips_glutes": 0.4,
+      "shoulders": 0.5,
+      "upper_back": 0.5
+    },
+    "slug": "med-ball-slam",
+    "source": "curated"
+  },
+  {
+    "aliases": [
+      "nordic curl",
+      "russian leg curl",
+      "natural glute ham raise",
+      "nordics"
+    ],
+    "barbell_free": true,
+    "contraindicated_with": [
+      "depth-jump"
+    ],
+    "cue": "Hips locked straight, lower as slowly as you can, catch with the hands.",
+    "eccentric_dominant": true,
+    "equipment": [
+      "nordic_support",
+      "bench_adjustable",
+      "yoga_mat"
+    ],
+    "force": "pull",
+    "id": "nordic-hamstring-curl",
+    "instructions": [
+      "Kneel with the ankles anchored under a Nordic strap, a loaded bench, or a partner. Pad the knees.",
+      "Keep a straight line from knee to shoulder — do not hinge at the hip.",
+      "Lower the torso toward the floor as slowly as you can control.",
+      "Catch yourself with the hands and push back to the start, or pull with the hamstrings if strong enough.",
+      "Standard: full bodyweight for 10 reps. ~50% reduction in hamstring injury risk (van Dyk 2019) — 1–2×/week."
+    ],
+    "kot_step": "posterior_chain",
+    "level": "expert",
+    "load_style": "bodyweight",
+    "mechanic": "compound",
+    "name": "Nordic Hamstring Curl",
+    "pattern": "hinge",
+    "plyo_contacts_per_rep": 0,
+    "preferred_alternatives": [
+      "reverse-nordic",
+      "atg-rdl"
+    ],
+    "region_loads": {
+      "core": 0.3,
+      "hips_glutes": 0.4,
+      "low_back": 0.3,
+      "posterior_chain": 1
+    },
+    "rehab_for": [
+      "posterior_chain"
+    ],
+    "slug": "nordic-hamstring-curl",
+    "source": "curated"
+  },
+  {
+    "aliases": [
+      "patrick step down",
+      "reverse step down",
+      "knee over toe step"
+    ],
+    "barbell_free": true,
+    "cue": "Working knee travels forward, free leg straight, tap the heel — do not sit back.",
+    "eccentric_dominant": true,
+    "equipment": [
+      "bodyweight",
+      "plyo_box"
+    ],
+    "force": "push",
+    "id": "patrick-step",
+    "instructions": [
+      "Stand on a low step (2–4 inches to start) on one leg, the other leg straight out in front.",
+      "Keeping the front leg locked straight, bend the standing knee and let it travel forward over the toes.",
+      "Lower until the free heel taps the floor in front of the step.",
+      "Press back up through the whole foot without rocking backwards.",
+      "Full range with control before adding height. This is the strict-knee-over-toe step-down."
+    ],
+    "kot_step": "step_ups",
+    "level": "beginner",
+    "load_style": "bodyweight",
+    "mechanic": "compound",
+    "name": "Patrick Step",
+    "pattern": "lunge",
+    "plyo_contacts_per_rep": 0,
+    "preferred_alternatives": [
+      "poliquin-step",
+      "atg-split-squat-assisted"
+    ],
+    "region_loads": {
+      "calves_achilles": 0.2,
+      "hips_glutes": 0.3,
+      "knees_quads": 0.9
+    },
+    "rehab_for": [
+      "knees_quads"
+    ],
+    "slug": "patrick-step",
+    "source": "curated"
+  },
+  {
+    "aliases": [
+      "pogo jumps",
+      "pogos",
+      "stiff ankle hops"
+    ],
+    "barbell_free": true,
+    "cue": "Stiff ankles, minimal knee bend, off the ground as fast as you touch it.",
+    "eccentric_dominant": false,
+    "equipment": [
+      "bodyweight"
+    ],
+    "force": "push",
+    "id": "pogo-hop",
+    "instructions": [
+      "Stand tall with feet hip width, arms relaxed at the sides or on the hips.",
+      "Bounce continuously off the balls of the feet, keeping the knees nearly straight.",
+      "Minimize ground contact time — think \"hot floor\".",
+      "Sets of 15–30 contacts. This is the entry rung of the plyometric ladder.",
+      "Never on consecutive days; count contacts toward the weekly plyo budget."
+    ],
+    "level": "beginner",
+    "load_style": "bodyweight",
+    "mechanic": "compound",
+    "name": "Pogo Hop",
+    "pattern": "jump",
+    "plyo_contacts_per_rep": 1,
+    "preferred_alternatives": [
+      "ankle-hop"
+    ],
+    "region_loads": {
+      "calves_achilles": 1,
+      "knees_quads": 0.3
+    },
+    "slug": "pogo-hop",
+    "source": "curated"
+  },
+  {
+    "aliases": [
+      "poliquin step up",
+      "vmo step up",
+      "heel elevated step up"
+    ],
+    "barbell_free": true,
+    "cue": "Heel elevated, knee forward over the toe, drive up through the working leg only.",
+    "eccentric_dominant": false,
+    "equipment": [
+      "plyo_box",
+      "dumbbell",
+      "slant_board"
+    ],
+    "force": "push",
+    "id": "poliquin-step",
+    "instructions": [
+      "Set a 3–4 inch box or plate. Stand with the working foot on the box, heel elevated on a small wedge if available.",
+      "Let the knee travel forward over the toes as the free leg hangs behind.",
+      "Drive up through the working leg without pushing off the back foot.",
+      "Lower slowly under control; keep the torso upright.",
+      "Standard: 66% of bodyweight (total load) for 20 reps on a 3–4 inch box."
+    ],
+    "kot_step": "step_ups",
+    "level": "intermediate",
+    "load_style": "total_dumbbell_pair",
+    "mechanic": "compound",
+    "name": "Poliquin Step-Up",
+    "pattern": "lunge",
+    "plyo_contacts_per_rep": 0,
+    "preferred_alternatives": [
+      "patrick-step",
+      "atg-split-squat"
+    ],
+    "region_loads": {
+      "calves_achilles": 0.2,
+      "hips_glutes": 0.3,
+      "knees_quads": 1
+    },
+    "rehab_for": [
+      "knees_quads"
+    ],
+    "slug": "poliquin-step",
+    "source": "curated"
+  },
+  {
+    "aliases": [
+      "quadratus lumborum extension",
+      "ql raise",
+      "back extension ql variation"
+    ],
+    "barbell_free": true,
+    "cue": "Round down segment by segment, then extend back up — slow, no swinging.",
+    "eccentric_dominant": false,
+    "equipment": [
+      "back_extension_bench",
+      "dumbbell"
+    ],
+    "force": "pull",
+    "id": "ql-extension",
+    "instructions": [
+      "Set up on a 45° or horizontal back-extension bench with the pad below the hip crease.",
+      "Hold a light dumbbell or plate at the chest.",
+      "Lower by flexing the spine segment by segment under full control.",
+      "Extend back up to a flat, neutral finish — do not hyperextend.",
+      "Standard: 25% of bodyweight for 10 reps. Only once the back is pain-free."
+    ],
+    "kot_step": "posterior_chain",
+    "level": "intermediate",
+    "load_style": "single_implement",
+    "mechanic": "isolation",
+    "name": "QL Extension",
+    "pattern": "hinge",
+    "plyo_contacts_per_rep": 0,
+    "preferred_alternatives": [
+      "seated-good-morning",
+      "bird-dog"
+    ],
+    "region_loads": {
+      "hips_glutes": 0.3,
+      "low_back": 1,
+      "posterior_chain": 0.4,
+      "spine": 0.5
+    },
+    "rehab_for": [
+      "low_back"
+    ],
+    "slug": "ql-extension",
+    "source": "curated"
+  },
+  {
+    "aliases": [
+      "reverse nordic curl",
+      "kneeling quad lean back",
+      "reverse nordics"
+    ],
+    "barbell_free": true,
+    "cue": "Glutes squeezed, hips straight, lean back only as far as you can come back up.",
+    "eccentric_dominant": true,
+    "equipment": [
+      "bodyweight",
+      "yoga_mat"
+    ],
+    "force": "pull",
+    "id": "reverse-nordic",
+    "instructions": [
+      "Kneel tall on a pad with the feet plantarflexed (toes pointed).",
+      "Squeeze the glutes and keep a straight line from knee to shoulder.",
+      "Lean backwards slowly, bending only at the knees, feeling the quads stretch.",
+      "Return by contracting the quads — no hip hinge, no arching the back.",
+      "Build to 3 × 8–10 through the fullest range you can control."
+    ],
+    "kot_step": "posterior_chain",
+    "level": "intermediate",
+    "load_style": "bodyweight",
+    "mechanic": "compound",
+    "name": "Reverse Nordic Curl",
+    "pattern": "isolation_lower",
+    "plyo_contacts_per_rep": 0,
+    "preferred_alternatives": [
+      "couch-stretch",
+      "nordic-hamstring-curl"
+    ],
+    "region_loads": {
+      "core": 0.3,
+      "hips_glutes": 0.3,
+      "knees_quads": 1
+    },
+    "rehab_for": [
+      "knees_quads"
+    ],
+    "slug": "reverse-nordic",
+    "source": "curated"
+  },
+  {
+    "aliases": [
+      "seated goodmorning",
+      "seated bent over good morning"
+    ],
+    "barbell_free": true,
+    "cue": "Seated, chest leads, arch held — hinge from the hips, not the low back.",
+    "eccentric_dominant": false,
+    "equipment": [
+      "bench_flat",
+      "dumbbell",
+      "smith_machine"
+    ],
+    "force": "pull",
+    "id": "seated-good-morning",
+    "instructions": [
+      "Sit on the end of a bench, feet planted wide, load held across the upper back (Smith bar, DB, or a fixed bar).",
+      "Hold a firm arch and lean the torso forward from the hips.",
+      "Go as low as the arch holds — usually torso near parallel to the floor.",
+      "Return by pulling the torso upright with the spinal erectors.",
+      "Standard: 50% of bodyweight. Build slowly; this is a low-back strength builder, not a max lift."
+    ],
+    "kot_step": "posterior_chain",
+    "level": "intermediate",
+    "load_style": "single_implement",
+    "mechanic": "compound",
+    "name": "Seated Good Morning",
+    "pattern": "hinge",
+    "plyo_contacts_per_rep": 0,
+    "preferred_alternatives": [
+      "ql-extension",
+      "atg-rdl"
+    ],
+    "region_loads": {
+      "core": 0.3,
+      "low_back": 0.9,
+      "posterior_chain": 0.6,
+      "spine": 0.5
+    },
+    "rehab_for": [
+      "low_back"
+    ],
+    "slug": "seated-good-morning",
+    "source": "curated"
+  },
+  {
+    "aliases": [
+      "side bridge",
+      "mcgill side plank",
+      "big 3 side plank"
+    ],
+    "barbell_free": true,
+    "cue": "Straight line ear to ankle; push the floor away with the bottom elbow.",
+    "eccentric_dominant": false,
+    "equipment": [
+      "yoga_mat",
+      "bodyweight"
+    ],
+    "force": "static",
+    "id": "side-plank",
+    "instructions": [
+      "Lie on your side, elbow under the shoulder, knees bent (easier) or legs straight (harder).",
+      "Lift the hips so the body forms a straight line from head to knees or ankles.",
+      "Keep the top hip stacked over the bottom hip — no rolling forward.",
+      "Hold 10 seconds per rep and repeat, rather than one long hold.",
+      "Descending pyramids (6/4/2) each side. Daily is fine."
+    ],
+    "level": "beginner",
+    "load_style": "bodyweight",
+    "mechanic": "compound",
+    "name": "Side Plank",
+    "pattern": "anti_lateral_flexion",
+    "plyo_contacts_per_rep": 0,
+    "preferred_alternatives": [
+      "mcgill-curl-up",
+      "bird-dog"
+    ],
+    "region_loads": {
+      "core": 0.9,
+      "hips_glutes": 0.3,
+      "shoulders": 0.3,
+      "spine": 0.2
+    },
+    "rehab_for": [
+      "low_back",
+      "core"
+    ],
+    "slug": "side-plank",
+    "source": "curated"
+  },
+  {
+    "aliases": [
+      "one leg calf raise",
+      "unilateral calf raise",
+      "single leg heel raise"
+    ],
+    "barbell_free": true,
+    "cue": "Full stretch at the bottom, full squeeze at the top, no bouncing.",
+    "eccentric_dominant": false,
+    "equipment": [
+      "bodyweight",
+      "dumbbell",
+      "slant_board"
+    ],
+    "force": "push",
+    "id": "single-leg-calf-raise",
+    "instructions": [
+      "Stand on one foot with the forefoot on a step or a slant board, the heel free to drop.",
+      "Drop the heel to a full stretch under control.",
+      "Rise to the top of the range, pressing through the big toe, and pause.",
+      "Standard: 25% of bodyweight held in one hand for 10 reps per leg.",
+      "Balance with fingertips on a wall — do not pull yourself up with the hand."
+    ],
+    "kot_step": "lower_legs",
+    "level": "intermediate",
+    "load_style": "total_dumbbell_pair",
+    "mechanic": "isolation",
+    "name": "Single-Leg Calf Raise",
+    "pattern": "isolation_lower",
+    "plyo_contacts_per_rep": 0,
+    "preferred_alternatives": [
+      "fhl-calf-raise"
+    ],
+    "region_loads": {
+      "calves_achilles": 1,
+      "hips_glutes": 0.1
+    },
+    "rehab_for": [
+      "calves_achilles"
+    ],
+    "slug": "single-leg-calf-raise",
+    "source": "curated"
+  },
+  {
+    "aliases": [
+      "tibialis bar curl",
+      "tib bar curl",
+      "loaded tibialis raise"
+    ],
+    "barbell_free": true,
+    "cue": "Heels fixed, toes drive the bar up — no rocking the knees.",
+    "eccentric_dominant": false,
+    "equipment": [
+      "tibialis_bar"
+    ],
+    "force": "pull",
+    "id": "tib-bar-raise",
+    "instructions": [
+      "Sit with the heels on a raised block and hook the tib bar over the forefeet.",
+      "Keep the knees still; only the ankles move.",
+      "Pull the toes up to full dorsiflexion, pause, and lower over 3 seconds.",
+      "Standard: 25% of bodyweight for 5 sets of 5.",
+      "If no tib bar is available, substitute the dumbbell-between-the-feet or band version."
+    ],
+    "kot_step": "lower_legs",
+    "level": "intermediate",
+    "load_style": "single_implement",
+    "mechanic": "isolation",
+    "name": "Tib Bar Raise",
+    "pattern": "isolation_lower",
+    "plyo_contacts_per_rep": 0,
+    "preferred_alternatives": [
+      "tibialis-raise-dumbbell",
+      "tibialis-raise-band",
+      "tibialis-raise"
+    ],
+    "region_loads": {
+      "calves_achilles": 1,
+      "knees_quads": 0.2
+    },
+    "rehab_for": [
+      "calves_achilles"
+    ],
+    "slug": "tib-bar-raise",
+    "source": "curated"
+  },
+  {
+    "aliases": [
+      "tib raise",
+      "wall tibialis raise",
+      "toe raise against wall"
+    ],
+    "barbell_free": true,
+    "cue": "Heels planted, lean back on the wall, pull the toes up hard and lower slowly.",
+    "eccentric_dominant": false,
+    "equipment": [
+      "bodyweight",
+      "wall_space"
+    ],
+    "force": "pull",
+    "id": "tibialis-raise",
+    "instructions": [
+      "Stand with your back against a wall, heels 6–12 inches out from the wall (further out = harder).",
+      "Keep legs straight and the back and hips in contact with the wall.",
+      "Pull the toes and forefoot up toward the shins as high as they will go.",
+      "Lower under control — do not let the feet slap down.",
+      "The standard is 25 unbroken reps. Build there before adding load."
+    ],
+    "kot_step": "lower_legs",
+    "level": "beginner",
+    "load_style": "bodyweight",
+    "mechanic": "isolation",
+    "name": "Tibialis Raise (Bodyweight)",
+    "pattern": "isolation_lower",
+    "plyo_contacts_per_rep": 0,
+    "preferred_alternatives": [
+      "tibialis-raise-band",
+      "tibialis-raise-dumbbell",
+      "tib-bar-raise"
+    ],
+    "region_loads": {
+      "calves_achilles": 0.9,
+      "knees_quads": 0.2
+    },
+    "rehab_for": [
+      "knees_quads",
+      "calves_achilles"
+    ],
+    "slug": "tibialis-raise",
+    "source": "curated"
+  },
+  {
+    "aliases": [
+      "banded tib raise",
+      "band dorsiflexion"
+    ],
+    "barbell_free": true,
+    "cue": "Anchor low and in front; pull the toes back against the band, pause at the top.",
+    "eccentric_dominant": false,
+    "equipment": [
+      "resistance_bands"
+    ],
+    "force": "pull",
+    "id": "tibialis-raise-band",
+    "instructions": [
+      "Sit on the floor or a bench with legs extended and the band anchored low in front of you.",
+      "Loop the band over the forefoot, heel resting on the ground.",
+      "Pull the toes back toward the shin against the band; pause one second at the top.",
+      "Lower slowly over 2–3 seconds.",
+      "Use when no tib bar is available and bodyweight raises have become easy."
+    ],
+    "kot_step": "lower_legs",
+    "level": "beginner",
+    "load_style": "band",
+    "mechanic": "isolation",
+    "name": "Tibialis Raise (Band)",
+    "pattern": "isolation_lower",
+    "plyo_contacts_per_rep": 0,
+    "preferred_alternatives": [
+      "tibialis-raise-dumbbell",
+      "tib-bar-raise",
+      "tibialis-raise"
+    ],
+    "region_loads": {
+      "calves_achilles": 0.9
+    },
+    "rehab_for": [
+      "calves_achilles"
+    ],
+    "slug": "tibialis-raise-band",
+    "source": "curated"
+  },
+  {
+    "aliases": [
+      "db tib raise",
+      "weighted tibialis raise",
+      "dumbbell dorsiflexion"
+    ],
+    "barbell_free": true,
+    "cue": "Pinch the dumbbell between the feet, heels on the edge, curl the toes up.",
+    "eccentric_dominant": false,
+    "equipment": [
+      "dumbbell",
+      "bench_flat"
+    ],
+    "force": "pull",
+    "id": "tibialis-raise-dumbbell",
+    "instructions": [
+      "Sit on a bench with the heels resting on a block or the floor and the knees bent ~90°.",
+      "Stand a dumbbell on end and pinch it between the forefeet, or hang it over the toes.",
+      "Pull the toes up toward the shins through full range; pause at the top.",
+      "Lower over 3 seconds. Keep the heels planted throughout.",
+      "The tib bar standard is 25% bodyweight for 5×5; this is the Planet Fitness/home substitute."
+    ],
+    "kot_step": "lower_legs",
+    "level": "intermediate",
+    "load_style": "single_implement",
+    "mechanic": "isolation",
+    "name": "Tibialis Raise (Dumbbell Between the Feet)",
+    "pattern": "isolation_lower",
+    "plyo_contacts_per_rep": 0,
+    "preferred_alternatives": [
+      "tib-bar-raise",
+      "tibialis-raise-band",
+      "tibialis-raise"
+    ],
+    "region_loads": {
+      "calves_achilles": 1,
+      "knees_quads": 0.2
+    },
+    "rehab_for": [
+      "calves_achilles"
+    ],
+    "slug": "tibialis-raise-dumbbell",
+    "source": "curated"
+  },
+  {
+    "aliases": [
+      "4x4",
+      "norwegian 4x4",
+      "vo2 max intervals",
+      "four by four"
+    ],
+    "barbell_free": true,
+    "cue": "Four minutes hard enough that talking is impossible; three minutes easy. Four times.",
+    "eccentric_dominant": false,
+    "equipment": [
+      "treadmill",
+      "stationary_bike",
+      "rower",
+      "outdoor_route"
+    ],
+    "force": "unknown",
+    "id": "vo2-4x4-intervals",
+    "instructions": [
+      "Warm up 10 minutes easy, building to moderate.",
+      "Work 4 minutes at 85–95% of HRmax — hard, controlled, sustainable for the full four.",
+      "Recover 3 minutes at an easy pace, moving the whole time.",
+      "Repeat for 4 total work intervals, then cool down 5–10 minutes.",
+      "Once per week. Alternatives: 8×2 min or 30/30s if 4×4 is too much today."
+    ],
+    "level": "intermediate",
+    "load_style": "none",
+    "mechanic": "compound",
+    "name": "VO2max 4×4 Intervals",
+    "pattern": "cardio_interval",
+    "plyo_contacts_per_rep": 0,
+    "preferred_alternatives": [
+      "zone-2-steady"
+    ],
+    "region_loads": {
+      "calves_achilles": 0.3,
+      "knees_quads": 0.3,
+      "posterior_chain": 0.2
+    },
+    "slug": "vo2-4x4-intervals",
+    "source": "curated"
+  },
+  {
+    "aliases": [
+      "walk run",
+      "run walk intervals",
+      "couch to 5k style"
+    ],
+    "barbell_free": true,
+    "cue": "Run the easy parts easy. The walk is part of the workout, not a failure.",
+    "eccentric_dominant": false,
+    "equipment": [
+      "outdoor_route",
+      "treadmill"
+    ],
+    "force": "unknown",
+    "id": "walk-run-progression",
+    "instructions": [
+      "Warm up 5 minutes walking briskly.",
+      "Alternate run and walk intervals — e.g. 1 minute run / 2 minutes walk — for 20–30 minutes.",
+      "Keep the run segments at conversational effort; the walk restores it.",
+      "Add ~10% to total weekly running volume at most, and lengthen run segments before shortening walks.",
+      "Never two hard run days back to back."
+    ],
+    "level": "beginner",
+    "load_style": "none",
+    "mechanic": "compound",
+    "name": "Walk–Run Progression",
+    "pattern": "cardio_steady",
+    "plyo_contacts_per_rep": 0,
+    "preferred_alternatives": [
+      "zone-2-steady"
+    ],
+    "region_loads": {
+      "calves_achilles": 0.4,
+      "knees_quads": 0.3,
+      "posterior_chain": 0.2
+    },
+    "slug": "walk-run-progression",
+    "source": "curated"
+  },
+  {
+    "aliases": [
+      "zone 2",
+      "z2",
+      "easy aerobic",
+      "conversational pace"
+    ],
+    "barbell_free": true,
+    "cue": "Nose-breathing, full-sentence pace. If you cannot talk, slow down.",
+    "eccentric_dominant": false,
+    "equipment": [
+      "stationary_bike",
+      "rower",
+      "treadmill",
+      "elliptical",
+      "outdoor_route"
+    ],
+    "force": "unknown",
+    "id": "zone-2-steady",
+    "instructions": [
+      "Pick a modality: bike, rower, brisk walk, ruck, or easy run.",
+      "Hold 60–70% of HRmax — conversational, sustainable, boring on purpose.",
+      "Target 30–60 minutes; weekly target builds toward 180–240 minutes across 3–5 sessions.",
+      "Use the bike or rower within 24 h of heavy lower-body work; save running for upper-body or recovery days.",
+      "Ramp total weekly aerobic volume by no more than 10% per week."
+    ],
+    "level": "beginner",
+    "load_style": "none",
+    "mechanic": "compound",
+    "name": "Zone 2 Steady Cardio",
+    "pattern": "cardio_steady",
+    "plyo_contacts_per_rep": 0,
+    "preferred_alternatives": [
+      "walk-run-progression"
+    ],
+    "region_loads": {
+      "calves_achilles": 0.2,
+      "knees_quads": 0.2,
+      "posterior_chain": 0.1
+    },
+    "slug": "zone-2-steady",
+    "source": "curated"
+  }
+]
