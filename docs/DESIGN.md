@@ -36,136 +36,85 @@ Why each of these bites on iOS specifically:
 
 ## 2. Typography
 
-**Display — Space Grotesk.** Used for numbers-as-heroes and for the session title: the load on the set card, the countdown on the rest timer, the vertical-jump figure, the tonnage on the summary. It is a grotesque with unusual, slightly mechanical digits and a tight, confident set at large sizes — it reads as *instrument*, which is what those numbers are.
+> **This section describes what is in `apps/web/src/app/globals.css` and
+> `layout.tsx` today.** An earlier draft proposed Space Grotesk / Geist; the
+> build shipped Archivo / Inter, self-hosted through `next/font`, and the doc
+> now follows the code rather than the other way round. If you change one,
+> change both — a design doc that disagrees with the stylesheet is worse than no
+> design doc.
 
-**Text — Geist Sans.** Everything else: the why line, labels, settings, body copy, the bot transcript. High x-height, quiet, excellent at 13–17 px, and it disappears behind what it is saying. It carries the load Space Grotesk should not.
+**Display — Archivo.** The session title, the readiness number, the load on a
+set card, the clock digits, the tonnage. A grotesque with a tight, confident set
+at large sizes and, crucially, **tabular figures**: a timer in a proportional
+face jitters as the digits change, and a rest countdown that shifts sideways
+every second is a small, constant irritation. Loaded with `next/font/google`, so
+it is self-hosted and there is no third-party request on first paint.
 
-**Numeric — Geist Mono**, tabular, for anything that ticks or aligns in a column: the clock digits, the set log table, the keypad readout. A timer in a proportional face jitters as the digits change; a mono one does not.
+**Text — Inter.** Everything else: the why line, labels, settings, body copy,
+the bot transcript. High x-height, quiet at 13–17 px, and it disappears behind
+what it is saying.
 
-All three are open-licence and self-hosted as `woff2` — no third-party font request on the critical path, which matters for the 1.5 s LTE budget.
+**No separate mono face.** Numerals are handled by
+`font-variant-numeric: tabular-nums` and `font-feature-settings: "tnum" 1`,
+applied globally to `.num`, `button` and `input`. That gets column alignment and
+non-jittering clocks out of the two faces already loaded, rather than paying for
+a third.
+
+### The tokens, as shipped
 
 ```css
 :root {
-  --font-display: 'Space Grotesk', system-ui, sans-serif;
-  --font-text:    'Geist Sans', system-ui, -apple-system, sans-serif;
-  --font-mono:    'Geist Mono', ui-monospace, 'SF Mono', monospace;
-
-  /* Type scale — 1.25 major third, clamped for the 390–430 px range */
-  --t-hero:    clamp(2.75rem, 12vw, 3.5rem);  /* the one number on a set card */
-  --t-title:   1.75rem;   /* session title */
-  --t-heading: 1.3125rem; /* block headings */
-  --t-body:    1.0625rem; /* why line, prose */
-  --t-label:   0.9375rem; /* field labels, secondary */
-  --t-micro:   0.8125rem; /* units, timestamps, attribution */
-
-  --lh-tight: 1.1;   /* display and numerals */
-  --lh-snug:  1.35;  /* headings */
-  --lh-body:  1.55;  /* prose */
-
-  --track-display: -0.02em;
-  --track-body:     0em;
-  --track-micro:    0.01em;
+  --font-display: var(--font-archivo), 'Archivo', ui-sans-serif, system-ui, sans-serif;
+  --font-sans:    var(--font-inter),   'Inter',   ui-sans-serif, system-ui, -apple-system, sans-serif;
 }
 ```
 
-Rules: never below 13 px, ever. Numerals always `font-variant-numeric: tabular-nums`. One display-weight element per screen — if two things are shouting, neither is heard.
+Sizes are Tailwind's scale plus a handful of arbitrary values where the scale did
+not have the right step — `text-[1.75rem]` for the session title,
+`text-[0.9375rem]` for the why line, `text-[0.6875rem]` for the uppercase
+`.label`. The floor is 11 px and it is used only for the tracked-out uppercase
+labels; nothing that has to be READ goes below 13 px.
 
----
+Rules: numerals always tabular. One display-weight element per screen — if two
+things are shouting, neither is heard.
 
 ## 3. Colour
 
-Dark-first, because the app is opened at 06:00 and in dim gyms. The palette is nearly monochrome with **one** signal colour, so that the single primary action on each screen is the only saturated thing in view.
-
-The accent is **chalk** — the yellow-green of gym chalk, and a nod to the chalk-and-wall vertical test that is the athletic north star. It appears on exactly one element per screen.
-
-Readiness gets its own small ramp, deliberately separate from the semantic colours, so "reduced" never reads as "error".
+> **Source of truth: `apps/web/src/app/globals.css`.** The values below are
+> copied from it. Light sits on `:root`, dark is redefined under
+> `@media (prefers-color-scheme: dark)` guarded by `:root:not([data-theme="light"])`
+> AND under `:root[data-theme="dark"]`, so a Settings override beats the OS.
 
 ```css
-:root {
-  /* ── Surfaces ─────────────────────────────────────────── */
-  --bg:            #0C0D10;  /* app background */
-  --surface:       #14161A;  /* cards */
-  --surface-2:     #1C1F24;  /* raised: sheets, keypad, menus */
-  --surface-sunk:  #080A0C;  /* wells: the set-log table, inputs */
-  --hairline:      #262A31;  /* 1px dividers */
-  --hairline-soft: #1B1E24;
+/* light — :root */
+--bg: #f6f5f2;  --surface: #ffffff;  --surface-2: #efeee9;  --line: #e0ded7;
+--ink: #16171a; --ink-2: #4d5159;    --ink-3: #7d828c;
+--accent: #c2410c;  --accent-ink: #ffffff;  --accent-soft: rgba(194,65,12,0.12);
+--good: #0f7a52;  --warn: #9a6400;  --bad: #b23a37;  --info: #1d5fb5;
+--s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --s4: #eda100; --s5: #e87ba4;
 
-  /* ── Text ─────────────────────────────────────────────── */
-  --text:        #ECEEF1;
-  --text-muted:  #9BA3AE;
-  --text-faint:  #6B7480;   /* units, timestamps, attribution */
-  --text-invert: #0C0D10;   /* on accent fills */
+/* dark */
+--bg: #0b0c0e;  --surface: #131519;  --surface-2: #1b1e24;  --line: #262a31;
+--ink: #f3f4f6; --ink-2: #a8aeba;    --ink-3: #737a86;
+--accent: #ff6b3d;  --accent-ink: #14120f;  --accent-soft: rgba(255,107,61,0.14);
+--good: #3ddc97;  --warn: #f2b134;  --bad: #f2706d;  --info: #63a8ff;
+--s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --s5: #d55181;
 
-  /* ── Accent: chalk. One per screen. ───────────────────── */
-  --accent:         #C6F24E;
-  --accent-press:   #AFDB37;
-  --accent-soft:    #C6F24E1F;  /* 12% wash behind selected states */
-  --accent-text:    #C6F24E;    /* accent as foreground on dark */
-
-  /* ── Readiness ramp (its own scale, not the semantics) ── */
-  --ready-push:       #C6F24E;  /* ≥85 — go */
-  --ready-planned:    #8FA3B0;  /* 70–84 — quiet on purpose */
-  --ready-reduced:    #F2B44E;  /* 55–69 */
-  --ready-recovery:   #6E8BFF;  /* <55 or HRV −10% */
-
-  /* ── Semantics ────────────────────────────────────────── */
-  --danger:   #E5484D;   /* pain rising, destructive */
-  --warning:  #F2B44E;   /* ACWR out of band, blocked region */
-  --info:     #6E8BFF;
-  --success:  #57C98A;   /* set completed, standard met */
-
-  /* ── Elevation. Dark UI leans on hairlines, not shadow. ─ */
-  --shadow-sheet: 0 -8px 32px rgb(0 0 0 / 0.55);
-  --shadow-float: 0 4px 16px rgb(0 0 0 / 0.40);
-}
-
-/* Light mode: warm paper, not inverted grey. Same hierarchy, same one accent. */
-@media (prefers-color-scheme: light) {
-  :root:not([data-theme='dark']) {
-    --bg:            #FAFAF7;
-    --surface:       #FFFFFF;
-    --surface-2:     #F4F4EF;
-    --surface-sunk:  #EFEFE9;
-    --hairline:      #E3E3DB;
-    --hairline-soft: #EDEDE6;
-
-    --text:        #16181C;
-    --text-muted:  #5B636E;
-    --text-faint:  #858D98;
-    --text-invert: #16181C;   /* chalk fills still take dark text */
-
-    --accent:       #C2ED45;  /* fill — dark text on top */
-    --accent-press: #A7D22C;
-    --accent-soft:  #C2ED4533;
-    --accent-text:  #55700A;  /* foreground use needs the darker value for contrast */
-
-    --ready-push:     #55700A;
-    --ready-planned:  #5B636E;
-    --ready-reduced:  #A5670A;
-    --ready-recovery: #3A54C4;
-
-    --danger:  #C22B30;
-    --warning: #A5670A;
-    --info:    #3A54C4;
-    --success: #1F7F4E;
-
-    --shadow-sheet: 0 -8px 32px rgb(16 18 22 / 0.12);
-    --shadow-float: 0 4px 16px rgb(16 18 22 / 0.10);
-  }
-}
-
-/* Explicit override from settings wins over the OS. */
-:root[data-theme='dark']  { color-scheme: dark; }
-:root[data-theme='light'] { color-scheme: light; }
+--nav-h: 4.25rem;  --radius: 1.25rem;
 ```
 
-Rules:
-- **One accent element per screen.** If Start is chalk, nothing else is.
-- Body text hits WCAG AA against its surface in both themes; `--text-faint` is for non-essential metadata only.
-- Colour never carries meaning alone — readiness shows a word as well as a hue, blocked regions show a reason as well as amber.
-- Media thumbnails sit on `--surface-sunk` so a transparent GIF never floats on nothing.
+Nearly monochrome with **one** signal colour, so the single primary action on a
+screen is the only saturated thing in view. `--s1`…`--s5` are the categorical
+chart slots, in validated order; charts also carry legends and direct labels, so
+nothing reads by hue alone.
 
----
+**A naming trap, recorded because it cost real time.** The Tailwind theme
+defines a `nav` spacing key (`nav: 'var(--nav-h)'`), which makes Tailwind emit a
+utility `.bottom-nav { bottom: var(--nav-h) }`. A component class of the same
+name loses to it, because utilities are emitted after components — the fixed nav
+silently rendered 68 px too high, directly on top of the Start button. The nav
+class is therefore `.app-nav`. Do not name a component class `{property}-{key}`
+for any key in the theme.
 
 ## 4. Spacing, radius, layout
 
@@ -254,7 +203,7 @@ References pulled from Mobbin (RESEARCH §9): **Fitbod** — equipment picker, s
 ```
 ┌─────────────────────────────────────┐
 │ ▸ safe-area top                     │
-│  TUESDAY                  ● 72      │  Space Grotesk micro label · readiness
+│  TUESDAY                  ● 72      │  Archivo micro label · readiness
 │  Sep 23                as planned   │  dot in --ready-planned
 ├─────────────────────────────────────┤
 │                                     │
@@ -297,7 +246,7 @@ Horizontally scrolling cards inside their own overflow container — the page it
 │  why ⌄                              │  tap to expand one line
 ├─────────────────────────────────────┤
 │                                     │
-│        85            × 12           │  --t-hero, display, tabular
+│        85            × 12           │  display face, tabular figures
 │        lb             reps          │  tap either → clears → keypad
 │                                     │
 │  normal 80–90 · probable 85 · max 100│ --t-micro, faint
@@ -319,7 +268,7 @@ A bottom sheet, `--r-xl`, `--shadow-sheet`. Horizontal cards, each with a thumbn
 
 ### Clocks
 
-Full-bleed, one clock at a time, the digits in Geist Mono at `--t-hero` scale. Rest countdown, EMOM, AMRAP, interval/Tabata, for-time stopwatch. The ring is the progress; the digits are the detail. Audible plus haptic at the last three seconds and at zero, screen kept awake, and the current interval's label ("work" / "rest", round 3 of 8) directly under the digits. Nothing else on screen.
+Full-bleed, one clock at a time, the digits in Archivo with tabular figures, at display scale. Rest countdown, EMOM, AMRAP, interval/Tabata, for-time stopwatch. The ring is the progress; the digits are the detail. Audible plus haptic at the last three seconds and at zero, screen kept awake, and the current interval's label ("work" / "rest", round 3 of 8) directly under the digits. Nothing else on screen.
 
 ### Dashboard
 

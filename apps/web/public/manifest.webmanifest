@@ -1,0 +1,28 @@
+{
+  "id": "/",
+  "name": "Longevity OS",
+  "short_name": "Longevity",
+  "description": "Today's session, decided for you — strength, Knees Over Toes, Zone 2, recovery.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "orientation": "portrait",
+  "background_color": "#0b0c0e",
+  "theme_color": "#0b0c0e",
+  "categories": ["health", "fitness", "lifestyle"],
+  "lang": "en-US",
+  "dir": "ltr",
+  "icons": [
+    { "src": "/icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/maskable-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "/icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Start today's session", "short_name": "Start", "url": "/session/today" },
+    { "name": "The week", "short_name": "Week", "url": "/week" },
+    { "name": "Dashboard", "short_name": "Stats", "url": "/dashboard" }
+  ]
+}

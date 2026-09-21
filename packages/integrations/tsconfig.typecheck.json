@@ -1,0 +1,15 @@
+{
+  // Typecheck-only variant.
+  //
+  // `tsconfig.json` keeps `rootDir: ./src` so a real build emits a flat `dist`.
+  // But this package imports `@longevity/engine` BY SOURCE PATH, and tsc refuses
+  // any file outside rootDir (TS6059) — so the build config cannot typecheck the
+  // package it is a config for. Nothing is emitted here, so rootDir is dropped
+  // and the whole graph is checked, engine source included.
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "rootDir": null,
+    "outDir": null,
+    "noEmit": true
+  }
+}

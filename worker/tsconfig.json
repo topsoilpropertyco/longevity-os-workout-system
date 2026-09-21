@@ -1,8 +1,12 @@
 {
   "extends": "../tsconfig.base.json",
   "compilerOptions": {
-    "rootDir": "./src",
-    "outDir": "./dist",
+    // No `rootDir`. The worker runs from TypeScript source via tsx and imports
+    // `@longevity/integrations` and `@longevity/engine` by their source paths
+    // below, which sit OUTSIDE this directory — with a rootDir of ./src, tsc
+    // rejects every one of those imports (TS6059) and the typecheck is useless.
+    // Nothing here emits, so a rootDir buys nothing anyway.
+    "noEmit": true,
     "types": ["node"],
     "moduleResolution": "bundler",
     "paths": {
