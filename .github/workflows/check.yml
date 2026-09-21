@@ -191,6 +191,17 @@ jobs:
           SQL
           echo "start_program is idempotent and starts at Zero, week 1."
 
+      # json → sql → postgres → rows → Program. Three translations, each
+      # individually plausible; a mistake in any one shows up not as an error
+      # but as an exercise that silently never appears in a session.
+      - name: The program survives the round trip
+        env:
+          PGHOST: localhost
+          PGUSER: postgres
+          PGPASSWORD: postgres
+          PGDATABASE: longevity
+        run: npx tsx scripts/check-program-roundtrip.ts
+
       - name: Every public table has RLS
         env:
           PGPASSWORD: postgres
