@@ -14,6 +14,19 @@
 -- Mirrors the `EQUIPMENT` const in packages/engine/src/types.ts. If you add a
 -- slug there, add it here, or the enum-equality check in packages/db fails.
 -- Safe to run more than once.
+--
+-- ⚠️ THE ADD-VALUE LOOP BELOW IS A NO-OP ON A FRESH DATABASE, AND MUST STAY
+-- THAT WAY. `0001` creates `equipment_slug` with all 65 values, so the loop
+-- finds nothing to add. It exists only for a database that already ran an older
+-- `0001`.
+--
+-- The reason matters: Postgres refuses to USE a value added by
+-- `alter type ... add value` inside the same transaction that added it
+-- (SQLSTATE 55P04). The Supabase SQL Editor runs a pasted script as ONE
+-- transaction, so adding a value here and inserting a catalog row using it
+-- below would fail — as it did, in the editor, having passed a psql run where
+-- every statement gets its own implicit transaction. Values that come from
+-- `create type` carry no such restriction, which is why they belong in 0001.
 -- ─────────────────────────────────────────────────────────────────────────────
 
 do $$
@@ -39,6 +52,9 @@ $$;
 
 -- A new enum label is not visible to the same transaction that created it, so
 -- the catalog rows go in a separate statement.
+-- On a fresh database `0003` has already seeded these five, so this upsert is a
+-- no-op. It stays for a database that ran an older `0003` and needs them added.
+--
 -- `user_id is null` marks a GLOBAL catalog row, and the unique index on slug is
 -- partial on exactly that predicate, so the conflict target has to repeat it.
 insert into public.equipment_catalog (slug, display_name, category, notes) values

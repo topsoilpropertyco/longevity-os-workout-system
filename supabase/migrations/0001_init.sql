@@ -69,7 +69,8 @@ do $$ begin
     'tibialis_bar', 'sled', 'plyo_box', 'jump_rope', 'treadmill', 'elliptical',
     'arc_trainer', 'stair_climber', 'stationary_bike', 'recumbent_bike',
     'rower', 'ski_erg', 'assault_bike', 'track_or_open_space', 'outdoor_route',
-    'rings', 'ghd', 'bumper_plates', 'chalk', 'wall_space'
+    'rings', 'ab_wheel', 'battle_rope', 'sledgehammer', 'tire', 'arm_ergometer',
+    'ghd', 'bumper_plates', 'chalk', 'wall_space'
   );
 exception when duplicate_object then null; end $$;
 

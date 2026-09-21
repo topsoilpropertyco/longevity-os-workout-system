@@ -17,8 +17,8 @@
 
 
 -- ╔══════════════════════════════════════════════════════════════════════════
--- ║  0001_init.sql
--- ╚══════════════════════════════════════════════════════════════════════════
+
+-- == 0001_init.sql ==
 
 -- ═════════════════════════════════════════════════════════════════════════════
 -- 0001_init.sql — Longevity OS Workout System · base schema
@@ -91,7 +91,8 @@ do $$ begin
     'tibialis_bar', 'sled', 'plyo_box', 'jump_rope', 'treadmill', 'elliptical',
     'arc_trainer', 'stair_climber', 'stationary_bike', 'recumbent_bike',
     'rower', 'ski_erg', 'assault_bike', 'track_or_open_space', 'outdoor_route',
-    'rings', 'ghd', 'bumper_plates', 'chalk', 'wall_space'
+    'rings', 'ab_wheel', 'battle_rope', 'sledgehammer', 'tire', 'arm_ergometer',
+    'ghd', 'bumper_plates', 'chalk', 'wall_space'
   );
 exception when duplicate_object then null; end $$;
 
@@ -1032,9 +1033,7 @@ end $$;
 -- End of 0001. Next: 0002_rls.sql turns row level security on for every table.
 -- ═════════════════════════════════════════════════════════════════════════════
 
--- ╔══════════════════════════════════════════════════════════════════════════
--- ║  0002_rls.sql
--- ╚══════════════════════════════════════════════════════════════════════════
+-- == 0002_rls.sql ==
 
 -- ═════════════════════════════════════════════════════════════════════════════
 -- 0002_rls.sql — Longevity OS · row level security
@@ -1213,9 +1212,7 @@ end $$;
 -- arrays above (or give it its own policies) or the assertion will fail.
 -- ═════════════════════════════════════════════════════════════════════════════
 
--- ╔══════════════════════════════════════════════════════════════════════════
--- ║  0003_seed_equipment.sql
--- ╚══════════════════════════════════════════════════════════════════════════
+-- == 0003_seed_equipment.sql ==
 
 -- ═════════════════════════════════════════════════════════════════════════════
 -- 0003_seed_equipment.sql — Longevity OS · the global equipment catalog
@@ -1310,7 +1307,15 @@ insert into public.equipment_catalog (user_id, slug, display_name, category, not
   (null, 'plyo_box',                'Plyo box',                   'accessory',   'Box jumps STEP DOWN, always. Benches substitute for step-ups at PF.', 810),
   (null, 'jump_rope',               'Jump rope',                  'accessory',   'Cheap plyo contacts — count them against the 40–100/session ceiling.', 820),
   (null, 'rings',                   'Gymnastic rings',            'accessory',   'CrossFit box or a home bar.', 830),
-  (null, 'chalk',                   'Chalk',                      'accessory',   'Banned at Planet Fitness. Grip-limited pulls need straps or a different lift there.', 840)
+  (null, 'chalk',                   'Chalk',                      'accessory',   'Banned at Planet Fitness. Grip-limited pulls need straps or a different lift there.', 840),
+  -- Named by the source exercise corpora. The ingest reports vocabulary it
+  -- cannot map rather than coercing it into a near neighbour, and these five
+  -- are what that report asked for.
+  (null, 'ab_wheel',                'Ab wheel',                   'accessory',   'Wheel roller. Anti-extension work; brutal and cheap.', 850),
+  (null, 'battle_rope',             'Battle rope',                'accessory',   'Conditioning. Some CrossFit boxes; never Planet Fitness.', 860),
+  (null, 'sledgehammer',            'Sledgehammer',               'accessory',   'Tire striking. Box equipment.', 870),
+  (null, 'tire',                    'Tire',                       'accessory',   'Flipping and striking. Box equipment.', 880),
+  (null, 'arm_ergometer',           'Upper body ergometer',       'cardio',      'Arm bike. Genuinely useful Zone 2 on a day the lower body is recovering.', 890)
 on conflict (slug) where user_id is null do update set
   display_name = excluded.display_name,
   category     = excluded.category,
@@ -1336,9 +1341,7 @@ begin
   end if;
 end $$;
 
--- ╔══════════════════════════════════════════════════════════════════════════
--- ║  0004_seed_presets.sql
--- ╚══════════════════════════════════════════════════════════════════════════
+-- == 0004_seed_presets.sql ==
 
 -- ═════════════════════════════════════════════════════════════════════════════
 -- 0004_seed_presets.sql — Longevity OS · location presets
@@ -1755,9 +1758,7 @@ comment on function public.apply_location_preset(uuid, text, text, boolean) is
 --   select public.apply_location_preset(:uid, 'bodyweight_only');
 -- ═════════════════════════════════════════════════════════════════════════════
 
--- ╔══════════════════════════════════════════════════════════════════════════
--- ║  0005_cron.sql
--- ╚══════════════════════════════════════════════════════════════════════════
+-- == 0005_cron.sql ==
 
 -- ═════════════════════════════════════════════════════════════════════════════
 -- 0005_cron.sql — Longevity OS · scheduled jobs
@@ -2101,9 +2102,7 @@ end $$;
 --    order by ran_at desc limit 20;
 -- ═════════════════════════════════════════════════════════════════════════════
 
--- ╔══════════════════════════════════════════════════════════════════════════
--- ║  0006_worker.sql
--- ╚══════════════════════════════════════════════════════════════════════════
+-- == 0006_worker.sql ==
 
 -- ═════════════════════════════════════════════════════════════════════════════
 -- 0006_worker.sql — Longevity OS · the Mac mini worker's two objects
@@ -2292,9 +2291,7 @@ begin
 end;
 $$;
 
--- ╔══════════════════════════════════════════════════════════════════════════
--- ║  0007_equipment_vocabulary.sql
--- ╚══════════════════════════════════════════════════════════════════════════
+-- == 0007_equipment_vocabulary.sql ==
 
 -- ═════════════════════════════════════════════════════════════════════════════
 -- 0007_equipment_vocabulary.sql — Longevity OS · five slugs the corpora needed
@@ -2312,6 +2309,19 @@ $$;
 -- Mirrors the `EQUIPMENT` const in packages/engine/src/types.ts. If you add a
 -- slug there, add it here, or the enum-equality check in packages/db fails.
 -- Safe to run more than once.
+--
+-- ⚠️ THE ADD-VALUE LOOP BELOW IS A NO-OP ON A FRESH DATABASE, AND MUST STAY
+-- THAT WAY. `0001` creates `equipment_slug` with all 65 values, so the loop
+-- finds nothing to add. It exists only for a database that already ran an older
+-- `0001`.
+--
+-- The reason matters: Postgres refuses to USE a value added by
+-- `alter type ... add value` inside the same transaction that added it
+-- (SQLSTATE 55P04). The Supabase SQL Editor runs a pasted script as ONE
+-- transaction, so adding a value here and inserting a catalog row using it
+-- below would fail — as it did, in the editor, having passed a psql run where
+-- every statement gets its own implicit transaction. Values that come from
+-- `create type` carry no such restriction, which is why they belong in 0001.
 -- ─────────────────────────────────────────────────────────────────────────────
 
 do $$
@@ -2337,6 +2347,9 @@ $$;
 
 -- A new enum label is not visible to the same transaction that created it, so
 -- the catalog rows go in a separate statement.
+-- On a fresh database `0003` has already seeded these five, so this upsert is a
+-- no-op. It stays for a database that ran an older `0003` and needs them added.
+--
 -- `user_id is null` marks a GLOBAL catalog row, and the unique index on slug is
 -- partial on exactly that predicate, so the conflict target has to repeat it.
 insert into public.equipment_catalog (slug, display_name, category, notes) values
@@ -2351,9 +2364,7 @@ on conflict (slug) where user_id is null do update
       notes        = excluded.notes,
       updated_at   = now();
 
--- ╔══════════════════════════════════════════════════════════════════════════
--- ║  0008_oura_oauth.sql
--- ╚══════════════════════════════════════════════════════════════════════════
+-- == 0008_oura_oauth.sql ==
 
 -- ═════════════════════════════════════════════════════════════════════════════
 -- 0008_oura_oauth.sql — Longevity OS · Oura moves from PAT to OAuth2
@@ -2519,9 +2530,7 @@ comment on column public.integration_tokens.scope is
 -- End of 0008. No DDL: integration_tokens already suffices for Oura OAuth2.
 -- ═════════════════════════════════════════════════════════════════════════════
 
--- ╔══════════════════════════════════════════════════════════════════════════
--- ║  0009_grants.sql
--- ╚══════════════════════════════════════════════════════════════════════════
+-- == 0009_grants.sql ==
 
 -- ═════════════════════════════════════════════════════════════════════════════
 -- 0009_grants.sql — Longevity OS · explicit table privileges
