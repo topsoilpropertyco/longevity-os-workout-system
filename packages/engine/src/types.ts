@@ -469,6 +469,26 @@ export interface ProgramStep {
   /** Steps that must be met before this one unlocks. */
   prerequisites?: string[];
   block: string;
+  /**
+   * Which `ProgramPhase` this step belongs to. Absent on single-phase programs,
+   * where every step is always in play.
+   */
+  phase_id?: string;
+  /**
+   * Ordered regression → progression ladder for this movement, easiest first.
+   * Free text, one rung per entry: how to make the movement harder or easier
+   * without leaving the step. Shown as the "make it fit today" list in-app.
+   */
+  progressions?: string[];
+  /** Video demonstration of this movement, from the program's own source material. */
+  demo_url?: string;
+  /**
+   * True when `standard.reps` / `standard.hold_s` is PER SIDE rather than total.
+   * `standard.per_hand` is about load; this is about volume.
+   */
+  per_side?: boolean;
+  /** Prescribed rest between sets, in seconds. Absent means "no fixed rest". */
+  rest_s?: number;
 }
 
 export interface ProgramStandard {
@@ -496,6 +516,73 @@ export interface Program {
   target_cycles: number;
   source: string;
   attribution?: string;
+  /**
+   * Sequential phases, in `order`. A phased program is run one phase at a time:
+   * the athlete graduates out of a phase when its `weeks` elapse, or — for an
+   * open-ended phase (`weeks: null`) — when every standard in it is met.
+   */
+  phases?: ProgramPhase[];
+  /**
+   * Per-weekday session templates. One entry per (phase, weekday) the program
+   * trains. Days a phase does not train simply have no entry.
+   */
+  days?: ProgramDay[];
+  /** The phase the athlete is in right now — a `ProgramPhase.id`. */
+  current_phase_id?: string;
+}
+
+/**
+ * How a phase turns bodyweight into prescribed load. Discriminated on `kind`.
+ *
+ *   - `bodyweight_only`   — no external load at all, for the whole phase.
+ *   - `percent_bw_ramp`   — load ramps as a percentage of bodyweight, week over
+ *                           week: week 1 is bodyweight, week 2 starts at
+ *                           `start_pct`, and every week after adds
+ *                           `weekly_increment_pct`. Percentages are whole
+ *                           numbers (25 means 25% of bodyweight), unlike
+ *                           `ProgramStandard.pct_bodyweight`, which is a
+ *                           fraction.
+ *   - `standards_driven`  — load is whatever it takes to reach the phase's
+ *                           benchmarks; there is no calendar ramp.
+ */
+export type PhaseLoadRule =
+  | { kind: 'bodyweight_only' }
+  | { kind: 'percent_bw_ramp'; start_pct: number; weekly_increment_pct: number }
+  | { kind: 'standards_driven' };
+
+/** One sequential block of a phased program — KOT's Zero, Dense and Standards. */
+export interface ProgramPhase {
+  id: string;
+  name: string;
+  /** 1-based position in the sequence. Phases run in ascending order. */
+  order: number;
+  /** Planned length in weeks, or `null` for open-ended (run until standards are met). */
+  weeks: number | null;
+  /** Training days per week. Always equal to `weekdays.length`. */
+  days_per_week: number;
+  /** Weekdays this phase trains, 0 = Sunday … 6 = Saturday. */
+  weekdays: number[];
+  /** Expected session length as a `[min, max]` pair of minutes. */
+  session_min: [number, number];
+  load_rule: PhaseLoadRule;
+  description: string;
+}
+
+/**
+ * The session template for one weekday of one phase: the ordered blocks, each
+ * naming the `ProgramStep`s to run. A step may appear on several days.
+ */
+export interface ProgramDay {
+  phase_id: string;
+  /** 0 = Sunday … 6 = Saturday. */
+  weekday: number;
+  /** Shown as the session title, e.g. "Dense — Monday". */
+  title: string;
+  /** One line on what this day trains, e.g. "Lower body". */
+  focus: string;
+  blocks: { title: string; step_ids: string[] }[];
+  /** Video playlist for this day, when the program's source material has one. */
+  demo_url?: string;
 }
 
 export interface ProgramProgress {
@@ -504,6 +591,10 @@ export interface ProgramProgress {
   /** Step id → most recent evidence the standard was met. */
   met: Record<string, { date: IsoDate; evidence: string }>;
   current_step_ids: string[];
+  /** The `ProgramPhase.id` currently being run, on a phased program. */
+  phase_id?: string;
+  /** 1-based week inside `phase_id`. Drives `percent_bw_ramp` load. */
+  week_in_phase?: number;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
