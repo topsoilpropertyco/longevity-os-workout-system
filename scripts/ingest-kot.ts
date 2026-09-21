@@ -1,402 +1,1647 @@
 /**
- * Longevity OS — KOT spreadsheet reconciliation
+ * Longevity OS — Knees Over Toes ingest
  *
  *   npx tsx scripts/ingest-kot.ts
  *
- * Reads Seth's own Knees Over Toes spreadsheets from `docs/programs/kot/raw/`
- * (gitignored — his material stays local), compares them against the PUBLIC
- * scaffold in `programs/kot/program.json`, and writes a diff at
- * `data/reports/kot-reconciliation.md`:
+ * Reads Seth's OWN Knees Over Toes material out of `docs/programs/kot/raw/`
+ * (gitignored: it is copyrighted ATG product, it stays on his machine) and
+ * regenerates three committed artifacts from it:
  *
- *   - steps only in his sheet   → the scaffold is missing them
- *   - steps only in the scaffold → we invented them; delete or confirm
- *   - standards that disagree    → his numbers win
+ *   programs/kot/program.json          the three-phase program
+ *   programs/kot/seth-baseline.json    his last-known working weights
+ *   programs/kot/progress-default.json the cold-start progress record
+ *   data/reports/kot-reconciliation.md what changed, and what is still missing
  *
- * Today the directory is empty and that is the normal state: the script says so
- * and exits 0. XLSX parsing needs the optional `xlsx` package; when it is absent
- * the script prints the one command that fixes it instead of failing.
+ * WHAT CROSSES THE LINE AND WHAT DOES NOT
+ *   Facts cross: exercise names, order, sets, reps, hold durations, %-of-
+ *   bodyweight criteria, weekday grouping, phase lengths, demo links.
+ *   Prose does not: no coaching cue, no explanation, no illustration from the
+ *   ATG material is copied into a committed file. The "Notes" column of the
+ *   checklist and the narrative body of the book are never read into the
+ *   output. Every human-readable sentence in the generated files is written
+ *   here, in this script.
+ *
+ * HOW THE PARSING WORKS
+ *   The sources are .docx and .xlsx. Rather than add an npm dependency (the
+ *   repo's rule is $0/month and no new deps), the structural extraction is done
+ *   by a short Python program — embedded below as `EXTRACTOR_PY` — that runs on
+ *   the python3 already present with `python-docx` and `openpyxl`. It emits one
+ *   JSON document of pure structure; everything after that is TypeScript.
+ *
+ * WHAT THIS SCRIPT SUPPLIES THAT THE SOURCES DO NOT
+ *   Seth's sheets name movements the way a coach says them out loud ("Pat Step
+ *   25", "SL Calf Raise"). They carry no exercise ids, no equipment vocabulary
+ *   and no substitutions. `STEP_SPECS` below is the curated bridge: raw name →
+ *   library slug, program block, required equipment, progression ladder and
+ *   location substitutions. It is hand-written and reviewable; the reps and the
+ *   ordering around it are not.
+ *
+ * WHEN THE RAW DIRECTORY IS EMPTY
+ *   That is a normal state on a fresh clone — the sources are gitignored. The
+ *   script says so, touches nothing, and exits 0.
  */
 
+import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
-import type { Program, ProgramStandard, ProgramStep } from '../packages/engine/src/types';
-import { PATHS, readJson, writeText } from './lib/paths';
-import { allNumbers, firstNumber, parseCsvFile, pick, type CsvRow } from './lib/csv';
-import { nameKey, scorePair } from './lib/normalize';
 
-/** Column headers we look for, loosest first. Seth's sheets will not match exactly. */
-export const KOT_SHEET_COLUMNS = {
-  name: ['step', 'exercise', 'movement', 'name', 'lift', 'drill'],
-  standard: ['standard', 'standards', 'goal', 'target', 'requirement', 'criteria'],
-  block: ['block', 'section', 'group', 'category', 'phase', 'level'],
-  sets: ['sets', 'set'],
-  reps: ['reps', 'rep', 'repetitions'],
-  load: ['load', 'weight', 'percent', 'percent bw', '%bw', 'pct bw', 'bodyweight', '% bw'],
-  notes: ['note', 'notes', 'comment', 'comments'],
-} as const;
+import { EQUIPMENT } from '../packages/engine/src/types';
+import type {
+  Equipment,
+  Exercise,
+  GymLocation,
+  PhaseLoadRule,
+  Program,
+  ProgramDay,
+  ProgramPhase,
+  ProgramProgress,
+  ProgramStandard,
+  ProgramStep,
+} from '../packages/engine/src/types';
+import { BODYWEIGHT_ONLY, HOME, PLANET_FITNESS } from '../packages/engine/fixtures/library';
+import { PATHS, readJson, writeJson, writeText } from './lib/paths';
 
-interface SheetStep {
-  file: string;
-  rowNumber: number;
+// ─────────────────────────────────────────────────────────────────────────────
+// Paths
+// ─────────────────────────────────────────────────────────────────────────────
+
+const RAW_DIR = PATHS.kotRawDir;
+const PROGRAM_FILE = PATHS.kotProgram;
+const BASELINE_FILE = path.join(PATHS.programsDir, 'kot', 'seth-baseline.json');
+const PROGRESS_FILE = path.join(PATHS.programsDir, 'kot', 'progress-default.json');
+const REPORT_FILE = PATHS.kotReconciliationReport;
+
+/** Files that are scaffolding, not source material. */
+const IGNORED_RAW = new Set(['.gitkeep', 'README.md', '.DS_Store']);
+
+// ─────────────────────────────────────────────────────────────────────────────
+// The Python fact extractor (structure only — never prose)
+// ─────────────────────────────────────────────────────────────────────────────
+
+const EXTRACTOR_PY = String.raw`
+"""Structure extractor for the ATG / Knees Over Toes raw sources.
+
+Emits one JSON document on stdout: exercise names, rep and set counts, ordering,
+%BW criteria, weekday grouping, hyperlinks. The narrative columns are dropped
+here so the TypeScript side never even sees them.
+"""
+import json
+import os
+import re
+import sys
+
+RAW = sys.argv[1]
+
+try:
+    import docx  # python-docx
+    import openpyxl
+except BaseException as exc:
+    print(json.dumps({"error": "missing_python_dep", "detail": str(exc)}))
+    sys.exit(0)
+
+from docx.oxml.table import CT_Tbl
+from docx.oxml.text.paragraph import CT_P
+from docx.table import Table
+from docx.text.paragraph import Paragraph
+
+DASHES = dict.fromkeys(map(ord, "–—‒−"), "-")
+
+
+def clean(s):
+    if s is None:
+        return ""
+    s = str(s).replace(" ", " ").translate(DASHES)
+    s = s.replace("“", '"').replace("”", '"').replace("’", "'")
+    return re.sub(r"[ \t]+", " ", s).strip()
+
+
+def flat(s):
+    return re.sub(r"\s+", " ", clean(s)).strip()
+
+
+def blocks(doc):
+    for child in doc.element.body.iterchildren():
+        if isinstance(child, CT_P):
+            yield "p", Paragraph(child, doc)
+        elif isinstance(child, CT_Tbl):
+            yield "t", Table(child, doc)
+
+
+def parse_checklist(path):
+    doc = docx.Document(path)
+    phases, benchmarks, current, heading = [], [], None, None
+    for kind, blk in blocks(doc):
+        if kind == "p":
+            txt = flat(blk.text)
+            if not txt:
+                continue
+            m = re.match(r"^Phase (\d+):\s*(.+)$", txt)
+            if m:
+                current = {
+                    "index": int(m.group(1)),
+                    "label": txt,
+                    "key": re.sub(r"[^a-z]", "", m.group(2).lower().split()[0]),
+                    "meta": {},
+                    "days": [],
+                    "weeks_tracked": None,
+                }
+                phases.append(current)
+            else:
+                heading = txt
+            continue
+
+        rows = [[clean(c.text) for c in row.cells] for row in blk.rows]
+        if not rows:
+            continue
+        if any("BENCHMARK" in c.upper() for c in rows[0]):
+            for r in rows[1:]:
+                cells = [c for c in r if c and c != "☐"]
+                if len(cells) >= 2:
+                    benchmarks.append({"name": flat(cells[0]), "criteria": flat(cells[1])})
+            continue
+        if current is None:
+            continue
+        if len(rows) == 1 and len(set(rows[0])) == 1:
+            lines = [clean(x) for x in rows[0][0].split("\n") if clean(x)]
+            if lines:
+                current["meta"]["title"] = flat(lines[0])
+            for line in lines[1:]:
+                if ":" in line:
+                    k, v = line.split(":", 1)
+                    current["meta"][flat(k)] = flat(v)
+            continue
+        if rows[0] and rows[0][0].lower() == "week":
+            current["weeks_tracked"] = len(rows[0]) - 1
+            continue
+        if len(rows[0]) >= 3 and "exercise" in rows[0][1].lower():
+            day = None
+            for r in rows[1:]:
+                if len(set(r)) == 1:
+                    day = {"label": flat(r[0]), "rows": []}
+                    current["days"].append(day)
+                    continue
+                if day is None:
+                    day = {"label": flat(heading or "Daily"), "rows": []}
+                    current["days"].append(day)
+                name = flat(r[1]) if len(r) > 1 else ""
+                if name:
+                    day["rows"].append(
+                        {"name": name, "prescription": flat(r[2]) if len(r) > 2 else ""}
+                    )
+    return {"phases": phases, "benchmarks": benchmarks}
+
+
+def parse_grid(path):
+    wb = openpyxl.load_workbook(path, data_only=True)
+    out = {}
+    for ws in wb.worksheets:
+        grid = []
+        for row in ws.iter_rows(values_only=True):
+            cells = [clean(c) for c in row]
+            while cells and cells[-1] == "":
+                cells.pop()
+            grid.append(cells)
+        while grid and not any(grid[-1]):
+            grid.pop()
+        out[ws.title] = grid
+    return out
+
+
+def parse_links(path):
+    wb = openpyxl.load_workbook(path)
+    out = {}
+    for ws in wb.worksheets:
+        found = []
+        for row in ws.iter_rows():
+            for c in row:
+                if c.hyperlink is not None and c.hyperlink.target:
+                    found.append(
+                        {
+                            "cell": c.coordinate,
+                            "column": c.column,
+                            "row": c.row,
+                            "text": flat(c.value),
+                            "url": c.hyperlink.target,
+                        }
+                    )
+        out[ws.title] = found
+    return out
+
+
+def parse_book(path):
+    """Only the closing recap list: 'Step N: Name: prescription'."""
+    try:
+        import pypdf
+
+        reader = pypdf.PdfReader(path)
+        text = "\n".join((p.extract_text() or "") for p in reader.pages)
+    except BaseException as exc:
+        return {"available": False, "reason": str(exc)[:200], "steps": []}
+    steps = []
+    for m in re.finditer(r"^Step (\d+[A-Z]?):\s*([^:\n]+):\s*([^\n]+)$", text, re.M):
+        steps.append(
+            {"step": m.group(1), "name": flat(m.group(2)), "prescription": flat(m.group(3))}
+        )
+    return {"available": True, "steps": steps}
+
+
+def find(prefix, suffix):
+    for f in sorted(os.listdir(RAW)):
+        if f.lower().startswith(prefix.lower()) and f.lower().endswith(suffix):
+            return os.path.join(RAW, f)
+    return None
+
+
+checklist = find("ATG_Workout_Checklist", ".docx")
+workouts = find("ATG_Workouts", ".xlsx")
+links = find("YouTube_Links", ".xlsx")
+book = find("Knee_Ability_Zero_-_5", ".pdf")
+
+result = {
+    "error": None,
+    "files": sorted(f for f in os.listdir(RAW) if not f.startswith(".")),
+    "found": {
+        "checklist": os.path.basename(checklist) if checklist else None,
+        "workouts": os.path.basename(workouts) if workouts else None,
+        "youtube": os.path.basename(links) if links else None,
+        "book": os.path.basename(book) if book else None,
+    },
+    "checklist": parse_checklist(checklist) if checklist else None,
+    "workouts": parse_grid(workouts) if workouts else None,
+    "youtube_grids": parse_grid(links) if links else None,
+    "youtube_links": parse_links(links) if links else None,
+    "book": parse_book(book) if book else {"available": False, "steps": []},
+}
+
+json.dump(result, sys.stdout, ensure_ascii=False, sort_keys=True)
+`;
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Shapes the extractor hands back
+// ─────────────────────────────────────────────────────────────────────────────
+
+interface RawRow {
   name: string;
+  prescription: string;
+}
+interface RawDay {
+  label: string;
+  rows: RawRow[];
+}
+interface RawPhase {
+  index: number;
+  label: string;
   key: string;
-  block?: string;
-  standardText: string;
+  meta: Record<string, string>;
+  days: RawDay[];
+  weeks_tracked: number | null;
+}
+interface RawLink {
+  cell: string;
+  column: number;
+  row: number;
+  text: string;
+  url: string;
+}
+interface Extracted {
+  error: string | null;
+  detail?: string;
+  files: string[];
+  found: Record<string, string | null>;
+  checklist: { phases: RawPhase[]; benchmarks: { name: string; criteria: string }[] } | null;
+  workouts: Record<string, string[][]> | null;
+  youtube_grids: Record<string, string[][]> | null;
+  youtube_links: Record<string, RawLink[]> | null;
+  book: { available: boolean; reason?: string; steps: { step: string; name: string; prescription: string }[] };
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// The curated bridge: raw movement name → engine vocabulary
+// ─────────────────────────────────────────────────────────────────────────────
+
+interface Substitution {
+  equipment_missing: Equipment;
+  use_slug: string;
+  note: string;
+}
+
+interface StepSpec {
+  /** Display name written here, not lifted from the source. */
+  name: string;
+  /** Exercise library slug this step resolves to. */
+  slug: string;
+  /** Program block id. */
+  block: string;
+  /** Equipment the canonical prescription needs (bodyweight is implicit). */
+  equipment: Equipment[];
+  /** Merged on top of whatever the prescription string yields. */
+  standard?: ProgramStandard;
+  per_side?: boolean;
+  rest_s?: number;
+  progressions?: string[];
+  substitutions?: Substitution[];
+  /**
+   * Set when the exercise library has no true record for this movement and
+   * `slug` is the nearest usable stand-in. Drives the reconciliation report.
+   */
+  library_gap?: string;
+  /** Extra sentence appended to `standard_text`. Written here, not copied. */
+  note?: string;
+}
+
+const BLOCKS = [
+  { id: 'warm_up', name: 'Warm-Up', order: 1, note: 'Walking and the foot/ankle prep that precedes every session.' },
+  { id: 'lower_legs', name: 'Lower Legs', order: 2, note: 'Tibialis and calves. Always before anything loads the knee from above.' },
+  { id: 'knee_ability', name: 'Knee Ability', order: 3, note: 'Step-ups, split squats and squats — the knees-over-toes work itself.' },
+  { id: 'posterior_chain', name: 'Posterior Chain & Spine', order: 4, note: 'Hamstrings, low back and the loaded spinal flexion work.' },
+  { id: 'hip_flexors_core', name: 'Hip Flexors & Core', order: 5, note: 'L-sits, hanging work and the low-cable hip-flexor pull.' },
+  { id: 'upper_body', name: 'Upper Body', order: 6, note: 'Pressing, pulling and shoulder health. Comes after the lower-body sequence.' },
+  { id: 'mobility_cooldown', name: 'Mobility & Cool-Down', order: 7, note: 'Held stretches. Closes every session.' },
+];
+
+const SLANT_SUB: Substitution[] = [
+  {
+    equipment_missing: 'slant_board',
+    use_slug: 'bodyweight-standing-calf-raise',
+    note: 'Seth owns a slant board, so the slant version is the prescription at home. Travelling or at Planet Fitness: use a stair edge or a stack of plates for the heel/toe drop and accept the shorter range.',
+  },
+];
+
+const norm = (s: string): string => s.toLowerCase().replace(/[^a-z0-9%]+/g, ' ').trim();
+
+/**
+ * Rows on Seth's sheets that name two or three movements at once. Each expands
+ * into separate steps so the engine can schedule, swap and log them apart.
+ */
+const COMBOS: Record<string, { key: string; prescription: string }[]> = {
+  'chin up dip superset': [
+    { key: 'chin up', prescription: '5 min AMRAP' },
+    { key: 'dips', prescription: '5 min AMRAP' },
+  ],
+  'smith curl french press': [
+    { key: 'smith curl', prescription: '5 min' },
+    { key: 'french press', prescription: '5 min' },
+  ],
+  'bench pullover shoulder press': [
+    { key: 'bench pullover', prescription: '5 min 25% BW' },
+    { key: 'atg shoulder press', prescription: '5 min 50% BW' },
+  ],
+  'pigeon couch stretch': [
+    { key: 'pigeon', prescription: '90 sec/side' },
+    { key: 'couch stretch', prescription: '90 sec/side' },
+  ],
+  'calf stretch bw walk': [
+    { key: 'calf stretch', prescription: '60 sec' },
+    { key: 'bw walk', prescription: '0.25 mile' },
+  ],
+  'pigeon butterfly pancake': [
+    { key: 'pigeon', prescription: '90 sec/side' },
+    { key: 'butterfly stretch', prescription: '2 min' },
+    { key: 'seated pancake', prescription: '2 min' },
+  ],
+};
+
+const STEP_SPECS: Record<string, StepSpec> = {
+  // ── Warm-up ────────────────────────────────────────────────────────────────
+  'bw walk warm up': {
+    name: 'Bodyweight Walk (Warm-Up)',
+    slug: 'zone-2-steady',
+    block: 'warm_up',
+    equipment: ['outdoor_route'],
+    library_gap: 'A plain easy-pace walk. The library has treadmill walking and generic Zone-2 cardio, but no "walk, any surface, easy pace" record.',
+    substitutions: [
+      { equipment_missing: 'outdoor_route', use_slug: 'walking-treadmill', note: 'Planet Fitness or bad weather: treadmill at an easy pace.' },
+    ],
+    note: 'Easy pace, not a training stimulus.',
+  },
+  'bw walk': {
+    name: 'Bodyweight Walk',
+    slug: 'zone-2-steady',
+    block: 'warm_up',
+    equipment: ['outdoor_route'],
+    library_gap: 'Same gap as the warm-up walk: no plain "walk" record in the library.',
+    substitutions: [
+      { equipment_missing: 'outdoor_route', use_slug: 'walking-treadmill', note: 'Planet Fitness or bad weather: treadmill at an easy pace.' },
+    ],
+  },
+  'plantar fascia stretch': {
+    name: 'Plantar Fascia Stretch',
+    slug: 'foot-smr',
+    block: 'warm_up',
+    equipment: ['bodyweight'],
+    library_gap: 'No plantar-fascia stretch in the library. `foot-smr` is a ball roll of the same tissue — related, not the same drill.',
+  },
+  'tibialis stretch': {
+    name: 'Tibialis Stretch',
+    slug: 'posterior-tibialis-stretch',
+    block: 'warm_up',
+    equipment: ['bodyweight', 'yoga_mat'],
+    library_gap: 'The prescribed stretch is ANTERIOR tibialis (kneel and sit back on the heels). The library only has a posterior-tibialis stretch and an anterior-tibialis SMR — neither is the drill.',
+  },
+  'calf stretch': {
+    name: 'Calf Stretch',
+    slug: 'standing-calves-calf-stretch',
+    block: 'warm_up',
+    equipment: ['bodyweight', 'wall_space'],
+  },
+
+  // ── Lower legs ─────────────────────────────────────────────────────────────
+  'tibialis raise': {
+    name: 'Tibialis Raise',
+    slug: 'tibialis-raise',
+    block: 'lower_legs',
+    equipment: ['bodyweight', 'wall_space'],
+    progressions: [
+      'Stand closer to the wall — less load, easier.',
+      'Step farther from the wall — more load, harder.',
+      'Add load: a dumbbell held between the feet, or a band over the forefoot.',
+      'Tib bar, once one is available.',
+    ],
+    substitutions: [
+      { equipment_missing: 'wall_space', use_slug: 'tibialis-raise-band', note: 'No wall to lean on: anchor a band low in front and loop it over the forefoot.' },
+      { equipment_missing: 'tibialis_bar', use_slug: 'tibialis-raise-dumbbell', note: 'No tib bar at either gym: stand a dumbbell on end and pinch it between the feet.' },
+    ],
+  },
+  'calf raise slant board': {
+    name: 'Calf Raise (Slant Board)',
+    slug: 'fhl-calf-raise',
+    block: 'lower_legs',
+    equipment: ['slant_board'],
+    progressions: [
+      'Both feet, full range: heels below the platform at the bottom.',
+      'One leg at a time (wrap the free leg behind).',
+      'Add a weight vest or hold a dumbbell.',
+    ],
+    substitutions: SLANT_SUB,
+    library_gap: 'No slant-board calf raise. `fhl-calf-raise` is the same muscle intent (press through the big toe, deep bottom stretch) without the board.',
+  },
+  'slant board calf raises': {
+    name: 'Slant Board Calf Raise (Loaded)',
+    slug: 'fhl-calf-raise',
+    block: 'lower_legs',
+    equipment: ['slant_board', 'adjustable_dumbbell'],
+    progressions: ['Bodyweight both feet.', 'Bodyweight one leg.', 'Loaded one leg.'],
+    substitutions: SLANT_SUB,
+    library_gap: 'Same gap as the Zero slant-board calf raise, with load added.',
+  },
+  'kot calf raise': {
+    name: 'KOT Calf Raise',
+    slug: 'seated-calf-raise',
+    block: 'lower_legs',
+    equipment: ['bodyweight', 'wall_space'],
+    standard: { reps: 25 },
+    progressions: [
+      'Small knee bend, both feet.',
+      'Deeper knee bend as the ankle allows — heels lift slightly at the bottom.',
+      'One leg at a time.',
+      'Add a weight vest.',
+    ],
+    library_gap: 'No standing bent-knee ("knees over toes") calf raise. `seated-calf-raise` loads the same soleus/Achilles with a bent knee but seated, so the knee-forward position — the whole point — is lost.',
+    note: 'The checklist says "as prescribed"; the reps come from the Knee Ability Zero recap.',
+  },
+  'single leg calf raise': {
+    name: 'Single-Leg Calf Raise',
+    slug: 'single-leg-calf-raise',
+    block: 'lower_legs',
+    equipment: ['slant_board', 'adjustable_dumbbell'],
+    per_side: true,
+    progressions: ['Bodyweight, floor.', 'Bodyweight, heel below a step or board.', 'Loaded, one dumbbell in the same-side hand.'],
+    substitutions: SLANT_SUB,
+  },
+  'sl calf raise': {
+    name: 'Single-Leg Calf Raise',
+    slug: 'single-leg-calf-raise',
+    block: 'lower_legs',
+    equipment: ['slant_board', 'adjustable_dumbbell'],
+    per_side: true,
+    progressions: ['Bodyweight, floor.', 'Bodyweight, heel below a step or board.', 'Loaded — the benchmark is 25% bodyweight for 10 reps.'],
+    substitutions: SLANT_SUB,
+  },
+
+  // ── Knee ability ───────────────────────────────────────────────────────────
+  'patrick step slant board': {
+    name: 'Patrick Step (Slant Board)',
+    slug: 'patrick-step',
+    block: 'knee_ability',
+    equipment: ['slant_board'],
+    per_side: true,
+    progressions: [
+      'Hold a wall or rail for balance.',
+      'Free-standing.',
+      'Reach the free leg farther forward.',
+      'Raise the standing surface.',
+      'Add load.',
+    ],
+    substitutions: SLANT_SUB,
+  },
+  'patrick step': {
+    name: 'Patrick Step',
+    slug: 'patrick-step',
+    block: 'knee_ability',
+    equipment: ['slant_board', 'adjustable_dumbbell'],
+    per_side: true,
+    progressions: ['Bodyweight.', 'Held dumbbells.', 'Raise the standing surface for more range.'],
+    substitutions: SLANT_SUB,
+    note: 'Ten sets of ten inside twenty minutes at the current load before the load goes up.',
+  },
+  'poliquin step up': {
+    name: 'Poliquin Step-Up',
+    slug: 'poliquin-step',
+    block: 'knee_ability',
+    equipment: ['plyo_box', 'slant_board', 'adjustable_dumbbell'],
+    per_side: true,
+    progressions: ['Bodyweight off a low rise.', 'Heel elevated on the board.', 'Loaded toward the 66%-bodyweight standard.'],
+    substitutions: [
+      { equipment_missing: 'plyo_box', use_slug: 'patrick-step', note: 'No 3–4 inch box at either gym: a stair or a stacked pair of plates is the rise; the Patrick Step is the regression until one exists.' },
+      ...SLANT_SUB,
+    ],
+  },
+  'atg split squat': {
+    name: 'ATG Split Squat',
+    slug: 'atg-split-squat',
+    block: 'knee_ability',
+    equipment: ['adjustable_dumbbell'],
+    per_side: true,
+    rest_s: 30,
+    progressions: [
+      'Front foot elevated, holding a rail for assistance.',
+      'Front foot elevated, no hands.',
+      'Flat ground, no hands, back knee to the floor.',
+      'Dumbbells in both hands, toward 25% bodyweight per hand.',
+    ],
+    substitutions: [
+      { equipment_missing: 'adjustable_dumbbell', use_slug: 'atg-split-squat', note: 'Travelling: bodyweight, or a loaded backpack.' },
+    ],
+  },
+  'vmo squat': {
+    name: 'VMO Squat',
+    slug: 'sissy-squat',
+    block: 'knee_ability',
+    equipment: ['slant_board', 'adjustable_dumbbell'],
+    progressions: [
+      'Bodyweight, heels elevated (weeks 1–2).',
+      'Goblet-held dumbbell at 5% bodyweight (week 3).',
+      '+5% bodyweight per week.',
+      'Bar on the back at 5% bodyweight from week 8.',
+    ],
+    substitutions: SLANT_SUB,
+    library_gap: 'No heel-elevated VMO squat. `sissy-squat` is the closest knee-forward quad squat in the library; it is not the same set-up.',
+  },
+  'kot squat eccentric': {
+    name: 'KOT Squat (Eccentric)',
+    slug: 'sissy-squat',
+    block: 'knee_ability',
+    equipment: ['bodyweight', 'wall_space', 'bench_flat'],
+    progressions: [
+      'Lower to a high surface and stand back up.',
+      'Lower to a progressively lower surface.',
+      'Full range to the floor, controlled the whole way down.',
+    ],
+    library_gap: 'Same gap as the VMO squat — no KOT/sissy-style knee-forward squat with the ATG set-up.',
+  },
+  'body squat slant board': {
+    name: 'Body Squat (Slant Board)',
+    slug: 'bodyweight-squat',
+    block: 'knee_ability',
+    equipment: ['slant_board'],
+    standard: { reps: 5, sets: 5 },
+    rest_s: 30,
+    progressions: ['Partial depth, heels on the board.', 'Full depth.', 'More sets before more depth.'],
+    substitutions: SLANT_SUB,
+    library_gap: 'No slant-board squat. `bodyweight-squat` is a flat-footed squat; the board is what lets the knees travel.',
+    note: 'The checklist says "as prescribed"; the sets and reps come from the Knee Ability Zero recap, where this step is explicitly optional.',
+  },
+  'atg squat': {
+    name: 'ATG Squat',
+    slug: 'atg-squat',
+    block: 'knee_ability',
+    equipment: ['adjustable_dumbbell'],
+    progressions: ['Bodyweight to full depth.', 'Goblet-held load.', 'Toward 25% bodyweight for 20 reps.'],
+  },
+  'sissy squat': {
+    name: 'Sissy Squat',
+    slug: 'sissy-squat',
+    block: 'knee_ability',
+    equipment: ['bodyweight', 'wall_space'],
+    progressions: ['One-arm assisted.', 'Free-standing.', 'Loaded.'],
+  },
+  'relaxed lunge': {
+    name: 'Relaxed Lunge',
+    slug: 'kneeling-hip-flexor',
+    block: 'knee_ability',
+    equipment: ['bodyweight', 'yoga_mat'],
+    per_side: true,
+    library_gap: 'No passive/relaxed deep-lunge hold. `kneeling-hip-flexor` is the nearest position in the library.',
+  },
+
+  // ── Posterior chain & spine ────────────────────────────────────────────────
+  'nordic curl': {
+    name: 'Nordic Curl',
+    slug: 'nordic-hamstring-curl',
+    block: 'posterior_chain',
+    equipment: ['nordic_support'],
+    progressions: [
+      'Lower a short way, hands catch early.',
+      'Lower farther each week, hands catch late.',
+      'Full lower, push back up with the hands.',
+      'Full rep down and up, no hands — the standard is 10.',
+    ],
+    substitutions: [
+      { equipment_missing: 'nordic_support', use_slug: 'seated-leg-curl', note: 'Planet Fitness has no GHD and nothing safe to anchor the ankles under: run the seated leg curl machine instead.' },
+      { equipment_missing: 'nordic_support', use_slug: 'reverse-nordic', note: 'Travelling: reverse Nordic needs no anchor and keeps the eccentric quality.' },
+    ],
+  },
+  'nordic curl eccentric': {
+    name: 'Nordic Curl (Eccentric)',
+    slug: 'nordic-hamstring-curl',
+    block: 'posterior_chain',
+    equipment: ['nordic_support'],
+    progressions: ['Lowering only, hands catch.', 'Slower lowering.', 'Full reps down and up.'],
+    substitutions: [
+      { equipment_missing: 'nordic_support', use_slug: 'seated-leg-curl', note: 'Planet Fitness: seated leg curl machine.' },
+      { equipment_missing: 'nordic_support', use_slug: 'reverse-nordic', note: 'Travelling: reverse Nordic.' },
+    ],
+    note: 'Lowering phase only — no concentric.',
+  },
+  'seated good morning': {
+    name: 'Seated Good Morning',
+    slug: 'seated-good-morning',
+    block: 'posterior_chain',
+    equipment: ['barbell', 'bench_flat'],
+    progressions: ['Bodyweight hinge, hands behind the head.', 'Light bar.', 'Toward 50% bodyweight, abs to the bench.'],
+    substitutions: [
+      { equipment_missing: 'barbell', use_slug: 'lever-seated-good-morning', note: 'Neither gym has a barbell: Planet Fitness has the Smith machine and a seated good-morning lever.' },
+      { equipment_missing: 'barbell', use_slug: 'seated-good-mornings', note: 'Home: hold a single heavy dumbbell at the chest and hinge from the hips.' },
+    ],
+  },
+  'slant board jefferson curl': {
+    name: 'Jefferson Curl (Slant Board)',
+    slug: 'jefferson-curl',
+    block: 'posterior_chain',
+    equipment: ['slant_board', 'adjustable_dumbbell'],
+    progressions: ['Unloaded roll-down.', 'Light dumbbell.', 'Toward 25% bodyweight for 10 reps.'],
+    substitutions: SLANT_SUB,
+    note: 'Loaded spinal flexion — check it against the standing low-back injury before prescribing.',
+  },
+  'jefferson curl': {
+    name: 'Jefferson Curl',
+    slug: 'jefferson-curl',
+    block: 'posterior_chain',
+    equipment: ['plyo_box', 'barbell'],
+    progressions: ['Unloaded roll-down off a box.', 'Light bar.', 'Toward 25% bodyweight for 10 reps.'],
+    substitutions: [
+      { equipment_missing: 'barbell', use_slug: 'jefferson-curl', note: 'No barbell at either gym: a single heavy dumbbell held in both hands works to about 50 lb.' },
+      { equipment_missing: 'plyo_box', use_slug: 'jefferson-curl', note: 'No box: stand on the slant board or the end of a flat bench so the hands can pass below the toes.' },
+    ],
+    note: 'Loaded spinal flexion — check it against the standing low-back injury before prescribing.',
+  },
+  'atg deadlift': {
+    name: 'ATG Deadlift',
+    slug: 'barbell-deadlift',
+    block: 'posterior_chain',
+    equipment: ['barbell', 'bumper_plates'],
+    progressions: ['Partial range from blocks.', 'Floor.', 'Standing on a platform for extra range.', 'Toward 100% bodyweight for 10 reps.'],
+    substitutions: [
+      { equipment_missing: 'barbell', use_slug: 'smith-deadlift', note: 'Planet Fitness has no barbell and does not allow floor deadlifts: the Smith machine is the only route there.' },
+      { equipment_missing: 'barbell', use_slug: 'atg-rdl', note: 'Home tops out at 52.5 lb per hand — the ATG RDL with dumbbells is the stand-in, well short of the 100%-bodyweight standard.' },
+    ],
+    library_gap: 'No deficit/full-range "ATG" deadlift variant. `barbell-deadlift` is the movement without the extra range.',
+  },
+  'ql extension': {
+    name: 'QL Extension',
+    slug: 'ql-extension',
+    block: 'posterior_chain',
+    equipment: ['back_extension_bench'],
+    per_side: true,
+    progressions: ['Bodyweight, short range.', 'Full range.', 'Holding a plate.'],
+    substitutions: [
+      { equipment_missing: 'back_extension_bench', use_slug: 'seated-good-morning', note: 'Neither gym has a back-extension bench: the seated good morning covers the same low-back standard.' },
+    ],
+  },
+
+  // ── Hip flexors & core ─────────────────────────────────────────────────────
+  'l sit': {
+    name: 'L-Sit',
+    slug: 'l-sit',
+    block: 'hip_flexors_core',
+    equipment: ['bodyweight'],
+    progressions: [
+      'Level 1 — alternate lifting one leg at a time, seated, for the full time.',
+      'Level 2 — same, with the hips off the floor.',
+      'Level 3 — full L-sit, both legs and hips off the floor.',
+    ],
+  },
+  'hip flexor tri set': {
+    name: 'Hip Flexor Tri-Set',
+    slug: 'l-sit',
+    block: 'hip_flexors_core',
+    equipment: ['bodyweight', 'adjustable_dumbbell'],
+    progressions: [
+      'Dumbbell foot raise, no breaks.',
+      'Reverse squat at 50% bodyweight.',
+      'L-sit, maximum time off the ground.',
+    ],
+    library_gap: 'Two of the three components — the dumbbell foot raise and the reverse squat — have no library record at all. Only the L-sit resolves, and it is what the step currently points at.',
+    note: 'Three drills in one slot. The checklist says alternate them to failure; the spreadsheet says pick one per five minutes.',
+  },
+  'hanging leg raise': {
+    name: 'Hanging Leg Raise',
+    slug: 'hanging-leg-raise',
+    block: 'hip_flexors_core',
+    equipment: ['pull_up_bar'],
+    progressions: ['Bent-knee raise.', 'Straight-leg raise to horizontal.', 'Toes to bar.'],
+    substitutions: [
+      { equipment_missing: 'pull_up_bar', use_slug: 'leg-pull-in', note: 'Planet Fitness has no free-hanging bar: the captain’s-chair or a bench leg pull-in is the substitute.' },
+    ],
+  },
+  'garhammer raise': {
+    name: 'Garhammer Raise',
+    slug: 'hanging-oblique-knee-raise',
+    block: 'hip_flexors_core',
+    equipment: ['pull_up_bar'],
+    progressions: ['Level 1 — knees to 90°, short pull.', 'Level 2 — from 90°, curl the knees higher toward the chest for 10 reps.'],
+    substitutions: [
+      { equipment_missing: 'pull_up_bar', use_slug: 'leg-pull-in', note: 'Planet Fitness: captain’s chair or bench leg pull-in.' },
+    ],
+    library_gap: 'No Garhammer raise. `hanging-oblique-knee-raise` is a hanging knee raise, not the short top-range curl the standard measures.',
+  },
+  'low cable pull in': {
+    name: 'Low Cable Pull-In',
+    slug: 'leg-pull-in',
+    block: 'hip_flexors_core',
+    equipment: ['cable_machine'],
+    per_side: true,
+    progressions: ['Bodyweight leg pull-in.', 'Light cable.', 'Toward 50% bodyweight for 20 reps.'],
+    substitutions: [
+      { equipment_missing: 'cable_machine', use_slug: 'leg-pull-in', note: 'Home has no cable stack: a band anchored low at the ankle is the substitute, and the 50%-bodyweight standard is not reachable there.' },
+    ],
+    library_gap: 'No low-cable hip-flexor pull-in. `leg-pull-in` is the bodyweight version, which cannot express a %-bodyweight standard.',
+  },
+  'sl elevated pike': {
+    name: 'Single-Leg Elevated Pike',
+    slug: 'leg-up-hamstring-stretch',
+    block: 'hip_flexors_core',
+    equipment: ['bench_flat'],
+    per_side: true,
+    library_gap: 'No single-leg elevated pike. `leg-up-hamstring-stretch` is the nearest shape in the library.',
+  },
+
+  // ── Upper body ─────────────────────────────────────────────────────────────
+  'chin up': {
+    name: 'Chin-Up',
+    slug: 'chin-up',
+    block: 'upper_body',
+    equipment: ['pull_up_bar'],
+    progressions: ['Band- or machine-assisted.', 'Bodyweight.', 'Weighted.'],
+    substitutions: [
+      { equipment_missing: 'pull_up_bar', use_slug: 'assisted-standing-chin-up', note: 'Planet Fitness has no free bar: the assisted pull-up machine.' },
+      { equipment_missing: 'pull_up_bar', use_slug: 'cable-bar-lateral-pulldown', note: 'Planet Fitness alternative: lat pulldown.' },
+    ],
+  },
+  dips: {
+    name: 'Dips',
+    slug: 'chest-dip',
+    block: 'upper_body',
+    equipment: ['dip_station'],
+    progressions: ['Bench dips.', 'Assisted parallel-bar dips.', 'Full-depth bodyweight dips.'],
+    substitutions: [
+      { equipment_missing: 'dip_station', use_slug: 'bench-dips', note: 'Neither location has a dip station: bench dips between two benches.' },
+    ],
+  },
+  'atg dips': {
+    name: 'ATG Dips',
+    slug: 'chest-dip',
+    block: 'upper_body',
+    equipment: ['dip_station'],
+    progressions: ['Partial depth.', 'Full depth, shoulder below elbow.', 'Weighted.'],
+    substitutions: [
+      { equipment_missing: 'dip_station', use_slug: 'bench-dips', note: 'Neither location has a dip station: bench dips, accepting the shorter range.' },
+    ],
+    library_gap: 'The prescription is a deliberately deep dip. `chest-dip` is the movement at conventional depth.',
+  },
+  'smith curl': {
+    name: 'Smith Machine Curl',
+    slug: 'smith-machine-bicep-curl',
+    block: 'upper_body',
+    equipment: ['smith_machine'],
+    substitutions: [
+      { equipment_missing: 'smith_machine', use_slug: 'dumbbell-bicep-curl', note: 'Home has no Smith machine: dumbbell curls.' },
+    ],
+  },
+  'french press': {
+    name: 'French Press',
+    slug: 'barbell-lying-triceps-extension-skull-crusher',
+    block: 'upper_body',
+    equipment: ['ez_curl_bar', 'bench_flat'],
+    substitutions: [
+      { equipment_missing: 'ez_curl_bar', use_slug: 'dumbbell-lying-triceps-extension', note: 'Home has no EZ bar: dumbbells.' },
+    ],
+  },
+  'bench pullover': {
+    name: 'Bench Pullover',
+    slug: 'bent-arm-dumbbell-pullover',
+    block: 'upper_body',
+    equipment: ['bench_flat', 'adjustable_dumbbell'],
+    progressions: ['Along the bench.', 'Across the bench, hips low, for the full overhead stretch.', 'Toward 25% bodyweight.'],
+    library_gap: 'The ATG version is performed lying ACROSS the bench with the hips dropped. `bent-arm-dumbbell-pullover` is the along-the-bench version.',
+  },
+  'atg shoulder press': {
+    name: 'ATG Shoulder Press',
+    slug: 'dumbbell-shoulder-press',
+    block: 'upper_body',
+    equipment: ['adjustable_dumbbell'],
+    library_gap: 'No full-range "ATG" overhead press variant; `dumbbell-shoulder-press` is the conventional press.',
+  },
+  'incline db press': {
+    name: 'Incline Dumbbell Press',
+    slug: 'incline-dumbbell-press',
+    block: 'upper_body',
+    equipment: ['bench_adjustable', 'adjustable_dumbbell'],
+  },
+  'trx face pull': {
+    name: 'TRX Face Pull',
+    slug: 'face-pull',
+    block: 'upper_body',
+    equipment: ['suspension_trainer'],
+    substitutions: [
+      { equipment_missing: 'suspension_trainer', use_slug: 'face-pull', note: 'Neither location has a TRX: Planet Fitness has the cable face pull; at home use a band anchored at head height.' },
+    ],
+  },
+  'external rotation': {
+    name: 'Shoulder External Rotation',
+    slug: 'external-rotation',
+    block: 'upper_body',
+    per_side: true,
+    equipment: ['adjustable_dumbbell'],
+    substitutions: [
+      { equipment_missing: 'cable_machine', use_slug: 'external-rotation-with-band', note: 'Home: band external rotation, elbow pinned to the side.' },
+    ],
+    note: 'Roughly 10% of bodyweight is the target; lighter is fine.',
+  },
+  'external rotations': {
+    name: 'Shoulder External Rotation',
+    slug: 'external-rotation',
+    block: 'upper_body',
+    per_side: true,
+    equipment: ['adjustable_dumbbell'],
+    substitutions: [
+      { equipment_missing: 'cable_machine', use_slug: 'external-rotation-with-band', note: 'Home: band external rotation, elbow pinned to the side.' },
+    ],
+  },
+  'trap raise': {
+    name: 'Trap Raise',
+    slug: 'dumbbell-shrug',
+    block: 'upper_body',
+    equipment: ['adjustable_dumbbell'],
+    library_gap: 'The ATG trap raise is a prone/incline raise for the lower traps. `dumbbell-shrug` is an upper-trap shrug — the closest the library gets, and not the same muscle.',
+  },
+
+  // ── Mobility & cool-down ───────────────────────────────────────────────────
+  'elephant walk': {
+    name: 'Elephant Walk',
+    slug: 'elephant-walk',
+    block: 'mobility_cooldown',
+    equipment: ['bodyweight'],
+    progressions: [
+      'Hands well forward, on fingertips or a box, knees bent.',
+      'Alternate straightening one leg at a time.',
+      'Walk the hands back until the palms reach the floor in front of the toes.',
+    ],
+  },
+  'couch stretch': {
+    name: 'Couch Stretch',
+    slug: 'couch-stretch',
+    block: 'mobility_cooldown',
+    equipment: ['wall_space', 'yoga_mat'],
+    per_side: true,
+    progressions: ['Knee down, torso upright, hands on the floor.', 'Hands to the front thigh.', 'Hands to the hips.', 'Shoulders to the wall.'],
+  },
+  'standing pigeon': {
+    name: 'Standing Pigeon',
+    slug: 'seated-piriformis-stretch',
+    block: 'mobility_cooldown',
+    equipment: ['bodyweight', 'wall_space'],
+    per_side: true,
+    library_gap: 'No standing figure-4 / pigeon. `seated-piriformis-stretch` is the same muscle from a seated position.',
+  },
+  pigeon: {
+    name: 'Pigeon',
+    slug: 'seated-piriformis-stretch',
+    block: 'mobility_cooldown',
+    equipment: ['bodyweight', 'yoga_mat'],
+    per_side: true,
+    library_gap: 'No pigeon pose. `seated-piriformis-stretch` is the nearest record.',
+  },
+  'piriformis stretch': {
+    name: 'Piriformis Stretch',
+    slug: 'seated-piriformis-stretch',
+    block: 'mobility_cooldown',
+    equipment: ['bodyweight', 'yoga_mat'],
+    per_side: true,
+  },
+  'butterfly stretch': {
+    name: 'Butterfly Stretch',
+    slug: 'butterfly-yoga-pose',
+    block: 'mobility_cooldown',
+    equipment: ['bodyweight', 'yoga_mat'],
+  },
+  'seated pancake': {
+    name: 'Seated Pancake',
+    slug: 'the-straddle',
+    block: 'mobility_cooldown',
+    equipment: ['bodyweight', 'yoga_mat'],
+  },
+  'neck brace exercises': {
+    name: 'Neck Brace Exercises',
+    slug: 'isometric-neck-exercise-front-and-back',
+    block: 'mobility_cooldown',
+    equipment: ['resistance_bands'],
+    progressions: ['Manual resistance, front and back.', 'Manual resistance, both sides.', 'Band or harness resistance through all four directions.'],
+    library_gap: 'No banded/harness neck protocol. `isometric-neck-exercise-front-and-back` covers two of the four directions, isometrically and unloaded.',
+    note: 'The checklist says "as prescribed" and gives no reps — the one step in Zero with no numbers anywhere in the sources.',
+  },
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Benchmarks → the Standards-phase step they are measured on
+// ─────────────────────────────────────────────────────────────────────────────
+
+const BENCHMARK_TO_KEY: Record<string, string> = {
+  'poliquin step up': 'poliquin step up',
+  'jefferson curl': 'jefferson curl',
+  'hanging leg raise': 'hanging leg raise',
+  'atg split squat': 'atg split squat',
+  'seated good morning': 'seated good morning',
+  'garhammer raise': 'garhammer raise',
+  'sl calf raise': 'sl calf raise',
+  'atg squat': 'atg squat',
+  'nordic curl': 'nordic curl',
+  'low cable pull in': 'low cable pull in',
+  deadlift: 'atg deadlift',
+  'bench pullover': 'bench pullover',
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// The public scaffold this rebuild replaced
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * The inventory of `programs/kot/program.json` as it stood before Seth's own
+ * material arrived: two flat `_phases` buckets, 26 steps, no weekday templates.
+ * Recorded here so the reconciliation report renders the same way on every run,
+ * long after the scaffold itself is gone from the tree.
+ */
+const PUBLIC_SCAFFOLD_STEPS: string[] = [
+  'zero-backward-walk|Backward Walking (Zero)|backward-walk-outdoors',
+  'dense-backward-sled|Backward Sled Drag (Dense)|backward-sled-drag',
+  'zero-tib-raise|Tibialis Raise (Zero)|tibialis-raise',
+  'dense-tib-bar-raise|Tib Bar Raise (Dense)|tib-bar-raise',
+  'zero-fhl-calf-raise|FHL Calf Raise (Zero)|fhl-calf-raise',
+  'zero-single-leg-calf-raise|Single-Leg Calf Raise (Zero)|single-leg-calf-raise',
+  'dense-single-leg-calf-raise|Loaded Single-Leg Calf Raise (Dense)|single-leg-calf-raise',
+  'zero-patrick-step|Patrick Step (Zero)|patrick-step',
+  'dense-poliquin-step|Poliquin Step-Up (Dense)|poliquin-step',
+  'zero-atg-split-squat-assisted|ATG Split Squat — Assisted (Zero)|atg-split-squat-assisted',
+  'zero-atg-split-squat-flat|ATG Split Squat — Flat (Zero)|atg-split-squat',
+  'dense-atg-split-squat|ATG Split Squat — Loaded (Dense)|atg-split-squat',
+  'zero-elephant-walk|Elephant Walk (Zero)|elephant-walk',
+  'zero-couch-stretch|Couch Stretch (Zero)|couch-stretch',
+  'zero-deep-squat-hold|Deep Squat Hold (Zero)|deep-squat-hold',
+  'dense-atg-squat|ATG Squat (Dense)|atg-squat',
+  'zero-l-sit|L-Sit (Zero)|l-sit',
+  'dense-atg-rdl|ATG RDL (Dense)|atg-rdl',
+  'dense-nordic|Nordic Hamstring Curl (Dense)|nordic-hamstring-curl',
+  'dense-reverse-nordic|Reverse Nordic Curl (Dense)|reverse-nordic',
+  'dense-seated-good-morning|Seated Good Morning (Dense)|seated-good-morning',
+  'dense-jefferson-curl|Jefferson Curl (Dense)|jefferson-curl',
+  'dense-ql-extension|QL Extension (Dense)|ql-extension',
+  'dense-incline-db-press|Incline Dumbbell Press (Dense)|incline-dumbbell-press',
+  'dense-external-rotation|Shoulder External Rotation (Dense)|external-rotation',
+  'dense-cross-bench-pullover|Cross-Bench Pullover (Dense)|dumbbell-pullover',
+];
+
+/** Equipment the program needs that the canonical `Equipment` union cannot name. */
+const UNNAMEABLE_EQUIPMENT: { thing: string; where: string }[] = [
+  { thing: 'weight vest', where: 'the calf-raise and KOT-calf-raise progressions in Knee Ability Zero' },
+  { thing: 'neck harness', where: 'Zero — Neck Brace Exercises' },
+  { thing: '3–4 inch step (a specific box height, not a generic plyo box)', where: 'the Poliquin Step-Up benchmark' },
+];
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Small helpers
+// ─────────────────────────────────────────────────────────────────────────────
+
+const WEEKDAY_NAMES = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+
+function slugify(s: string): string {
+  return s
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '');
+}
+
+function tidy(s: string): string {
+  return s.replace(/\s+/g, ' ').trim();
+}
+
+/** Turn "¼", "×", "·" and friends into something the parsers can read. */
+function normalizePrescription(raw: string): string {
+  return raw
+    .replace(/[×✕✖]/g, 'x')
+    .replace(/¼/g, '0.25')
+    .replace(/½/g, '0.5')
+    .replace(/[–—‒−]/g, '-')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+interface ParsedPrescription {
   standard: ProgramStandard;
+  per_side: boolean;
+  /** Human note for anything the numbers cannot hold, e.g. a descending ladder. */
+  detail?: string;
 }
 
-interface Comparison {
-  sheet: SheetStep;
-  step: ProgramStep;
-  how: 'exact' | 'fuzzy';
-  score: number;
-  disagreements: string[];
-}
-
-function listSourceFiles(dir: string): string[] {
-  if (!fs.existsSync(dir)) return [];
-  return fs
-    .readdirSync(dir)
-    .filter((f) => /\.(csv|tsv|xlsx|xlsm|xls)$/i.test(f))
-    .sort()
-    .map((f) => path.join(dir, f));
-}
-
-/** Percent cells arrive as "25%", "0.25", "25% BW", "25 percent". Normalize to a fraction. */
-function parsePctBodyweight(raw: string | undefined): number | undefined {
-  if (!raw) return undefined;
-  const value = raw.toLowerCase();
-  if (!/%|percent|bw|bodyweight/.test(value)) return undefined;
-  const n = firstNumber(value);
-  if (n === undefined) return undefined;
-  return n > 1.5 ? Math.round((n / 100) * 1000) / 1000 : n;
-}
-
-/** "5x5", "3 x 10", "5 sets of 5" → sets/reps. */
-function parseSetsReps(raw: string | undefined): { sets?: number; reps?: number } {
-  if (!raw) return {};
-  const m = raw.toLowerCase().match(/(\d+)\s*(?:x|×|sets? of)\s*(\d+)/);
-  if (m) return { sets: Number(m[1]), reps: Number(m[2]) };
-  return {};
-}
-
-function rowToSheetStep(file: string, rowNumber: number, row: CsvRow): SheetStep | null {
-  const name = pick(row, [...KOT_SHEET_COLUMNS.name]);
-  if (!name) return null;
-  const standardCell = pick(row, [...KOT_SHEET_COLUMNS.standard]) ?? '';
-  const notes = pick(row, [...KOT_SHEET_COLUMNS.notes]) ?? '';
-  const loadCell = pick(row, [...KOT_SHEET_COLUMNS.load]) ?? '';
-  const setsCell = pick(row, [...KOT_SHEET_COLUMNS.sets]);
-  const repsCell = pick(row, [...KOT_SHEET_COLUMNS.reps]);
-
-  const combined = [standardCell, loadCell, notes].filter(Boolean).join(' ');
-  const fromText = parseSetsReps(combined);
+/**
+ * Read one of Seth's prescription strings into a machine-checkable standard.
+ * The strings are terse and inconsistent — "10×10 · 20 min", "3×60 sec/leg",
+ * "20, 15, 10, 5 · 5 min", "¼ mile", "5 reps · 25% BW" — so each `·`-separated
+ * segment is parsed on its own and the results are merged.
+ */
+function parsePrescription(raw: string): ParsedPrescription {
+  const text = normalizePrescription(raw);
   const standard: ProgramStandard = {};
-  const pct = parsePctBodyweight(loadCell) ?? parsePctBodyweight(standardCell);
-  if (pct !== undefined) standard.pct_bodyweight = pct;
-  if (/per hand|each hand|per side|each side/i.test(combined)) standard.per_hand = true;
-  const sets = firstNumber(setsCell) ?? fromText.sets;
-  const reps = firstNumber(repsCell) ?? fromText.reps;
-  if (sets !== undefined) standard.sets = sets;
-  if (reps !== undefined) standard.reps = reps;
-  const holdMatch = combined.match(/(\d+)\s*(?:s|sec|seconds?)\b/i);
-  if (holdMatch) standard.hold_s = Number(holdMatch[1]);
-  const minMatch = combined.match(/(\d+)\s*(?:min|minutes?)\b/i);
-  if (minMatch) standard.duration_min = Number(minMatch[1]);
+  const per_side = /\/\s*(side|leg)|per (side|leg)|each (side|leg)/i.test(text);
+  let detail: string | undefined;
 
-  return {
-    file: path.basename(file),
-    rowNumber,
-    name,
-    key: nameKey(name),
-    block: pick(row, [...KOT_SHEET_COLUMNS.block]),
-    standardText: standardCell || [loadCell, setsCell && `${setsCell} sets`, repsCell && `${repsCell} reps`, notes]
-      .filter(Boolean)
-      .join(' · '),
-    standard,
-  };
-}
-
-async function readXlsx(file: string): Promise<{ rows: CsvRow[] } | { unavailable: true }> {
-  try {
-    // Optional dependency — we never add a hard dep for a file format Seth may not
-    // use. The specifier is a variable so TypeScript does not demand the types.
-    const specifier = 'xlsx';
-    const mod: any = await import(specifier);
-    const wb = mod.readFile(file);
-    const rows: CsvRow[] = [];
-    for (const sheetName of wb.SheetNames) {
-      const json: Record<string, unknown>[] = mod.utils.sheet_to_json(wb.Sheets[sheetName], {
-        defval: '',
-        raw: false,
-      });
-      for (const r of json) {
-        const row: CsvRow = {};
-        for (const [k, v] of Object.entries(r)) row[String(k).trim().toLowerCase()] = String(v).trim();
-        rows.push(row);
+  for (const segment of text.split(/[·|]/).map((s) => s.trim()).filter(Boolean)) {
+    // A descending rep ladder: "20, 15, 10, 5" → four sets, reps vary.
+    const ladder = segment.match(/^(\d+(?:\s*,\s*\d+)+)/);
+    if (ladder) {
+      const entries = ladder[1].split(',').map((n) => Number(n.trim()));
+      standard.sets = entries.length;
+      detail = `reps ${entries.join(', ')}`;
+      continue;
+    }
+    // "3x60 sec" → three timed sets.
+    const setsHold = segment.match(/(\d+)\s*x\s*(\d+)\s*(?:sec|second)/i);
+    if (setsHold) {
+      standard.sets = Number(setsHold[1]);
+      standard.hold_s = Number(setsHold[2]);
+    } else {
+      const setsReps = segment.match(/(\d+)\s*x\s*(\d+)/i);
+      if (setsReps) {
+        standard.sets = Number(setsReps[1]);
+        standard.reps = Number(setsReps[2]);
       }
     }
-    return { rows };
-  } catch {
-    return { unavailable: true };
+    if (standard.reps === undefined) {
+      const reps = segment.match(/(\d+)\s*reps?\b/i);
+      if (reps) standard.reps = Number(reps[1]);
+    }
+    if (standard.hold_s === undefined) {
+      const hold = segment.match(/(\d+)\s*(?:sec|second)/i);
+      if (hold) standard.hold_s = Number(hold[1]);
+    }
+    if (standard.duration_min === undefined) {
+      const range = segment.match(/(\d+)\s*-\s*(\d+)\s*(?:min|minute)/i);
+      if (range) {
+        standard.duration_min = Number(range[1]);
+        detail = detail ? `${detail}; ${range[1]}–${range[2]} min` : `${range[1]}–${range[2]} min`;
+      } else {
+        const mins = segment.match(/(\d+)\s*(?:min|minute)/i);
+        if (mins) standard.duration_min = Number(mins[1]);
+      }
+    }
+    const miles = segment.match(/([\d.]+)\s*mile/i);
+    if (miles) standard.distance_mi = Number(miles[1]);
+    const pct = segment.match(/([\d.]+)\s*%\s*(?:of\s*)?BW/i);
+    if (pct) standard.pct_bodyweight = Number(pct[1]) / 100;
   }
+  return { standard, per_side, detail };
 }
 
-function compareStandards(sheet: ProgramStandard, scaffold: ProgramStandard | undefined): string[] {
-  if (!scaffold) return [];
-  const out: string[] = [];
-  const fields: (keyof ProgramStandard)[] = [
-    'pct_bodyweight',
-    'per_hand',
-    'reps',
-    'sets',
-    'hold_s',
-    'duration_min',
-    'distance_mi',
-  ];
-  for (const field of fields) {
-    const a = sheet[field];
-    const b = scaffold[field];
-    if (a === undefined || b === undefined) continue;
-    if (a !== b) out.push(`${field}: sheet says ${String(a)}, scaffold says ${String(b)}`);
+/** Read a benchmark criteria line into the same shape. */
+function parseBenchmark(criteria: string): ProgramStandard {
+  const text = normalizePrescription(criteria);
+  const standard: ProgramStandard = {};
+  const pct = text.match(/([\d.]+)\s*%\s*BW/i);
+  if (pct) standard.pct_bodyweight = Number(pct[1]) / 100;
+  const reps = text.match(/(\d+)\s*(?:full\s*)?reps?/i);
+  if (reps) standard.reps = Number(reps[1]);
+  if (/per hand/i.test(text)) standard.per_hand = true;
+  return standard;
+}
+
+function mergeStandard(...parts: (ProgramStandard | undefined)[]): ProgramStandard {
+  const out: ProgramStandard = {};
+  for (const part of parts) {
+    if (!part) continue;
+    for (const [k, v] of Object.entries(part)) {
+      if (v !== undefined) (out as Record<string, unknown>)[k] = v;
+    }
   }
   return out;
 }
 
-function reconcile(sheetSteps: SheetStep[], program: Program) {
-  const matched: Comparison[] = [];
-  const usedStepIds = new Set<string>();
+function describeStandard(s: ProgramStandard, per_side: boolean, detail?: string): string {
+  const bits: string[] = [];
+  if (s.sets !== undefined && s.reps !== undefined) bits.push(`${s.sets} × ${s.reps} reps`);
+  else if (s.reps !== undefined) bits.push(`${s.reps} reps`);
+  else if (s.sets !== undefined) bits.push(`${s.sets} sets`);
+  if (s.hold_s !== undefined) bits.push(`${s.hold_s} s hold`);
+  if (s.duration_min !== undefined) bits.push(`${s.duration_min} min`);
+  if (s.distance_mi !== undefined) bits.push(`${s.distance_mi} mile`);
+  if (s.pct_bodyweight !== undefined) {
+    bits.push(`${Math.round(s.pct_bodyweight * 100)}% bodyweight${s.per_hand ? ' per hand' : ''}`);
+  }
+  let out = bits.join(', ');
+  if (per_side) out += out ? ', per side' : 'per side';
+  if (detail) out += ` (${detail})`;
+  return out || 'no numbers given in the source';
+}
 
-  const stepKeys = program.steps.map((step) => ({
-    step,
-    keys: [nameKey(step.name), nameKey(step.exercise_slug.replace(/-/g, ' '))],
-  }));
+// ─────────────────────────────────────────────────────────────────────────────
+// Running the extractor
+// ─────────────────────────────────────────────────────────────────────────────
 
-  for (const sheet of [...sheetSteps].sort((a, b) => a.key.localeCompare(b.key))) {
-    let best: { step: ProgramStep; how: 'exact' | 'fuzzy'; score: number } | undefined;
-    for (const { step, keys } of stepKeys) {
-      if (usedStepIds.has(step.id)) continue;
-      if (keys.includes(sheet.key)) {
-        best = { step, how: 'exact', score: 1 };
-        break;
-      }
-      for (const key of keys) {
-        const score = scorePair(sheet.key, key);
-        if (score && score.score > (best?.score ?? 0)) best = { step, how: 'fuzzy', score: score.score };
-      }
-    }
-    if (!best) continue;
-    usedStepIds.add(best.step.id);
-    matched.push({
-      sheet,
-      step: best.step,
-      how: best.how,
-      score: Math.round(best.score * 1000) / 1000,
-      disagreements: compareStandards(sheet.standard, best.step.standard),
+function runExtractor(rawDir: string): Extracted {
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'kot-ingest-'));
+  const script = path.join(tmp, 'extract_kot.py');
+  fs.writeFileSync(script, EXTRACTOR_PY, 'utf8');
+  try {
+    const run = spawnSync('python3', [script, rawDir], {
+      encoding: 'utf8',
+      maxBuffer: 64 * 1024 * 1024,
     });
-  }
-
-  const sheetOnly = sheetSteps.filter((s) => !matched.some((m) => m.sheet === s));
-  const scaffoldOnly = program.steps.filter((s) => !usedStepIds.has(s.id));
-  return { matched, sheetOnly, scaffoldOnly };
-}
-
-function emptyReport(files: string[], program: Program): string {
-  return [
-    '# KOT Reconciliation Report',
-    '',
-    `Generated by \`scripts/ingest-kot.ts\` · source directory \`docs/programs/kot/raw/\` · ${files.length} file(s) found.`,
-    '',
-    '## Nothing to reconcile yet',
-    '',
-    "Seth has not dropped his Knees Over Toes spreadsheets into `docs/programs/kot/raw/` yet, so there is nothing to compare.",
-    'This is the expected state today, not an error.',
-    '',
-    '**What the app is using in the meantime:** the PUBLIC scaffold at `programs/kot/program.json`',
-    `(${program.steps.length} steps across ${program.blocks.length} blocks, source: \`${program.source}\`).`,
-    'It is a placeholder built from `docs/RESEARCH_FOUNDATION.md` §7 — not Seth\'s program.',
-    '',
-    '## To reconcile',
-    '',
-    '1. Drop the CSV or XLSX exports into `docs/programs/kot/raw/` (they stay local; the directory is gitignored).',
-    '2. Run `npx tsx scripts/ingest-kot.ts`.',
-    '3. Read this report and correct `programs/kot/program.json` — his numbers win over the scaffold.',
-    '',
-    'Useful column headers (any one of each group is recognized):',
-    '',
-    ...Object.entries(KOT_SHEET_COLUMNS).map(
-      ([field, cols]) => `- **${field}** — ${(cols as readonly string[]).map((c) => `\`${c}\``).join(', ')}`,
-    ),
-  ].join('\n');
-}
-
-function buildReport(
-  files: string[],
-  program: Program,
-  result: ReturnType<typeof reconcile>,
-  xlsxSkipped: string[],
-): string {
-  const lines: string[] = [];
-  lines.push('# KOT Reconciliation Report');
-  lines.push('');
-  lines.push(
-    `Generated by \`scripts/ingest-kot.ts\`. Sheets: ${files.map((f) => `\`${path.basename(f)}\``).join(', ')}. ` +
-      `Scaffold: \`programs/kot/program.json\` (${program.steps.length} steps).`,
-  );
-  lines.push('');
-  lines.push("**Seth's sheet is the source of truth. Where they disagree, change the scaffold.**");
-  lines.push('');
-
-  if (xlsxSkipped.length) {
-    lines.push('## ⚠️ Skipped XLSX files');
-    lines.push('');
-    lines.push('The optional `xlsx` package is not installed, so these files were not read:');
-    lines.push('');
-    for (const f of xlsxSkipped) lines.push(`- \`${path.basename(f)}\``);
-    lines.push('');
-    lines.push('Fix with `npm install --no-save xlsx` and re-run, or re-export the sheets as CSV.');
-    lines.push('');
-  }
-
-  lines.push('## 1. Steps only in Seth\'s sheet (missing from the scaffold)');
-  lines.push('');
-  if (result.sheetOnly.length) {
-    lines.push('| Sheet | Row | Step | Standard as written |');
-    lines.push('| --- | ---: | --- | --- |');
-    for (const s of result.sheetOnly) {
-      lines.push(`| ${s.file} | ${s.rowNumber} | ${s.name} | ${s.standardText || '—'} |`);
-    }
-  } else {
-    lines.push('_None — every row in the sheet matched a scaffold step._');
-  }
-  lines.push('');
-
-  lines.push('## 2. Steps only in the scaffold (we invented them)');
-  lines.push('');
-  if (result.scaffoldOnly.length) {
-    lines.push('| Step id | Name | Block | Standard |');
-    lines.push('| --- | --- | --- | --- |');
-    for (const s of result.scaffoldOnly) {
-      lines.push(`| \`${s.id}\` | ${s.name} | ${s.block} | ${s.standard_text} |`);
-    }
-    lines.push('');
-    lines.push('Delete these from `programs/kot/program.json` unless Seth confirms he does them.');
-  } else {
-    lines.push('_None — every scaffold step appears in the sheet._');
-  }
-  lines.push('');
-
-  lines.push('## 3. Standards that disagree');
-  lines.push('');
-  const conflicts = result.matched.filter((m) => m.disagreements.length);
-  if (conflicts.length) {
-    lines.push('| Step | Sheet row | Match | Disagreement |');
-    lines.push('| --- | --- | --- | --- |');
-    for (const c of conflicts) {
-      lines.push(
-        `| \`${c.step.id}\` ${c.step.name} | ${c.sheet.file}:${c.sheet.rowNumber} | ${c.how} (${c.score}) | ${c.disagreements.join('; ')} |`,
+    if (run.error) {
+      throw new Error(
+        `python3 could not be started (${run.error.message}).\n` +
+          'The KOT sources are .docx/.xlsx. This repo adds no npm dependency to read them;\n' +
+          'it uses the python3 that ships with the machine plus python-docx and openpyxl.',
       );
     }
+    if (run.status !== 0) {
+      throw new Error(`python3 exited ${run.status}:\n${run.stderr}`);
+    }
+    const parsed = JSON.parse(run.stdout) as Extracted;
+    if (parsed.error === 'missing_python_dep') {
+      throw new Error(
+        `A Python module the extractor needs is missing (${parsed.detail ?? 'unknown'}).\n` +
+          'Install both with:  python3 -m pip install --user python-docx openpyxl',
+      );
+    }
+    return parsed;
+  } finally {
+    fs.rmSync(tmp, { recursive: true, force: true });
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Phase headers
+// ─────────────────────────────────────────────────────────────────────────────
+
+/** "3 days/week (Monday, Wednesday, Friday)" → [1, 3, 5]. */
+function parseWeekdays(schedule: string): number[] {
+  const found: number[] = [];
+  const lower = schedule.toLowerCase();
+  const range = lower.match(/(monday|tuesday|wednesday|thursday|friday|saturday|sunday)\s*-\s*(monday|tuesday|wednesday|thursday|friday|saturday|sunday)/);
+  if (range) {
+    const a = WEEKDAY_NAMES.indexOf(range[1]);
+    const b = WEEKDAY_NAMES.indexOf(range[2]);
+    for (let d = a; d <= b; d += 1) found.push(d);
+    return found;
+  }
+  for (let d = 0; d < WEEKDAY_NAMES.length; d += 1) {
+    if (lower.includes(WEEKDAY_NAMES[d])) found.push(d);
+  }
+  return found.sort((a, b) => a - b);
+}
+
+/** Read the Dense column header out of the spreadsheet: "Week 2 25% … by 5% each week". */
+function parseDenseRamp(workouts: Record<string, string[][]> | null): { start_pct: number; weekly_increment_pct: number } {
+  const fallback = { start_pct: 25, weekly_increment_pct: 5 };
+  const grid = workouts?.Dense;
+  if (!grid) return fallback;
+  const blob = grid.flat().join('\n');
+  const start = blob.match(/Week\s*2\s*(\d+(?:\.\d+)?)\s*%/i);
+  const inc = blob.match(/Increase by\s*(\d+(?:\.\d+)?)\s*%/i);
+  return {
+    start_pct: start ? Number(start[1]) : fallback.start_pct,
+    weekly_increment_pct: inc ? Number(inc[1]) : fallback.weekly_increment_pct,
+  };
+}
+
+function buildPhase(raw: RawPhase, ramp: { start_pct: number; weekly_increment_pct: number }): ProgramPhase {
+  const meta = raw.meta;
+  const duration = meta.Duration ?? '';
+  const weeksMatch = duration.match(/(\d+)\s*weeks?/i);
+  const weeks = weeksMatch ? Number(weeksMatch[1]) : null;
+
+  const weekdays = parseWeekdays(meta.Schedule ?? '');
+  const dpwMatch = (meta.Schedule ?? '').match(/(\d+)\s*days?\s*\/\s*week/i);
+  const days_per_week = dpwMatch ? Number(dpwMatch[1]) : weekdays.length;
+
+  const sessionMatch = (meta['Session length'] ?? '').match(/(\d+)\s*-\s*(\d+)/);
+  const session_min: [number, number] = sessionMatch
+    ? [Number(sessionMatch[1]), Number(sessionMatch[2])]
+    : [30, 45];
+
+  const load = meta.Load ?? '';
+  let load_rule: PhaseLoadRule;
+  if (/bodyweight only/i.test(load)) {
+    load_rule = { kind: 'bodyweight_only' };
+  } else if (/add\s*([\d.]+)\s*%\s*per week/i.test(load)) {
+    const inc = load.match(/add\s*([\d.]+)\s*%\s*per week/i);
+    load_rule = {
+      kind: 'percent_bw_ramp',
+      start_pct: ramp.start_pct,
+      weekly_increment_pct: inc ? Number(inc[1]) : ramp.weekly_increment_pct,
+    };
   } else {
-    lines.push('_No numeric disagreements found among the matched steps._');
+    load_rule = { kind: 'standards_driven' };
   }
-  lines.push('');
 
-  lines.push('## 4. Matched steps (for the record)');
-  lines.push('');
-  lines.push('| Step id | Sheet row | Match | Sheet standard | Scaffold standard |');
-  lines.push('| --- | --- | --- | --- | --- |');
-  for (const m of result.matched) {
-    lines.push(
-      `| \`${m.step.id}\` | ${m.sheet.file}:${m.sheet.rowNumber} ${m.sheet.name} | ${m.how} (${m.score}) | ${m.sheet.standardText || '—'} | ${m.step.standard_text} |`,
+  const name = tidy((meta.title ?? raw.label).split(' - ')[0]);
+  const descriptionBits = [
+    weeks === null ? 'Open-ended: it runs until every benchmark is met.' : `${weeks} weeks.`,
+    `${days_per_week} days a week, ${weekdays.map((d) => WEEKDAY_NAMES[d].replace(/^./, (c) => c.toUpperCase())).join(', ')}.`,
+    `${session_min[0]}–${session_min[1]} minutes a session.`,
+  ];
+  if (load_rule.kind === 'bodyweight_only') {
+    descriptionBits.push('Bodyweight throughout — no external load anywhere in the phase.');
+  } else if (load_rule.kind === 'percent_bw_ramp') {
+    descriptionBits.push(
+      `Week 1 is bodyweight, week 2 starts at ${load_rule.start_pct}% of bodyweight, and every week after adds ${load_rule.weekly_increment_pct}% — except the split squat, which adds 2.5%.`,
+      'Load only goes up once the full set count is completed inside the time cap.',
     );
+  } else {
+    descriptionBits.push('Load is whatever it takes to reach the twelve benchmarks; there is no calendar ramp.');
   }
-  lines.push('');
-  lines.push(
-    '> Fuzzy matches are name-similarity guesses. Check each one before trusting the disagreement list above.',
-  );
-  return lines.join('\n');
+
+  return {
+    id: raw.key,
+    name,
+    order: raw.index,
+    weeks,
+    days_per_week,
+    weekdays,
+    session_min,
+    load_rule,
+    description: descriptionBits.join(' '),
+  };
 }
 
-/** `--dir=<path>` overrides the source directory (used by tests; defaults to docs/programs/kot/raw/). */
-function sourceDirFromArgs(): string {
-  const arg = process.argv.slice(2).find((a) => a.startsWith('--dir='));
-  return arg ? path.resolve(arg.slice('--dir='.length)) : PATHS.kotRawDir;
+// ─────────────────────────────────────────────────────────────────────────────
+// Steps and weekday templates
+// ─────────────────────────────────────────────────────────────────────────────
+
+interface BuiltStep extends ProgramStep {
+  _key: string;
+  _equipment: Equipment[];
+  _library_gap?: string;
 }
 
-async function main(): Promise<void> {
-  process.stdout.write('Longevity OS — KOT reconciliation\n');
-  const program = readJson<Program>(PATHS.kotProgram);
-  const sourceDir = sourceDirFromArgs();
-  const files = listSourceFiles(sourceDir);
+interface BuildWarning {
+  where: string;
+  message: string;
+}
 
-  if (!files.length) {
-    writeText(PATHS.kotReconciliationReport, emptyReport(files, program));
-    process.stdout.write(
-      `  ${sourceDir} is empty — nothing to reconcile (this is the normal state today).\n` +
-        `  The app is using the PUBLIC scaffold: ${program.steps.length} steps, source "${program.source}".\n` +
-        `  Drop Seth's CSV/XLSX exports into docs/programs/kot/raw/ and re-run.\n` +
-        `  wrote ${PATHS.kotReconciliationReport}\n`,
-    );
-    return;
-  }
+interface BuildResult {
+  phases: ProgramPhase[];
+  steps: BuiltStep[];
+  days: ProgramDay[];
+  warnings: BuildWarning[];
+  unknownNames: string[];
+  benchmarkRows: { name: string; criteria: string; step_id: string | null; standard: ProgramStandard }[];
+}
 
-  const sheetSteps: SheetStep[] = [];
-  const xlsxSkipped: string[] = [];
-  for (const file of files) {
-    if (/\.(xlsx|xlsm|xls)$/i.test(file)) {
-      const result = await readXlsx(file);
-      if ('unavailable' in result) {
-        xlsxSkipped.push(file);
-        process.stdout.write(
-          `  ! ${path.basename(file)} is a spreadsheet and the optional "xlsx" package is not installed.\n` +
-            '    Run: npm install --no-save xlsx    (or re-export that file as CSV) and run this script again.\n',
-        );
+/** "MONDAY / WEDNESDAY / FRIDAY - Same Workout" → weekdays + focus. */
+function parseDayLabel(label: string): { weekdays: number[]; focus: string } {
+  const [left, ...rest] = label.split(/\s+-\s+/);
+  const weekdays = parseWeekdays(left);
+  const focus = tidy(rest.join(' - ')) || 'Session';
+  return { weekdays, focus };
+}
+
+function buildProgramShape(ex: Extracted): BuildResult {
+  const checklist = ex.checklist;
+  if (!checklist) throw new Error('The checklist (.docx) could not be read — it is the authoritative source.');
+
+  const ramp = parseDenseRamp(ex.workouts);
+  const phases = checklist.phases.map((p) => buildPhase(p, ramp));
+  const warnings: BuildWarning[] = [];
+  const unknownNames: string[] = [];
+  const steps: BuiltStep[] = [];
+  const days: ProgramDay[] = [];
+  const byPhaseKey = new Map<string, BuiltStep>(); // `${phase}::${key}` → step
+  let order = 0;
+
+  // The warm-up walk lives only in the spreadsheet grids, not in the checklist
+  // tables. Pull it back in for the phases whose grid carries it.
+  const warmUpFromGrid = (phaseId: string): boolean => {
+    const grid = ex.workouts?.[phaseId === 'zero' ? 'Zero' : phaseId === 'dense' ? 'Dense' : 'Standards'];
+    if (!grid) return false;
+    return grid.some((row) => row.some((c) => /walk/i.test(c) && /warm|5\s*-\s*10/i.test(row.join(' '))));
+  };
+
+  for (const rawPhase of checklist.phases) {
+    const phase = phases.find((p) => p.id === rawPhase.key);
+    if (!phase) continue;
+
+    const denseWarmUp = rawPhase.key === 'dense' && warmUpFromGrid('dense');
+
+    for (const rawDay of rawPhase.days) {
+      const { weekdays, focus } = parseDayLabel(rawDay.label);
+      if (!weekdays.length) {
+        warnings.push({ where: `${rawPhase.label} / ${rawDay.label}`, message: 'no weekday could be read from the day label' });
         continue;
       }
-      result.rows.forEach((row, i) => {
-        const step = rowToSheetStep(file, i + 2, row);
-        if (step) sheetSteps.push(step);
-      });
-      continue;
+
+      // Expand combined rows, and prepend the spreadsheet-only Dense warm-up.
+      const rows: RawRow[] = [];
+      if (denseWarmUp) rows.push({ name: 'BW Walk (Warm-Up)', prescription: '5-10 min' });
+      for (const row of rawDay.rows) {
+        const key = norm(row.name);
+        const combo = COMBOS[key];
+        if (combo) {
+          for (const part of combo) rows.push({ name: part.key, prescription: part.prescription });
+        } else {
+          rows.push(row);
+        }
+      }
+
+      const orderedStepIds: string[] = [];
+      for (const row of rows) {
+        const key = norm(row.name);
+        const spec = STEP_SPECS[key];
+        if (!spec) {
+          if (!unknownNames.includes(row.name)) unknownNames.push(row.name);
+          warnings.push({
+            where: `${phase.name} / ${rawDay.label}`,
+            message: `"${row.name}" has no entry in STEP_SPECS — it was skipped`,
+          });
+          continue;
+        }
+
+        const parsed = parsePrescription(row.prescription);
+        const standard = mergeStandard(parsed.standard, spec.standard);
+        const per_side = spec.per_side || parsed.per_side;
+        const composite = `${rawPhase.key}::${key}`;
+        const existing = byPhaseKey.get(composite);
+
+        if (existing) {
+          const same = JSON.stringify(existing.standard ?? {}) === JSON.stringify(standard);
+          if (!same) {
+            warnings.push({
+              where: `${phase.name} / ${rawDay.label}`,
+              message: `"${spec.name}" appears twice in this phase with different prescriptions — kept the first (${existing.standard_text})`,
+            });
+          }
+          orderedStepIds.push(existing.id);
+          continue;
+        }
+
+        order += 1;
+        const id = `${rawPhase.key}-${slugify(spec.name)}`;
+        const textBits = [describeStandard(standard, per_side, parsed.detail)];
+        if (spec.note) textBits.push(spec.note);
+        const step: BuiltStep = {
+          id,
+          order,
+          name: spec.name,
+          phase_id: rawPhase.key,
+          block: spec.block,
+          exercise_slug: spec.slug,
+          standard_text: textBits.join(' '),
+          standard: Object.keys(standard).length ? standard : undefined,
+          _key: key,
+          _equipment: spec.equipment,
+          _library_gap: spec.library_gap,
+        };
+        if (per_side) step.per_side = true;
+        if (spec.rest_s !== undefined) step.rest_s = spec.rest_s;
+        if (spec.progressions?.length) step.progressions = spec.progressions;
+        if (spec.substitutions?.length) step.substitutions = spec.substitutions;
+        steps.push(step);
+        byPhaseKey.set(composite, step);
+        orderedStepIds.push(id);
+      }
+
+      // Group the day's steps into contiguous runs by program block, so the
+      // session keeps the exact order the checklist lists.
+      const blocks: { title: string; step_ids: string[] }[] = [];
+      for (const stepId of orderedStepIds) {
+        const step = steps.find((s) => s.id === stepId);
+        if (!step) continue;
+        const title = BLOCKS.find((b) => b.id === step.block)?.name ?? step.block;
+        const last = blocks[blocks.length - 1];
+        if (last && last.title === title) last.step_ids.push(stepId);
+        else blocks.push({ title, step_ids: [stepId] });
+      }
+
+      for (const weekday of weekdays) {
+        days.push({
+          phase_id: rawPhase.key,
+          weekday,
+          title: `${phase.name} — ${WEEKDAY_NAMES[weekday].replace(/^./, (c) => c.toUpperCase())}`,
+          focus,
+          blocks: blocks.map((b) => ({ title: b.title, step_ids: [...b.step_ids] })),
+        });
+      }
     }
-    const { rows } = parseCsvFile(file);
-    rows.forEach((row, i) => {
-      const step = rowToSheetStep(file, i + 2, row);
-      if (step) sheetSteps.push(step);
-    });
   }
 
-  if (!sheetSteps.length) {
-    writeText(
-      PATHS.kotReconciliationReport,
-      [
-        emptyReport(files, program),
-        '',
-        '## Files were found but no step rows could be read',
-        '',
-        ...files.map((f) => `- \`${path.basename(f)}\``),
-        '',
-        'No column matching a step/exercise name was recognized. Rename a column to `exercise` or `step` and re-run.',
-      ].join('\n'),
-    );
-    process.stdout.write(
-      `  found ${files.length} file(s) but recognized no step rows — see ${PATHS.kotReconciliationReport}\n`,
-    );
-    return;
-  }
+  // Benchmarks: overlay each onto the Standards-phase step that measures it.
+  const benchmarkRows = checklist.benchmarks.map((b) => {
+    const key = BENCHMARK_TO_KEY[norm(b.name)];
+    const standard = parseBenchmark(b.criteria);
+    const step = key ? steps.find((s) => s.phase_id === 'standards' && s._key === key) : undefined;
+    if (!step) {
+      warnings.push({ where: 'benchmarks', message: `benchmark "${b.name}" maps to no Standards-phase step` });
+      return { name: b.name, criteria: b.criteria, step_id: null, standard };
+    }
+    step.standard = mergeStandard(step.standard, standard);
+    step.standard_text = `${step.standard_text} BENCHMARK: ${tidy(b.criteria)}.`;
+    return { name: b.name, criteria: b.criteria, step_id: step.id, standard };
+  });
 
-  const result = reconcile(sheetSteps, program);
-  writeText(PATHS.kotReconciliationReport, buildReport(files, program, result, xlsxSkipped));
-  process.stdout.write(
-    `  ${sheetSteps.length} sheet rows · ${result.matched.length} matched · ` +
-      `${result.sheetOnly.length} sheet-only · ${result.scaffoldOnly.length} scaffold-only · ` +
-      `${result.matched.filter((m) => m.disagreements.length).length} standards disagree\n` +
-      `  wrote ${PATHS.kotReconciliationReport}\n`,
-  );
+  days.sort((a, b) => {
+    const pa = phases.find((p) => p.id === a.phase_id)?.order ?? 0;
+    const pb = phases.find((p) => p.id === b.phase_id)?.order ?? 0;
+    return pa - pb || a.weekday - b.weekday;
+  });
+
+  return { phases, steps, days, warnings, unknownNames, benchmarkRows };
 }
 
-main().catch((err) => {
-  process.stderr.write(`\nKOT reconciliation failed: ${err instanceof Error ? err.stack : String(err)}\n`);
-  process.exitCode = 1;
-});
+// ─────────────────────────────────────────────────────────────────────────────
+// Demo links
+// ─────────────────────────────────────────────────────────────────────────────
+
+interface LinkReport {
+  attachedToSteps: { step_id: string; url: string }[];
+  attachedToDays: { phase_id: string; weekday: number; url: string }[];
+  skipped: { text: string; url: string; why: string }[];
+}
+
+/**
+ * The YouTube workbook carries far fewer links than "one per exercise": a
+ * playlist per Dense weekday, one for Zero, and three links that sit on a named
+ * exercise cell. Attach what there is; report what is missing rather than
+ * inventing anything.
+ */
+function attachDemoLinks(ex: Extracted, build: BuildResult): LinkReport {
+  const report: LinkReport = { attachedToSteps: [], attachedToDays: [], skipped: [] };
+  const sheets = ex.youtube_links ?? {};
+  const grids = ex.youtube_grids ?? {};
+
+  for (const [sheetName, links] of Object.entries(sheets)) {
+    const phaseId = sheetName.toLowerCase();
+    const phase = build.phases.find((p) => p.id === phaseId);
+    if (!phase) continue;
+    const header = grids[sheetName]?.[0] ?? [];
+    // column index (1-based) → weekday, from the sheet's own header row
+    const columnWeekday: { column: number; weekday: number }[] = [];
+    header.forEach((cell, i) => {
+      const d = WEEKDAY_NAMES.indexOf(cell.trim().toLowerCase());
+      if (d >= 0) columnWeekday.push({ column: i + 1, weekday: d });
+    });
+
+    for (const link of links) {
+      if (/\/results\?search_query|\/search\?/i.test(link.url)) {
+        report.skipped.push({ text: link.text, url: link.url, why: 'a search query, not a demonstration' });
+        continue;
+      }
+      const key = norm(link.text.split('\n')[0]);
+      const step = build.steps.find((s) => s.phase_id === phaseId && s._key === key);
+      if (step) {
+        step.demo_url = link.url;
+        report.attachedToSteps.push({ step_id: step.id, url: link.url });
+        continue;
+      }
+      // Otherwise it is a weekday playlist: find the nearest header column at or
+      // left of this cell.
+      const owner = columnWeekday.filter((c) => c.column <= link.column).pop();
+      if (!owner) {
+        report.skipped.push({ text: link.text, url: link.url, why: 'no weekday column owns this cell' });
+        continue;
+      }
+      // Zero trains three weekdays off one column of the sheet; give all of them
+      // the same playlist.
+      const targets = phaseId === 'zero' ? phase.weekdays : [owner.weekday];
+      for (const weekday of targets) {
+        const day = build.days.find((d) => d.phase_id === phaseId && d.weekday === weekday);
+        if (!day) continue;
+        day.demo_url = link.url;
+        report.attachedToDays.push({ phase_id: phaseId, weekday, url: link.url });
+      }
+    }
+  }
+  return report;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Seth's working weights (the `Full Body` sheet)
+// ─────────────────────────────────────────────────────────────────────────────
+
+interface BaselineRow {
+  exercise_slug: string;
+  raw_name: string;
+  load_lb: number;
+  reps?: number;
+  sets?: number;
+  source: string;
+  as_of: string;
+  note?: string;
+}
+
+/** `Full Body` names → library slugs. Written here; the sheet has no ids. */
+const BASELINE_SLUGS: Record<string, { slug: string; note?: string }> = {
+  deadlift: { slug: 'barbell-deadlift' },
+  'pat step': { slug: 'patrick-step' },
+  'split squat': { slug: 'atg-split-squat', note: 'Sheet reads "25 DB" — 25 lb dumbbells. Whether that is 25 lb per hand (50 lb total, the engine convention) or 25 lb total is not stated.' },
+  'vmo squat': { slug: 'sissy-squat' },
+  'dumbbell bench': { slug: 'db-bench-press' },
+  bench: { slug: 'barbell-bench-press-medium-grip' },
+  'decline bench': { slug: 'barbell-decline-bench-press' },
+  'db curl': { slug: 'dumbbell-bicep-curl' },
+};
+
+/** Loads Seth pencilled onto the Dense sheet — real, and much more recent than Full Body. */
+const DENSE_ANNOTATION_SLUGS: Record<string, string> = {
+  'pat step': 'patrick-step',
+  'seated good morning': 'seated-good-morning',
+  'smith curl french press': 'smith-machine-bicep-curl',
+  'tibialis raise': 'tibialis-raise',
+  'slant board calf raises': 'fhl-calf-raise',
+};
+
+function parseSetsReps(cell: string): { sets?: number; reps?: number } {
+  const t = normalizePrescription(cell);
+  const both = t.match(/(\d+)\s*x\s*(\d+)/i);
+  if (both) return { sets: Number(both[1]), reps: Number(both[2]) };
+  const repsOnly = t.match(/^x\s*(\d+)/i);
+  if (repsOnly) return { reps: Number(repsOnly[1]) };
+  return {};
+}
+
+function buildBaseline(ex: Extracted): { rows: BaselineRow[]; dense: BaselineRow[]; unmapped: string[] } {
+  const rows: BaselineRow[] = [];
+  const unmapped: string[] = [];
+  const grid = ex.workouts?.['Full Body'] ?? [];
+  for (const row of grid) {
+    const setsReps = parseSetsReps(row[0] ?? '');
+    for (let i = 1; i < row.length - 1; i += 1) {
+      const name = tidy(row[i]);
+      const value = tidy(row[i + 1]);
+      if (!name || !value) continue;
+      const num = value.match(/^([\d.]+)(?:\s*DB)?$/i);
+      if (!num) continue;
+      const mapping = BASELINE_SLUGS[norm(name)];
+      if (!mapping) {
+        if (!unmapped.includes(name)) unmapped.push(name);
+        continue;
+      }
+      if (rows.some((r) => r.raw_name === name)) continue;
+      rows.push({
+        exercise_slug: mapping.slug,
+        raw_name: name,
+        load_lb: Number(num[1]),
+        sets: setsReps.sets,
+        reps: setsReps.reps,
+        source: 'ATG_Workouts.xlsx — "Full Body" sheet',
+        as_of: '2026-04',
+        note: mapping.note,
+      });
+    }
+  }
+
+  // Dense-sheet pencil marks: "<exercise name>" in one cell, "35 lbs total" nearby.
+  const dense: BaselineRow[] = [];
+  const denseGrid = ex.youtube_grids?.Dense ?? ex.workouts?.Dense ?? [];
+  for (const row of denseGrid) {
+    for (let i = 0; i < row.length - 1; i += 1) {
+      const name = norm((row[i] ?? '').split('\n')[0]);
+      const value = tidy(row[i + 1] ?? '');
+      const num = value.match(/^([\d.]+)\s*lbs?\b/i);
+      if (!num) continue;
+      const slug = DENSE_ANNOTATION_SLUGS[name];
+      if (!slug) {
+        if (!unmapped.includes(name)) unmapped.push(name);
+        continue;
+      }
+      if (dense.some((r) => r.exercise_slug === slug)) continue;
+      dense.push({
+        exercise_slug: slug,
+        raw_name: tidy((row[i] ?? '').split('\n')[0]),
+        load_lb: Number(num[1]),
+        source: 'YouTube_Links_ATG_Workouts.xlsx — "Dense" sheet annotation',
+        as_of: '2026-04',
+        note: /total/i.test(value) ? 'Sheet says "total", i.e. both hands combined.' : undefined,
+      });
+    }
+  }
+  return { rows, dense, unmapped };
+}
