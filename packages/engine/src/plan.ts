@@ -317,11 +317,34 @@ function planDay(args: DayPlanArgs): { session: PrescribedSession; ledger: Ledge
     ? input.budget_min
     : Math.max(ASSEMBLY.min_block_min, input.budget_min - warmupMin - cooldownMin);
 
+  // ── Cardio first on a cardio day ───────────────────────────────────────────
+  //
+  // On a VO2 or Zone 2 day the cardio IS the session. Assembling strength and
+  // mobility first would spend the budget and then append a 32-minute interval
+  // block on top of it — which is how a 30-minute day became a 66-minute one.
+  const CARDIO_LED: SessionType[] = ['vo2', 'zone2', 'sprint', 'recovery'];
+  const cardioLed = CARDIO_LED.includes(decision.type);
+
+  const leadCardio = cardioLed
+    ? buildCardioBlock({
+        type: decision.type,
+        input,
+        date,
+        hrMax,
+        remainingMin: workingBudget,
+        deloadActive: deload.active,
+      })
+    : null;
+
+  const strengthBudget = leadCardio
+    ? Math.max(0, round(workingBudget - leadCardio.estimated_min, 2))
+    : workingBudget;
+
   // ── Assemble ───────────────────────────────────────────────────────────────
   const assemblyInput: AssemblyInput = {
     today: date,
     type: decision.type,
-    budgetMin: workingBudget,
+    budgetMin: strengthBudget,
     targetRegions: decision.targetRegions,
     location: input.location,
     ledger,
@@ -343,15 +366,17 @@ function planDay(args: DayPlanArgs): { session: PrescribedSession; ledger: Ledge
   const blocks = [...assembled.blocks];
   const notes = [...assembled.notes];
 
-  // ── Cardio blocks, for the session types that are cardio ───────────────────
-  const cardioBlock = buildCardioBlock({
-    type: decision.type,
-    input,
-    date,
-    hrMax,
-    remainingMin: Math.max(0, workingBudget - assembled.estimatedMin),
-    deloadActive: deload.active,
-  });
+  // ── Cardio ─────────────────────────────────────────────────────────────────
+  const cardioBlock =
+    leadCardio ??
+    buildCardioBlock({
+      type: decision.type,
+      input,
+      date,
+      hrMax,
+      remainingMin: Math.max(0, workingBudget - assembled.estimatedMin),
+      deloadActive: deload.active,
+    });
   if (cardioBlock) blocks.push(cardioBlock);
 
   // ── Bookends ───────────────────────────────────────────────────────────────
@@ -410,7 +435,9 @@ function buildCardioBlock(args: {
         hrMax,
         restingHr,
         location: input.location,
-        minutesAvailable: input.budget_min,
+        // What is actually left, not what was asked for at the top of the day.
+        minutesAvailable: remainingMin,
+        heavyLowerRecently,
       });
       break;
     case 'zone2': {
@@ -418,7 +445,7 @@ function buildCardioBlock(args: {
       const already = input.cardio_history
         .filter((c) => withinDays(c.date, date, 7))
         .reduce((a, c) => a + (c.zone_minutes?.z2 ?? 0), 0);
-      const room = Math.max(10, Math.min(input.budget_min, ceiling - already));
+      const room = Math.max(10, Math.min(remainingMin, ceiling - already));
       const weeklyRunMiles = runMilesLast7(input.cardio_history, date);
       cardio =
         weeklyRunMiles < 3
@@ -433,7 +460,7 @@ function buildCardioBlock(args: {
       cardio = {
         modality: 'walk',
         structure: 'steady',
-        duration_min: Math.min(30, input.budget_min),
+        duration_min: Math.min(30, remainingMin),
         target_bpm: [Math.round(hrMax * 0.5), Math.round(hrMax * 0.6)],
         target_zone: 'z1',
         why: `An easy walk still counts toward the ${WEEKLY.steps_floor.toLocaleString('en-US')}-step floor, and it moves blood through everything that hurts.`,
@@ -454,6 +481,13 @@ function buildCardioBlock(args: {
   }
 
   if (!cardio) return null;
+
+  // Last line of defence: whatever the protocol wanted, it cannot exceed the
+  // minutes it was given.
+  if (cardio.duration_min > remainingMin && remainingMin > 0) {
+    cardio = { ...cardio, duration_min: round(remainingMin, 0) };
+  }
+  if (cardio.duration_min <= 0) return null;
 
   return {
     kind: cardio.target_zone === 'z2' || cardio.target_zone === 'z1' ? 'zone2' : 'conditioning',

@@ -189,3 +189,23 @@ describe('compliance', () => {
     expect(scoreCompliance(p, actual)).toBeCloseTo(0.75, 2);
   });
 });
+
+describe('VO2 modality after heavy legs', () => {
+  it('prefers the bike over running within 24 h of heavy lower-body work', () => {
+    const p = prescribeVo2({ hrMax: 186, location: PLANET_FITNESS, minutesAvailable: 45, heavyLowerRecently: true });
+    expect(['bike', 'row', 'ski_erg', 'elliptical', 'stair']).toContain(p.modality);
+  });
+
+  it('still runs when there is no bike, rather than skipping the session', () => {
+    // RESEARCH §6.2 states a preference, not a prohibition. Home has no bike, and
+    // the VO2 session is the highest-leverage thing in the week.
+    const p = prescribeVo2({ hrMax: 186, location: HOME, minutesAvailable: 45, heavyLowerRecently: true });
+    expect(p.modality).toBe('run');
+    expect(p.why).toMatch(/no bike here/);
+  });
+
+  it('says nothing about legs when they are fresh', () => {
+    const p = prescribeVo2({ hrMax: 186, location: HOME, minutesAvailable: 45 });
+    expect(p.why).not.toMatch(/no bike here/);
+  });
+});

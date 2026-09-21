@@ -191,11 +191,21 @@ export function prescribeVo2(args: {
   location: GymLocation;
   minutesAvailable: number;
   protocolId?: '4x4' | '8x2' | '30_30';
+  /** Heavy lower-body work inside 24 h. Steers the modality, per RESEARCH §6.2. */
+  heavyLowerRecently?: boolean;
 }): CardioPrescription {
   const zones = zoneBoundaries(args.hrMax, { restingHr: args.restingHr });
   const available = availableModalities(args.location);
-  const modality: CardioModality =
-    (['run', 'bike', 'row', 'ski_erg', 'elliptical'] as CardioModality[]).find((m) => available.includes(m)) ?? 'walk';
+
+  // RESEARCH §6.2 prefers cycling or rowing within 24 h of heavy lower-body work
+  // — the aerobic stimulus is the same and the eccentric cost is far lower. It
+  // is a preference, not a prohibition: with no bike at home, running is still
+  // better than skipping the single highest-leverage session of the week.
+  const preference: CardioModality[] = args.heavyLowerRecently
+    ? ['bike', 'row', 'ski_erg', 'elliptical', 'stair', 'run']
+    : ['run', 'bike', 'row', 'ski_erg', 'elliptical'];
+  const modality: CardioModality = preference.find((m) => available.includes(m)) ?? 'walk';
+  const compromised = args.heavyLowerRecently && modality === 'run';
 
   // 4×4 needs ~28 min with the warm-up; fall back to shorter protocols on a tight day.
   const wanted =
@@ -221,7 +231,11 @@ export function prescribeVo2(args: {
       rounds: protocol.rounds,
       work_bpm: workBpm,
     },
-    why: `${protocol.label} at 85–95% max. VO2max carries the strongest dose-response with all-cause mortality of anything in this app — roughly 12–15% lower risk per MET gained. Recovery between rounds is active, not stopped. Zone 2 window for reference: ${zones.z2[0]}–${zones.z2[1]} bpm.`,
+    why:
+      `${protocol.label} at 85–95% max. VO2max carries the strongest dose-response with all-cause mortality of anything in this app — roughly 12–15% lower risk per MET gained. Recovery between rounds is active, not stopped. Zone 2 window for reference: ${zones.z2[0]}–${zones.z2[1]} bpm.` +
+      (compromised
+        ? ' Your legs took a hard session yesterday and there is no bike here, so keep the effort honest but the ground soft, and stop if anything sharpens.'
+        : ''),
   };
 }
 

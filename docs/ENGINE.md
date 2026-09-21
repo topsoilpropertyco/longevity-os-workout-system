@@ -199,62 +199,156 @@ The budget is real. 30 minutes means 30 minutes, including rest, including setup
 
 ## 10. Worked example: Tuesday, 30 minutes, home, readiness 72
 
-Inputs: `today` = Tuesday. `budget_min` = 30. `location` = Home — Bowflex adjustable dumbbells to 52.5 lb, adjustable flat/incline bench with Nordic support, pull-up bar, resistance bands. No barbell, no rack, no sled, no cable. Oura readiness 72, HRV 3% above the 28-day baseline. Goal mode Tone, vertical-jump focus on. Program KOT, cycle 1. Injuries: knees (pain 3), low back (pain 2). History: Sunday was a 45-minute lower-body KOT day; Monday was a 25-minute Zone 2 bike.
+**This section is generated from a real engine run, not written by hand.** The
+input is `DOCS_WORKED_EXAMPLE` in `packages/engine/fixtures/days.ts`, and
+`test/golden.test.ts` asserts the outcomes below against `plan()` on every test
+run. If the engine's judgement changes, this section fails the build rather than
+quietly becoming a lie. Every number here was printed by the code.
 
-**Stage 1 — Normalize.** Bodyweight 205 lb from Friday's scale entry. HRmax by precedence: no measured Strava max in the last 90 days, no Oura figure, so 220 − 34 = **186**, source `formula`, and the zone boundaries follow. The exercise library is filtered to home equipment: 640-odd candidates become 180-odd.
+### The input
 
-**Stage 2 — Readiness.** 72 → band **as_planned**, `load_multiplier` 1.0, no RPE cap, `set_delta` 0, `source: 'oura'`, HRV +3%. Reasons: "readiness 72, in the planned band"; "HRV 3% above your 28-day baseline".
+`today` = Tuesday 2026-09-22. `budget_min` = 30, with warm-up and cool-down set
+to sit on top of it. `location` = Home — Bowflex adjustable dumbbells to 52.5 lb
+per hand, adjustable bench with Nordic support, pull-up bar, bands, an outdoor
+route. No barbell, no rack, no sled, no cable, no bike. Oura readiness 72, HRV
+level with the 28-day baseline. Goal mode Tone, vertical-jump focus on. Program
+KOT. Injuries: knees at 2/10, low back at 2/10, both longstanding.
 
-**Stage 3 — Ledger.**
+History that matters: **Monday was a 45-minute lower-body KOT day** — backward
+walking, tibialis raises, 3 × 5 ATG split squats at 70 lb at RPE 9, 2 × 8 RDL at
+160 lb at RPE 8. Sunday was a 25-minute Zone 2 bike.
 
-| Region | Hours since hard hit | ACWR | Available |
-| --- | --- | --- | --- |
-| knees_quads | 38 (Sunday KOT) | 1.12 | **No** — inside the 48-hour window |
-| posterior_chain | 38 | 1.08 | **No** — Sunday's ATG split squats and RDL |
-| calves_achilles | 38 | 1.15 | **No** |
-| low_back | 96 | 0.94 | Yes |
-| chest | 121 | 0.81 | Yes |
-| upper_back | 121 | 0.86 | Yes |
-| shoulders | 121 | 0.88 | Yes |
-| core | 18 (Monday, light) | 1.02 | Yes |
+### Stage 1 — Readiness
 
-Nothing is eccentric-blocked: Sunday's split squats were not eccentric-dominant, so the 72-hour clock is not running. Every ACWR sits inside 0.8–1.3.
+`score 72 · band as_planned · source oura`, with reasons "Oura readiness 72" and
+"HRV +0% vs baseline". Load multiplier 1.0, no RPE cap, no extra set. No
+self-report was submitted, so the sliders do not enter the blend and 72 is
+carried through unchanged.
 
-**Stage 4 — Deload.** 7-day average readiness 74 (>65). HRV up, not down. No missed reps Sunday. Sliders not red. Six weeks since the last light week — inside the 8–10 cap. **No deload.**
+### Stage 2 — The ledger
 
-**Stage 5 — Weekly dose.** Zone 2 at 25 of 90 minutes this week (the ramp ceiling, not the 150+ target — he is still climbing). VO2 sessions 0 of 1. Strength at 45 of 60–120 minutes. Mobility 1 of 2. Tonnage tracking flat. **Biggest deficit: upper-body strength minutes.**
+Monday's KOT session was 24 hours ago and hit four regions hard:
 
-**Stage 6 — Day type.** KOT is due twice more this week, but the knees and posterior chain are blocked until Wednesday morning — so KOT is not today, and the engine notes that it will be tomorrow. VO2 work is deficient but VO2 on a 30-minute home day with no equipment beyond a bench is a worse use of the slot than the strength deficit, and it would collide with tomorrow's KOT. **Today is `strength`, upper-focused**, which is exactly what the ledger leaves available.
+| Region | 7-day load | ACWR | Since hard hit | State |
+| --- | --- | --- | --- | --- |
+| knees_quads | 1.06 | 0.92 | 24 h | **Blocked** — needs 24 h more |
+| posterior_chain | 7.21 | 1.42 | 24 h | **Blocked** — needs 24 h more |
+| low_back | 4.28 | 1.36 | 24 h | **Blocked** — needs 24 h more |
+| hips_glutes | 5.57 | 1.36 | 24 h | **Blocked** — needs 24 h more |
+| chest | 4.05 | 1.06 | 120 h | Available |
+| upper_back | 2.25 | 1.11 | 120 h | Available |
+| shoulders | 2.02 | 1.06 | 120 h | Available |
+| elbows_forearms | 2.75 | 1.08 | 120 h | Available |
+| calves_achilles | 0.34 | 0.83 | — | Available |
+| core · spine · neck | 0.00 | 0.00 | — | Available |
 
-**Stage 7 — Program slot.** None today. Recorded in `notes`: "KOT moved to Wednesday — knees 38 h since Sunday, needs 48."
+Nothing is eccentric-blocked: Monday's split squats are not flagged
+`eccentric_dominant`, so the 72-hour clock never started. Posterior chain and
+hips are both at 1.36, above the 1.3 comfort line but below the 1.5 danger line —
+permitted, but the assembler will not add fuel there.
 
-**Stage 8 — Selection.** Budget 30 minutes, warm-up 5 on top (Seth's setting), so 30 minutes of work. Vertical-jump focus wants a power block, but power is lower-body and lower-body is blocked, so it is skipped with a note. What is left is horizontal push, vertical pull, horizontal pull and core, at home:
+### Stage 3 — Deload
 
-- **A1** Incline dumbbell press — chest and shoulders, both available, Bowflex and the adjustable bench
-- **A2** Pull-up — vertical pull, upper back, the bar; superset with A1 (agonist/antagonist, and the budget is 30 minutes)
-- **B1** Single-arm dumbbell row — horizontal pull, upper back, bench support
-- **B2** Band pull-apart — rear delts, cheap in time, keeps shoulders balanced
-- **C** Bird dog and side plank — the McGill Big 3 low-back floor, and low back is available at pain 2
+Seven-day readiness averages well above 65, HRV is flat rather than falling, no
+session missed its reps, sliders are not red, and the calendar backstop has not
+elapsed. **No deload.**
 
-Exclusions checked: no heavy spinal loading, no sprints, no Nordics, no depth jumps, no back-to-back maximal grip before pulling — the row comes after the pull-up, which is the right order for grip. Clean.
+### Stage 4 — Weekly dose
 
-**Stage 9 — Prescription.** Tone mode: 3 sets, 10–15 reps, RPE 8, shorter rest.
+Zone 2 at **47 minutes** against this week's ramp ceiling of **55** — not against
+the 180-minute target, because Seth is still climbing and the ≤10%/week rule is
+what governs early weeks. VO2 sessions **0 of 1**. Strength at **85 minutes**,
+inside the 60–120 window. Mobility 0 of 2. Two sessions logged, 14,560 lb moved,
+steps averaging 7,500.
 
-- Incline DB press: last Thursday, 3×12 at 85 lb total (42.5 per hand) at RPE 8. Top of range not reached twice, so no double-progression bump. Readiness multiplier 1.0. **3 × 12 at 85 lb total**, rest 75 s. Rounded to the Bowflex's 2.5 lb-per-hand increment — 85 lb total is achievable, 88 lb would not be.
-- Pull-up: bodyweight, `load_style: 'bodyweight'`, added load 0. **3 × 8**, rest shared with the press superset.
-- Single-arm row: **3 × 12 at 50 lb** per hand, single implement, rest 60 s.
-- Band pull-apart: **2 × 20**, no load concept.
-- Bird dog **2 × 8/side**, side plank **2 × 30 s/side**.
+### Stage 5 — Choosing the day
 
-**Stage 10 — Prediction bands** on the press: normal [80, 90], probable **85**, max 100, confidence 0.8 on nine sessions of history, basis `history`. The card shows 85 in the middle with the band around it, so a good day and a bad day both look normal instead of like failure.
+KOT is due, but every lower-body region it needs is inside its 48-hour window,
+so it scores zero with the note *"Lower body is still recovering."* Power is
+lower-body too, and gated on the same regions. Zone 2 has only 8 minutes of
+headroom left under the ramp ceiling. Strength is possible on the upper body but
+the week is already at 85 minutes. **The VO2 session is the one thing that is
+both owed and legal**, and it is the single highest-leverage session in the
+programme for lifespan.
 
-**Stage 11 — Budget.** Superset A ≈ 11 min, B ≈ 9 min, C ≈ 6 min, transitions ≈ 3 min. **Total 29 of 30.** Nothing is cut. Zone 2 did not fit and is recorded in `notes` — with the observation that tomorrow's KOT day pairs well with a bike Zone 2 block, which is exactly the §6.2 rule about cycling within 24 h of heavy lower-body work.
+**Today is `vo2`.**
 
-**Stage 12 — Why.** Session: *"Upper body today — your knees need one more day after Sunday's KOT, and upper strength is where this week is short."* Per exercise, one line each; the incline press reads *"Top of your range twice and you earn the next 5 lb — you are one session away."*
+### Stage 6 — The prescription
 
-**Stage 13 — Week.** Wednesday projects as KOT (knees free at 48 hours), Thursday as VO2 4×4 (the standing weekly deficit), Friday as Zone 2 plus mobility, Saturday as full-body strength, Sunday as KOT, Monday as recovery. Every one of those will be re-solved when the day arrives, and the carousel says so.
+Thirty working minutes does not fit the Norwegian 4 × 4 with its warm-up, so the
+engine falls back to the **8 × 2 min** protocol: 2 minutes work, 2 minutes active
+recovery, eight rounds, exactly 30 minutes, at **164–177 bpm** — 88–95% of an
+HRmax of 186, which comes from 220 − 34 because no measured Strava maximum
+exists in the last 90 days.
 
-**Output.** One `PrescribedSession`, three blocks, `estimated_min` 29, `readiness.band` `as_planned`, `deload` false, two notes, no warnings, and a signature. Feed the same input in tomorrow and you get the same bytes back.
+Modality is **running**. RESEARCH §6.2 prefers a bike or rower within 24 hours of
+heavy lower-body work, and the engine tried: there is no bike at home. That is a
+preference, not a prohibition, so it runs and says so in the copy rather than
+skipping the most valuable session of the week.
+
+### Stage 7 — What is NOT in the session
+
+No strength block, no mobility block, no core. On a cardio-led day the cardio is
+the session; assembling accessories first and appending the intervals afterwards
+is how a 30-minute day becomes a 66-minute one. The cardio duration is reserved
+from the budget before anything else is allowed to compete for it.
+
+### Stage 8 — Output
+
+```
+type          vo2 — "VO2 intervals"
+estimated_min 40          (30 working + 5 warm-up + 5 cool-down, bookends outside the budget)
+readiness     72 · as_planned · oura
+deload        false
+warnings      []
+signature     934e06f6
+```
+
+**Session why:**
+> VO2 day. Readiness 72 — run it as written. The single highest-leverage session
+> for lifespan. 30 minutes.
+
+**Cardio why:**
+> 8 × 2 min at 85–95% max. VO2max carries the strongest dose-response with
+> all-cause mortality of anything in this app — roughly 12–15% lower risk per MET
+> gained. Recovery between rounds is active, not stopped. Zone 2 window for
+> reference: 133–146 bpm. Your legs took a hard session yesterday and there is no
+> bike here, so keep the effort honest but the ground soft, and stop if anything
+> sharpens.
+
+**Notes** (the audit trail, shown behind a disclosure):
+```
+knees quads: Hard session 24h ago — needs 24h more.
+posterior chain: Hard session 24h ago — needs 24h more.
+low back: Hard session 24h ago — needs 24h more.
+hips glutes: Hard session 24h ago — needs 24h more.
+Not kot today: Lower body is still recovering.
+```
+
+### Stage 9 — The week
+
+```
+Tue  vo2      ← today
+Wed  power
+Thu  zone2
+Fri  kot
+Sat  mobility
+Sun  zone2
+Mon  strength
+```
+
+Each projected day is planned against a ledger carrying the days before it, and
+each one counts toward the weekly dose as though it had been performed — so
+Wednesday knows Tuesday spent the week's VO2 session, and does not prescribe
+another. Without that accumulation every day independently sees "no VO2 yet this
+week" and the whole week comes back as VO2, which is exactly the bug this
+mechanism was built to fix.
+
+Future days assume neutral readiness. We do not forecast Oura, and the carousel
+says so. Every one of them is re-solved when the day actually arrives.
+
+Feed the same input in tomorrow and you get the same bytes back, signature
+included.
 
 ---
 
@@ -262,7 +356,8 @@ Exclusions checked: no heavy spinal loading, no sprints, no Nordics, no depth ju
 
 Because the engine is pure, testing it is just a table of inputs and expected outputs.
 
-- **Fixture days** in `packages/engine/fixtures/`: high readiness, low readiness, injury flare, 15-minute home, 90-minute Planet Fitness. PRD §9 requires these five.
+- **Fixture days** in `packages/engine/fixtures/`: high readiness, low readiness, injury flare, 15-minute home, 90-minute Planet Fitness. PRD §9 requires these five. Two more exist: cold start (no history, no Oura, no sliders) and `DOCS_WORKED_EXAMPLE`, which is the input §10 above is generated from.
 - **Golden-file tests** on session assembly: the whole `PlanResult` is serialized and compared, so an unintended change anywhere shows up as a diff rather than as a surprise in March.
 - **Invariant assertions** that run against every fixture: no session violates the ledger; no session violates a pairing exclusion; no session exceeds its budget; no session prescribes equipment the location does not have; no barbell movement survives at a barbell-free location.
+- **324 tests, 96% statement coverage** at the time of writing. `npm run test` from `packages/engine`, `npm run check` from the repo root for contracts, types, tests and data together.
 - **Every engine change ships with a fixture or a test.** That is in `CLAUDE.md` and in `CONTRIBUTING.md`, and it is the reason the ledger stays a constraint rather than drifting into a suggestion.

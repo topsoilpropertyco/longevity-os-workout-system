@@ -97,6 +97,58 @@ describe('the worked example in docs/ENGINE.md', () => {
     expect(result.today.type).not.toBe('recovery');
   });
 
+  // ── every factual claim docs/ENGINE.md §10 makes about this input ──────────
+
+  it('blocks exactly the four regions the doc lists', () => {
+    const blocked = Object.values(result.ledger).filter((e) => !e.available).map((e) => e.region).sort();
+    expect(blocked).toEqual(['hips_glutes', 'knees_quads', 'low_back', 'posterior_chain']);
+    for (const region of blocked) {
+      expect(result.ledger[region].block_reason).toMatch(/24h ago — needs 24h more/);
+    }
+  });
+
+  it('chooses the VO2 session, and says why KOT was not available', () => {
+    expect(result.today.type).toBe('vo2');
+    expect(result.today.notes.join(' ')).toMatch(/Not kot today: Lower body is still recovering/);
+  });
+
+  it('falls back to 8 × 2 min at 164–177 bpm, because 4 × 4 does not fit 30 minutes', () => {
+    const cardio = result.today.blocks.find((b) => b.cardio)?.cardio;
+    expect(cardio?.intervals).toEqual({ work_min: 2, rest_min: 2, rounds: 8, work_bpm: [164, 177] });
+    expect(cardio?.duration_min).toBe(30);
+  });
+
+  it('runs rather than skipping, and admits there is no bike', () => {
+    const cardio = result.today.blocks.find((b) => b.cardio)?.cardio;
+    expect(cardio?.modality).toBe('run');
+    expect(cardio?.why).toMatch(/no bike here/);
+  });
+
+  it('gives the cardio day no accessory blocks to compete with the intervals', () => {
+    const kinds = result.today.blocks.map((b) => b.kind);
+    expect(kinds).toEqual(['warmup', 'conditioning', 'cooldown']);
+    expect(result.today.estimated_min).toBe(40);
+  });
+
+  it('projects the week the doc prints', () => {
+    expect(result.week.map((d) => d.session.type)).toEqual([
+      'vo2', 'power', 'zone2', 'kot', 'mobility', 'zone2', 'strength',
+    ]);
+  });
+
+  it('reports the weekly dose the doc quotes', () => {
+    expect(result.weekly.zone2_min).toBe(47);
+    expect(result.weekly.zone2_ceiling_min).toBe(55);
+    expect(result.weekly.vo2_sessions).toBe(0);
+    expect(result.weekly.strength_min).toBe(85);
+    expect(result.weekly.tonnage_lb).toBe(14_560);
+    expect(result.weekly.sessions).toBe(2);
+  });
+
+  it('raises no warnings', () => {
+    expect(result.warnings).toEqual([]);
+  });
+
   it('prescribes only what a home gym can do', () => {
     const ids = result.today.blocks.flatMap((b) => b.exercises.map((e) => e.exercise_id));
     expect(ids).not.toContain('leg-press');

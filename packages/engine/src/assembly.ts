@@ -41,6 +41,9 @@ import type {
 } from './types.js';
 import { clamp, rankBy, round } from './util.js';
 
+/** A static hold with no stated standard: 30 seconds a side is the usual dose. */
+const DEFAULT_HOLD_S = 30;
+
 export interface AssemblyInput {
   today: string;
   type: SessionType;
@@ -164,7 +167,20 @@ export function prescribe(args: {
   const reps = repRange[0];
 
   // Timed and distance work has no rep count at all.
-  const holdSeconds = std?.hold_s ?? (std?.duration_min ? std.duration_min * 60 : undefined);
+  // A plank, a dead hang and a deep squat hold are measured in seconds. "Side
+  // plank, 8 reps" is not something a person can carry out.
+  const isStaticHold =
+    exercise.force === 'static' &&
+    (exercise.pattern === 'mobility' ||
+      exercise.pattern === 'anti_extension' ||
+      exercise.pattern === 'anti_rotation' ||
+      exercise.pattern === 'anti_lateral_flexion');
+
+  const holdSeconds =
+    std?.hold_s ??
+    (std?.duration_min ? std.duration_min * 60 : undefined) ??
+    (isStaticHold ? DEFAULT_HOLD_S : undefined);
+
   const isTimed = holdSeconds !== undefined || exercise.pattern === 'gait';
   const prediction = predictionBand({
     exerciseId: exercise.id,
@@ -282,6 +298,11 @@ export function assemble(input: AssemblyInput): AssemblyResult {
     for (const item of items) {
       index++;
       if (remaining < ASSEMBLY.min_block_min) break;
+
+      // The McGill Big 3 floor and the Core block both want the curl-up, and a
+      // session listing the same movement twice reads as a bug to the person
+      // doing it — because it is one.
+      if (chosen.some((c) => c.id === item.exercise.id)) continue;
 
       const conflict = violatedExclusion(item.exercise, chosen, { flaggedRegions: flagged });
       if (conflict) {
@@ -454,10 +475,11 @@ export function assemble(input: AssemblyInput): AssemblyResult {
 
   const estimatedMin = round(blocks.reduce((a, b) => a + b.estimated_min, 0), 1);
 
-  if (blocks.length === 0) {
+  const cardioLedDay = input.type === 'vo2' || input.type === 'zone2' || input.type === 'sprint' || input.type === 'recovery';
+  if (blocks.length === 0 && !cardioLedDay) {
     notes.push('Nothing was available at this location today — the plan fell back to a walk.');
   }
-  if (remaining > 8 && input.type !== 'recovery') {
+  if (remaining > 8 && !cardioLedDay) {
     notes.push(`${Math.round(remaining)} min of the budget went unused — the constraints ran out of safe options before the clock did.`);
   }
 

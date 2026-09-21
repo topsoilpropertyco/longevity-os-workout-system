@@ -257,6 +257,37 @@ export const DOCS_WORKED_EXAMPLE: PlanInput = {
   ...base(),
   budget_min: 30,
   location: HOME,
+  // The doc's stated setup: Sunday was a 25-minute Zone 2 bike, MONDAY a
+  // 45-minute lower-body KOT day. Monday is what puts the knees 24 hours into a
+  // 48-hour window on Tuesday, which is the point the example is making — at 48
+  // hours exactly they would be free and the ledger would teach nothing.
+  history: [
+    ...base().history,
+    {
+      id: 'mon-kot', date: addDays(TODAY, -1), type: 'kot', location_id: HOME.id,
+      duration_min: 45, completed: true,
+      exercises: [
+        { exercise_id: 'backward-walk', sets: [{ set_index: 0, reps: 0, load_lb: 0, duration_s: 600, completed: true }] },
+        { exercise_id: 'tibialis-raise', sets: [{ set_index: 0, reps: 25, load_lb: 0, rpe: 7, completed: true }] },
+        { exercise_id: 'atg-split-squat', sets: [
+          { set_index: 0, reps: 5, load_lb: 70, rpe: 9, completed: true },
+          { set_index: 1, reps: 5, load_lb: 70, rpe: 9, completed: true },
+          { set_index: 2, reps: 5, load_lb: 70, rpe: 9, completed: true },
+        ] },
+        { exercise_id: 'db-rdl', sets: [
+          { set_index: 0, reps: 8, load_lb: 160, rpe: 8, completed: true },
+          { set_index: 1, reps: 8, load_lb: 160, rpe: 8, completed: true },
+        ] },
+      ],
+    },
+  ],
+  cardio_history: [
+    ...base().cardio_history,
+    {
+      date: addDays(TODAY, -2), modality: 'bike', duration_min: 25, avg_hr: 121,
+      zone_minutes: { z1: 3, z2: 22, z3: 0, z4: 0, z5: 0 }, source: 'strava',
+    },
+  ],
   oura_today: {
     date: TODAY, readiness_score: 72, sleep_score: 76, hrv_ms: 60, resting_hr: 55,
     steps: 6800, vo2max: 42.5, cardiovascular_age: 31,
