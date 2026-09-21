@@ -1,0 +1,129 @@
+# Longevity OS — continuous check
+#
+# CONTRIBUTING.md says `npm run check` must pass before committing. This is what
+# makes that true rather than aspirational.
+
+name: check
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: check-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: contracts · types · tests · data
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install
+        run: npm ci || npm install
+
+      # The three vocabularies — engine unions, Postgres enums, generated db
+      # types — drift silently and are cheap to check, so they go first.
+      - name: Contract check
+        run: npx tsx scripts/check-contracts.ts
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Engine tests
+        run: npm run test --workspace=@longevity/engine
+
+      - name: Validate generated data
+        run: npx tsx scripts/validate-data.ts
+
+      # A stray `tsc` without an outDir leaves .js beside the .ts sources, where
+      # Vite's resolver prefers it and the tests silently run stale code. This
+      # has already happened once.
+      - name: No stale build artifacts beside sources
+        run: |
+          found=$(find packages/*/src packages/*/fixtures packages/*/test \( -name '*.js' -o -name '*.d.ts' \) 2>/dev/null | head -20)
+          if [ -n "$found" ]; then
+            echo "Compiled output found next to TypeScript sources:"; echo "$found"
+            echo "These shadow their .ts under Vite. Run 'npm run clean:stale' in packages/engine."
+            exit 1
+          fi
+
+  migrations:
+    name: migrations against real Postgres
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: longevity
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd pg_isready --health-interval 10s
+          --health-timeout 5s --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+
+      # Supabase supplies the auth schema and the three roles; a bare Postgres
+      # does not, so we stub exactly what the migrations reference and nothing
+      # more. Running them anywhere else would catch nothing.
+      - name: Stub the Supabase-managed objects
+        env:
+          PGPASSWORD: postgres
+        run: |
+          psql -h localhost -U postgres -d longevity -v ON_ERROR_STOP=1 <<'SQL'
+          create schema if not exists auth;
+          create extension if not exists pgcrypto;
+          create table if not exists auth.users (id uuid primary key default gen_random_uuid(), email text);
+          create or replace function auth.uid() returns uuid language sql stable as
+            $$ select nullif(current_setting('request.jwt.claim.sub', true), '')::uuid $$;
+          do $$ begin
+            if not exists (select 1 from pg_roles where rolname='anon') then create role anon nologin; end if;
+            if not exists (select 1 from pg_roles where rolname='authenticated') then create role authenticated nologin; end if;
+            if not exists (select 1 from pg_roles where rolname='service_role') then create role service_role nologin bypassrls; end if;
+          end $$;
+          SQL
+
+      # Twice, in order. A migration that is not idempotent breaks the second
+      # time someone runs `supabase db reset` against an existing project.
+      - name: Apply migrations, twice
+        env:
+          PGPASSWORD: postgres
+        run: |
+          for pass in 1 2; do
+            echo "-- pass $pass --"
+            for f in supabase/migrations/*.sql; do
+              echo "  $(basename "$f")"
+              psql -h localhost -U postgres -d longevity -v ON_ERROR_STOP=1 -q -f "$f"
+            done
+          done
+
+      - name: Every public table has RLS
+        env:
+          PGPASSWORD: postgres
+        run: |
+          missing=$(psql -h localhost -U postgres -d longevity -tAc "
+            select coalesce(string_agg(c.relname, ', '), '')
+              from pg_class c join pg_namespace n on n.oid = c.relnamespace
+             where n.nspname = 'public' and c.relkind = 'r' and not c.relrowsecurity;")
+          if [ -n "$missing" ]; then echo "Tables without RLS: $missing"; exit 1; fi
+          echo "All public tables have RLS enabled."
+
+      - name: The browser roles cannot claim LLM jobs
+        env:
+          PGPASSWORD: postgres
+        run: |
+          leaked=$(psql -h localhost -U postgres -d longevity -tAc "
+            select has_function_privilege('anon', 'public.claim_llm_job(text, text[])', 'execute')
+                or has_function_privilege('authenticated', 'public.claim_llm_job(text, text[])', 'execute');")
+          if [ "$leaked" = "t" ]; then echo "A browser role can claim LLM jobs. It must not."; exit 1; fi
+          echo "claim_llm_job is service-key only."
