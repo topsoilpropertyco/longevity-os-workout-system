@@ -159,6 +159,60 @@ It is the fastest way to answer "is the system actually working", and it needs n
 
 ---
 
+## 6b. Sign in — 5 min
+
+Until you do this, the deployed app has no idea who you are, and row-level security is
+doing exactly what it was built to do: returning nothing. The app falls back to the demo
+athlete, which is why a freshly-pointed deployment can look like it is working while
+showing somebody else's numbers. `/settings` → **Account** always tells you which of the
+two you are looking at.
+
+Sign-in is a magic link — one email field, no password. It is on the Supabase free tier.
+
+1. **Apply `0012_auth_bootstrap.sql`** if you have not run the whole bundle since it was
+   added. It creates the `public.users` row from the `auth.users` row on first sign-in.
+   They are different tables, and every `user_id` foreign key points at the first one.
+2. **Supabase dashboard → Authentication → Sign In / Providers → Email.** Confirm *Email*
+   is enabled. Leave *Confirm email* on.
+3. **Authentication → URL Configuration.**
+   - *Site URL*: your deployed origin, no trailing slash.
+   - *Redirect URLs*: add `http://localhost:3000/auth/callback` and
+     `https://<your-domain>/auth/callback`. A link to an origin that is not listed here
+     is refused, and the error you get back says nothing useful.
+4. **Authentication → Email Templates → Magic Link.** Replace the link in the template
+   with:
+
+   ```html
+   <a href="{{ .SiteURL }}/auth/callback?token_hash={{ .TokenHash }}&type=email">Open Longevity OS</a>
+   ```
+
+   Strongly recommended, and here is why. The default template sends a PKCE link, and
+   PKCE keeps half of the handshake in a cookie in the browser that *asked* for the link.
+   On an iPhone, Gmail and most mail apps open links in their own in-app browser, not the
+   Safari tab you started from — so the default link fails roughly whenever you use it
+   from a mail app. The template above is verified entirely on the server and works in
+   any browser. `/auth/callback` accepts both forms, so nothing breaks if you skip this;
+   it just gets fragile.
+5. Open the app. You land on **Sign in**. Type your email, tap **Email me a link**, open
+   the email on the phone, tap the link. You are on today's card.
+6. Read your athlete uuid back out and put it in the environment as `LONGEVITY_USER_ID`
+   (Vercel too — the nightly cron needs it):
+
+   ```sql
+   select id, email from public.users;
+   ```
+
+**How often do you have to do this again?** In normal use, never. The access token lasts
+an hour and the middleware silently renews it on every request, so opening the app is
+what keeps you signed in. You will need a new link only if you sign out, clear Safari's
+website data, or leave the app untouched for months.
+
+⚠️ Supabase's built-in email sender is rate-limited (a handful of messages per hour) and
+is meant for low volume. For one athlete signing in once, that is free and plenty. If you
+ever hit the limit, wait an hour rather than reaching for a paid SMTP provider.
+
+---
+
 ## 7. Install the PWA on the iPhone home screen — 3 min
 
 Do this against the deployed URL once Step 13 is done; until then, your Mac's LAN address works if the phone is on the same Wi-Fi.
