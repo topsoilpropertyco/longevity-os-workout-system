@@ -2,6 +2,7 @@ import Link from 'next/link';
 import DataExport from '@/components/DataExport';
 import GoalModePicker from '@/components/GoalModePicker';
 import { getPlanBundle } from '@/lib/plan';
+import { ouraStatus } from '@/lib/integrations-bridge';
 import { lb, minutes } from '@/lib/format';
 
 export const dynamic = 'force-dynamic';
@@ -23,7 +24,19 @@ function Row({ label, value, hint }: { label: string; value: string; hint?: stri
   );
 }
 
-function CredentialRow({ name, present, note }: { name: string; present: boolean; note: string }) {
+function CredentialRow({
+  name,
+  present,
+  note,
+  href,
+  cta,
+}: {
+  name: string;
+  present: boolean;
+  note: string;
+  href?: string;
+  cta?: string;
+}) {
   return (
     <div className="flex items-center justify-between gap-3 border-t py-3" style={{ borderColor: 'var(--line)' }}>
       <span className="text-sm">
@@ -37,6 +50,13 @@ function CredentialRow({ name, present, note }: { name: string; present: boolean
         style={{ color: present ? 'var(--good)' : 'var(--ink-3)', borderColor: present ? 'var(--good)' : 'var(--line)' }}
       >
         {present ? '● Connected' : '○ Not connected'}
+      </span>
+      {href && cta && (
+        <a href={href} className="btn tap ml-2 px-3 text-xs">
+          {cta}
+        </a>
+      )}
+      <span className="hidden">
       </span>
     </div>
   );
@@ -53,9 +73,26 @@ export default async function SettingsPage() {
     ['Z5 VO₂', 0.9, 1.0],
   ];
 
+  const ouraState = ouraStatus();
+
   // Presence only — a secret is never rendered, not even masked.
   const credentials = [
-    { name: 'Oura', present: Boolean(process.env.OURA_PAT), note: 'Personal access token · nightly sync' },
+    // Oura is OAuth now — personal access tokens were retired in December 2025.
+    // Reading OURA_PAT here reported "not connected" to someone who had just
+    // connected successfully, which is the worst kind of wrong: it invites them
+    // to go and fix something that is not broken.
+    {
+      name: 'Oura',
+      present: ouraState !== 'unconfigured',
+      note:
+        ouraState === 'oauth'
+          ? 'OAuth app · nightly sync'
+          : ouraState === 'legacy_pat'
+            ? 'Legacy personal access token · cannot be reissued'
+            : 'Not set up — run scripts/oura-auth.ts, or connect below',
+      href: ouraState === 'unconfigured' ? '/api/oura/connect' : undefined,
+      cta: ouraState === 'unconfigured' ? 'Connect' : undefined,
+    },
     { name: 'Strava', present: Boolean(process.env.STRAVA_CLIENT_ID && process.env.STRAVA_CLIENT_SECRET), note: 'OAuth app · webhook + nightly reconcile' },
     { name: 'Telegram', present: Boolean(process.env.TELEGRAM_BOT_TOKEN), note: 'Bot token · webhook secret verified' },
     { name: 'LM Studio', present: Boolean(process.env.LMSTUDIO_BASE_URL), note: 'Mac mini worker · outbound only' },

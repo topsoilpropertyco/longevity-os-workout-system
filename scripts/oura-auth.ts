@@ -188,15 +188,20 @@ async function ask(rl: Interface, query: string): Promise<string> {
 
 /** Same as `ask`, but the typed characters are not echoed. */
 async function askSecret(rl: Interface, query: string): Promise<string> {
-  // Overriding readline's `_writeToOutput` is NOT enough, and the difference is
-  // not academic: it only suppresses the echo readline itself performs. When the
-  // TTY is doing the echoing — which it is for an ordinary paste into Terminal —
-  // the secret appears on screen in full. That happened, on camera, to a real
-  // client secret. The only thing that actually stops it is turning the
-  // terminal's own echo off, which means raw mode.
+  // Getting this right took two attempts and burned a real credential twice,
+  // so the ordering below is load-bearing:
+  //
+  //   1. Detach readline from stdin FIRST. While its interface is live it holds
+  //      a 'data' listener and, in terminal mode, echoes what it receives. A
+  //      pasted secret was printed in full and then swallowed — readline had
+  //      consumed it before the raw handler existed, so the script also reported
+  //      "no client secret was entered".
+  //   2. Enter raw mode BEFORE printing the prompt, so anything typed or pasted
+  //      ahead of the prompt is not echoed by the TTY either.
+  //   3. Only then print, and only then listen.
   const input = process.stdin;
+
   if (!input.isTTY || typeof input.setRawMode !== 'function') {
-    // No TTY to mute. Say so rather than silently echoing a credential.
     process.stdout.write(`   ${query}`);
     const answer = await rl.question('');
     process.stdout.write('   (input was not hidden — this terminal has no TTY)\n');
@@ -204,51 +209,66 @@ async function askSecret(rl: Interface, query: string): Promise<string> {
   }
 
   rl.pause();
-  process.stdout.write(`   ${query}`);
+
+  // Detach readline's own stdin listeners for the duration — but SAVE them.
+  // `removeAllListeners` alone permanently deafens the interface, so the very
+  // next prompt after this one waits forever for input that can no longer reach
+  // it. That is a hang with no error message, which is the worst kind.
+  const savedData = input.listeners('data') as ((...a: unknown[]) => void)[];
+  const savedKeypress = input.listeners('keypress') as ((...a: unknown[]) => void)[];
+  input.removeAllListeners('data');
+  input.removeAllListeners('keypress');
+
+  const restoreListeners = (): void => {
+    for (const fn of savedData) input.on('data', fn);
+    for (const fn of savedKeypress) input.on('keypress', fn);
+  };
 
   const wasRaw = input.isRaw === true;
   input.setRawMode(true);
   input.resume();
   input.setEncoding('utf8');
 
+  // Drop anything already buffered from before raw mode, so a stray earlier
+  // keystroke cannot land in the middle of the secret.
+  input.read();
+
+  process.stdout.write(`   ${query}`);
+
   return await new Promise<string>((resolve, reject) => {
     let buf = '';
 
-    const cleanup = (): void => {
+    const finish = (): void => {
       input.off('data', onData);
       input.setRawMode(wasRaw);
+      restoreListeners();
       input.pause();
       process.stdout.write('\n');
     };
 
     const onData = (chunk: string): void => {
       for (const ch of chunk) {
-        switch (ch) {
-          case '\r':
-          case '\n':
-            cleanup();
-            rl.resume();
-            resolve(buf.trim());
-            return;
-          case '\u0003': // Ctrl-C
-            cleanup();
-            reject(new Error('cancelled'));
-            return;
-          case '\u007f': // backspace
-          case '\b':
-            if (buf.length > 0) {
-              buf = buf.slice(0, -1);
-              process.stdout.write('\b \b');
-            }
-            break;
-          default:
-            // Ignore other control characters; echo one dot per real character
-            // so a paste still gives visible feedback without revealing length
-            // precisely enough to matter.
-            if (ch >= ' ') {
-              buf += ch;
-              process.stdout.write('•');
-            }
+        if (ch === '\r' || ch === '\n') {
+          finish();
+          rl.resume();
+          resolve(buf.trim());
+          return;
+        }
+        if (ch === '\u0003') {
+          finish();
+          reject(new Error('cancelled'));
+          return;
+        }
+        if (ch === '\u007f' || ch === '\b') {
+          if (buf.length > 0) {
+            buf = buf.slice(0, -1);
+            process.stdout.write('\b \b');
+          }
+          continue;
+        }
+        if (ch >= ' ') {
+          buf += ch;
+          process.stdout.write('•');
         }
       }
     };
@@ -457,13 +477,26 @@ async function main(): Promise<void> {
 
     const pkce = oauth.generatePkce();
     const state = oauth.generateState();
+
+    // Oura's own portal still advertises the pre-2025 `cloud.ouraring.com`
+    // authorize URL and still labels its scope checkboxes with the bare names,
+    // while the server that actually answers is `moi.ouraring.com` with
+    // `extapi:*`. Default to the one that is known to work and leave a switch
+    // rather than a code change for the case where it does not.
+    const flavor = oauth.ouraFlavor();
+    const endpoints = oauth.endpointsFor(flavor);
+    const scopes = oauth.scopesFor(flavor);
+
     const authUrl = oauth.buildAuthUrl({
       clientId,
       redirectUri,
       state,
       codeChallenge: pkce.challenge,
+      scopes: [...scopes],
+      endpoints,
     });
 
+    if (flavor === 'legacy') say('Using the LEGACY Oura endpoints (OURA_AUTH_FLAVOR=legacy).');
     say('Open this URL, sign in to Oura, and approve:');
     say();
     console.log(authUrl);
@@ -496,6 +529,10 @@ async function main(): Promise<void> {
       code: redirect.code,
       redirectUri,
       codeVerifier: pkce.verifier,
+      // Same endpoints the authorize used. Authorizing against one server and
+      // exchanging against the other produces an `invalid_grant` that looks
+      // like a credentials problem and is not.
+      endpoints,
     });
     if (!exchanged.ok) {
       console.error(`\n✗ Oura refused the exchange (${exchanged.error.kind}).`);
@@ -521,7 +558,7 @@ async function main(): Promise<void> {
 
     const granted = (tokens.scope ?? '').split(/\s+/).filter(Boolean);
     say(`Scopes granted: ${granted.length > 0 ? granted.join(', ') : '(the server did not say)'}`);
-    const missing = oauth.OURA_SCOPES.filter((s) => granted.length > 0 && !granted.includes(s));
+    const missing = scopes.filter((s) => granted.length > 0 && !granted.includes(s));
     if (missing.length > 0) {
       say(`⚠️  Not granted: ${missing.join(', ')} — those readings will be empty.`);
     }

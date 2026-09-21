@@ -74,6 +74,48 @@ export const OURA_ENDPOINTS = {
 export type OuraEndpoints = { -readonly [K in keyof typeof OURA_ENDPOINTS]: string };
 
 /**
+ * The pre-2025 endpoints, and the pre-2025 bare scope names that go with them.
+ *
+ * Kept because the evidence is genuinely mixed. Oura's application portal still
+ * prints an "Example Authorization Url" pointing at `cloud.ouraring.com`, and
+ * still presents its scope checkboxes under the bare names (Daily, Heartrate,
+ * Session…). Meanwhile a working integration reports that those endpoints
+ * answer `Invalid client` and that `moi.ouraring.com` with `extapi:*` is what
+ * actually succeeds.
+ *
+ * Rather than guess on someone's behalf, `OURA_AUTH_FLAVOR=legacy` selects
+ * these. The failure is loud and immediate either way — a wrong authorize host
+ * shows an error page before any token exists — so flipping one environment
+ * variable is a five-second experiment instead of a code change.
+ */
+export const OURA_LEGACY_ENDPOINTS = {
+  authorize: 'https://cloud.ouraring.com/oauth/authorize',
+  token: 'https://api.ouraring.com/oauth/token',
+  revoke: 'https://api.ouraring.com/oauth/revoke',
+  introspect: 'https://api.ouraring.com/oauth/introspect',
+} as const;
+
+/** Bare scope names, as the legacy server and the portal checkboxes name them. */
+export const OURA_LEGACY_SCOPES = [
+  'personal', 'daily', 'heartrate', 'session', 'workout', 'tag', 'spo2',
+] as const;
+
+export type OuraAuthFlavor = 'modern' | 'legacy';
+
+/** Which endpoint/scope pair to use. `OURA_AUTH_FLAVOR=legacy` picks the old one. */
+export function ouraFlavor(env: Record<string, string | undefined> = process.env): OuraAuthFlavor {
+  return env['OURA_AUTH_FLAVOR'] === 'legacy' ? 'legacy' : 'modern';
+}
+
+export function endpointsFor(flavor: OuraAuthFlavor): OuraEndpoints {
+  return { ...(flavor === 'legacy' ? OURA_LEGACY_ENDPOINTS : OURA_ENDPOINTS) };
+}
+
+export function scopesFor(flavor: OuraAuthFlavor): readonly string[] {
+  return flavor === 'legacy' ? OURA_LEGACY_SCOPES : OURA_SCOPES;
+}
+
+/**
  * Exactly what Longevity OS asks for, and nothing more.
  *
  * `extapi:personal` backs `personal_info`; `extapi:daily` backs every
