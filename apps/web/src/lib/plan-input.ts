@@ -7,8 +7,6 @@ import { toProgram, toProgramProgress } from './program';
 import { serverSupabase } from './supabase/server';
 import { toIsoDate } from './format';
 
-export const DEMO_USER = 'demo-seth';
-
 export function todayIso(): string {
   return toIsoDate(new Date());
 }
@@ -19,6 +17,12 @@ export function todayIso(): string {
  * Supabase is the only network call the today card is allowed to wait on
  * (CLAUDE.md invariant 2). When it is absent — or when any single query fails —
  * the fixture athlete is used so the screen still renders.
+ *
+ * `userId` must be the signed-in athlete's auth uuid (`requireUserId()` in
+ * lib/auth.ts). RLS matches on `auth.uid()`, so anything else returns zero rows
+ * and silently lands back on the fixtures — a demo wearing his name. The one id
+ * that is allowed not to be a uuid is `DEMO_USER_ID`, and it only ever reaches
+ * here when Supabase is unconfigured and every query below is skipped.
  */
 export async function loadPlanInput(
   userId: string,

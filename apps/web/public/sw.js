@@ -62,7 +62,12 @@ async function networkFirst(request, cacheName) {
   const cache = await caches.open(cacheName);
   try {
     const response = await fetch(request);
-    if (response && response.status === 200) cache.put(request, response.clone());
+    // `response.redirected` means auth sent us somewhere else — caching it would
+    // file the sign-in page under `/` and serve it back offline forever. It also
+    // throws outright in `cache.put`, which would swallow the navigation.
+    if (response && response.status === 200 && !response.redirected) {
+      cache.put(request, response.clone());
+    }
     return response;
   } catch (err) {
     const hit = (await cache.match(request)) || (await cache.match('/'));

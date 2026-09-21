@@ -26,6 +26,16 @@ import { countThisWeek, deficits } from './weekly.js';
 import { daysBetween, rankBy, withinDays } from './util.js';
 import { daysSinceHardCardio } from './cardio.js';
 
+/** What the active phase's calendar says about today. */
+export interface ProgramDayClaim {
+  /** True when this weekday is in the phase's `weekdays`. */
+  scheduled: boolean;
+  /** "Zero", "Dense", "Standards" — used in the note, so it reads as English. */
+  phaseName: string;
+  /** The phase's training weekdays, spelled out: "Mon, Wed and Fri". */
+  scheduledDays: string;
+}
+
 export interface TemplateDecision {
   type: SessionType;
   /** Why this type, in one line. Feeds the session's why. */
@@ -56,11 +66,19 @@ export function chooseSessionType(args: {
   goal: GoalMode;
   budgetMin: number;
   hasProgram: boolean;
+  /**
+   * The active phase's claim on today, when the program has one. A phased
+   * program names the weekdays it trains — KOT's Zero is Monday/Wednesday/
+   * Friday — and that calendar, not a weekly session count, is what decides
+   * whether today is a program day.
+   */
+  programToday?: ProgramDayClaim;
   forcedType?: SessionType;
   deload: boolean;
 }): TemplateDecision {
   const {
-    today, readiness, dose, ledger, history, cardioHistory, goal, budgetMin, hasProgram, forcedType, deload,
+    today, readiness, dose, ledger, history, cardioHistory, goal, budgetMin, hasProgram, programToday,
+    forcedType, deload,
   } = args;
 
   const considered: TemplateDecision['considered'] = [];
@@ -105,10 +123,31 @@ export function chooseSessionType(args: {
     // KOT is a knee program. Fresh calves are not a reason to run it on cooked
     // quads — the region that carries the work has to be the one that is ready.
     const lowerFresh = fresh.includes('knees_quads');
-    if (kotThisWeek < kotTarget && lowerFresh) {
-      score('kot', 0.9 - kotThisWeek * 0.2, `${kotThisWeek}/${kotTarget} KOT sessions done this week.`);
+
+    if (programToday && !programToday.scheduled) {
+      // The phase trains on named weekdays. Running its session on a day it does
+      // not train is not "extra program work", it is a different program.
+      considered.push({
+        type: 'kot',
+        score: 0,
+        note: `${programToday.phaseName} trains ${programToday.scheduledDays} — today is not one of them.`,
+      });
     } else if (!lowerFresh) {
+      // A scheduled day loses to the ledger. The calendar is the program's
+      // claim; ≥48 h between hard hits on the same region is a hard constraint
+      // (CLAUDE.md invariant 5), and a hard constraint cannot be outvoted by a
+      // schedule any more than by a deficit.
       considered.push({ type: 'kot', score: 0, note: 'Lower body is still recovering.' });
+    } else if (programToday) {
+      // A scheduled, legal program day. No weekly count gate: the phase's own
+      // weekday list already bounds how often this fires (three times a week in
+      // Zero, five in Dense), and refusing Thursday because three sessions are
+      // already logged would mean not running the phase as written.
+      score('kot', 0.95, `${programToday.phaseName} trains ${programToday.scheduledDays}, and today is one.`);
+    } else if (kotThisWeek < kotTarget) {
+      // An unphased program, or a phase with no weekday list: fall back to the
+      // weekly session count.
+      score('kot', 0.9 - kotThisWeek * 0.2, `${kotThisWeek}/${kotTarget} KOT sessions done this week.`);
     }
   }
 
@@ -172,8 +211,16 @@ export function chooseSessionType(args: {
   }
 
   // ── Do not repeat yesterday's type two days running, unless it is Zone 2 ───
+  //
+  // A scheduled program day is exempt: Dense trains Monday through Friday, and
+  // the phase saying "train again today" is not the engine drifting into a rut.
+  // The ledger still decides whether the body can take it.
   if (lastType && lastType !== 'zone2' && lastType !== 'mobility') {
-    for (const c of considered) if (c.type === lastType) c.score *= 0.55;
+    for (const c of considered) {
+      if (c.type !== lastType) continue;
+      if (c.type === 'kot' && programToday?.scheduled) continue;
+      c.score *= 0.55;
+    }
   }
 
   // ── Reduced readiness: steer away from the hardest options ─────────────────

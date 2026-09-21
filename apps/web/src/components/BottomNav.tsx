@@ -59,7 +59,15 @@ const items: Item[] = [
 export default function BottomNav() {
   const pathname = usePathname() || '/';
   // The session runtime owns the whole screen; its own bar replaces the nav.
-  if (pathname.startsWith('/session/') || pathname.startsWith('/onboarding')) return null;
+  // Sign-in hides it too: every destination behind it is locked, so a row of
+  // taps that all bounce back here is worse than no bar at all.
+  if (
+    pathname.startsWith('/session/') ||
+    pathname.startsWith('/onboarding') ||
+    pathname.startsWith('/sign-in')
+  ) {
+    return null;
+  }
 
   return (
     <nav className="app-nav" aria-label="Primary">

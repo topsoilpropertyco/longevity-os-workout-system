@@ -44,9 +44,19 @@ export function sessionWhy(args: {
   dose: WeeklyDose;
   deload: DeloadState;
   budgetMin: number;
+  /**
+   * Where he is in a phased program. Seth is not running "kot phase_id=zero,
+   * week_in_phase=1" — he is on week 1 of Zero, and that is what the line says.
+   * A phase and a week are the two facts that tell him whether today's session
+   * being easy is the plan or a mistake.
+   */
+  program?: { name: string; phaseName: string; week: number };
 }): string {
-  const { type, rationale, readiness, dose, deload, budgetMin } = args;
-  const parts: string[] = [TYPE_OPENERS[type]];
+  const { type, rationale, readiness, dose, deload, budgetMin, program } = args;
+  const opener = program
+    ? `${program.name} — ${program.phaseName}, week ${program.week}.`
+    : TYPE_OPENERS[type];
+  const parts: string[] = [opener];
 
   if (deload.active) {
     parts.push(`Deload week — ${deload.triggers[0] ?? 'time for a lighter one'}.`);
@@ -76,6 +86,16 @@ export function sessionWhy(args: {
   void budgetMin;
 
   return dedupe(parts).join(' ');
+}
+
+/**
+ * Phase names arrive from the source material shouting — "ZERO", "DENSE",
+ * "STANDARDS", because that is how Ben Patrick's checklist prints them. Seth
+ * reads a card, not a spreadsheet.
+ */
+export function phaseLabel(name: string): string {
+  if (name !== name.toUpperCase()) return name;
+  return name.charAt(0) + name.slice(1).toLowerCase();
 }
 
 /** The weekly-dose sentence for the Sunday report and the dashboard. */

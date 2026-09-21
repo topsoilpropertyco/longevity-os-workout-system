@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { ledgerNotes, sessionWhy, weekDiff, weeklyNarrative } from '../src/why.js';
+import { ledgerNotes, phaseLabel, sessionWhy, weekDiff, weeklyNarrative } from '../src/why.js';
 import { buildLedger } from '../src/ledger.js';
 import { neutralReadiness } from '../src/readiness.js';
 import { WEEKLY } from '../src/constants.js';
@@ -144,5 +144,38 @@ describe('week diff', () => {
     const before = ['strength', 'zone2', 'kot', 'mobility'].map((t, i) => day(`2026-09-2${2 + i}`, t as never));
     const after = ['kot', 'strength', 'zone2', 'vo2'].map((t, i) => day(`2026-09-2${2 + i}`, t as never));
     expect(weekDiff(before, after)).toMatch(/and 2 more/);
+  });
+});
+
+describe('the phase and week, in Seth\'s language', () => {
+  const base = {
+    type: 'kot' as const,
+    rationale: 'Zero trains Mon, Wed and Fri, and today is one.',
+    readiness: neutralReadiness(),
+    dose: DOSE,
+    deload: NO_DELOAD,
+    budgetMin: 45,
+  };
+
+  it('opens with the program, the phase and the week', () => {
+    const line = sessionWhy({ ...base, program: { name: 'Knees Over Toes', phaseName: 'Zero', week: 1 } });
+    expect(line.startsWith('Knees Over Toes — Zero, week 1.')).toBe(true);
+  });
+
+  it('carries no schema in it — no ids, no underscores', () => {
+    const line = sessionWhy({ ...base, program: { name: 'Knees Over Toes', phaseName: 'Dense', week: 5 } });
+    expect(line).not.toMatch(/phase_id|week_in_phase|_/);
+    expect(line).toContain('week 5');
+  });
+
+  it('falls back to the plain opener when the program is not phased', () => {
+    expect(sessionWhy(base).startsWith('Knees Over Toes.')).toBe(true);
+  });
+
+  it('shouts nothing: ZERO on the checklist is Zero on the card', () => {
+    expect(phaseLabel('ZERO')).toBe('Zero');
+    expect(phaseLabel('STANDARDS')).toBe('Standards');
+    // A name that is already mixed case is left alone.
+    expect(phaseLabel('Knee Ability Zero')).toBe('Knee Ability Zero');
   });
 });

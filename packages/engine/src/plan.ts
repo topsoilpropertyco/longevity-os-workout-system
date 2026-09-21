@@ -11,7 +11,15 @@
  */
 
 import { ASSEMBLY, WEEKLY } from './constants.js';
-import { assemble, cooldownBlock, warmupBlock, type AssemblyInput } from './assembly.js';
+import {
+  assemble,
+  cooldownBlock,
+  isProgramDay,
+  resolvePhase,
+  warmupBlock,
+  weekInPhase,
+  type AssemblyInput,
+} from './assembly.js';
 import {
   prescribeSprints,
   prescribeVo2,
@@ -26,7 +34,7 @@ import { orderingViolations } from './exclusions.js';
 import { applyPlannedLoad, buildLedger } from './ledger.js';
 import { currentE1rm } from './progression.js';
 import { assessReadiness, neutralReadiness } from './readiness.js';
-import { chooseSessionType } from './template.js';
+import { chooseSessionType, type ProgramDayClaim } from './template.js';
 import type {
   CardioLog,
   CardioPrescription,
@@ -43,7 +51,7 @@ import type {
   Ledger,
 } from './types.js';
 import { addDays, dayOfWeek, hashString, round, stableStringify, withinDays } from './util.js';
-import { ledgerNotes, sessionWhy } from './why.js';
+import { ledgerNotes, phaseLabel, sessionWhy } from './why.js';
 import { weeklyDose } from './weekly.js';
 
 /**
@@ -295,6 +303,13 @@ function planDay(args: DayPlanArgs): { session: PrescribedSession; ledger: Ledge
     exercises: input.exercises,
   });
 
+  const phase = resolvePhase(input.program, input.program_progress);
+  const scheduled = isProgramDay(input.program, input.program_progress, date);
+  const programToday: ProgramDayClaim | undefined =
+    phase && scheduled !== undefined
+      ? { scheduled, phaseName: phaseLabel(phase.name), scheduledDays: weekdayList(phase.weekdays) }
+      : undefined;
+
   const decision = chooseSessionType({
     today: date,
     readiness,
@@ -306,6 +321,7 @@ function planDay(args: DayPlanArgs): { session: PrescribedSession; ledger: Ledge
     goal: input.goals.mode,
     budgetMin: input.budget_min,
     hasProgram: Boolean(input.program),
+    ...(programToday ? { programToday } : {}),
     forcedType: isToday ? input.forced_session_type : undefined,
     deload: deload.active,
   });
@@ -382,7 +398,7 @@ function planDay(args: DayPlanArgs): { session: PrescribedSession; ledger: Ledge
   // ── Bookends ───────────────────────────────────────────────────────────────
   if (decision.type !== 'recovery') {
     blocks.unshift(warmupBlock(warmupMin, decision.targetRegions));
-    blocks.push(cooldownBlock(cooldownMin));
+    blocks.push(cooldownBlock(cooldownMin, decision.targetRegions));
   }
 
   const estimated_min = round(blocks.reduce((a, b) => a + b.estimated_min, 0), 1);
@@ -404,6 +420,15 @@ function planDay(args: DayPlanArgs): { session: PrescribedSession; ledger: Ledge
       dose,
       deload,
       budgetMin: input.budget_min,
+      ...(decision.type === 'kot' && input.program && phase
+        ? {
+            program: {
+              name: input.program.name,
+              phaseName: phaseLabel(phase.name),
+              week: weekInPhase(input.program_progress),
+            },
+          }
+        : {}),
     }),
     blocks,
     estimated_min,
@@ -523,6 +548,14 @@ function hadHeavyLowerWithin(input: PlanInput, date: string, days: number): bool
 function latestBodyweight(input: PlanInput): number {
   const sorted = [...input.body_metrics].sort((a, b) => (a.date > b.date ? -1 : 1));
   return sorted[0]?.weight_lb ?? input.athlete.bodyweight_lb;
+}
+
+/** [1, 3, 5] → "Mon, Wed and Fri". For the note that says why today is not one. */
+function weekdayList(weekdays: number[]): string {
+  const names = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const labels = [...weekdays].sort((a, b) => a - b).map((d) => names[d] ?? String(d));
+  if (labels.length <= 1) return labels[0] ?? 'no days';
+  return `${labels.slice(0, -1).join(', ')} and ${labels[labels.length - 1]}`;
 }
 
 function titleFor(type: SessionType, input: PlanInput): string {

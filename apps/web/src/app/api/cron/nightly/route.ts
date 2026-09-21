@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getPlanBundle } from '@/lib/plan';
+import { planFor } from '@/lib/plan';
 import { notWired, telegramClient } from '@/lib/integrations-bridge';
 import { serviceSupabase } from '@/lib/supabase/server';
 
@@ -36,17 +36,26 @@ export async function GET(request: Request) {
 
   // 3 — Snapshot tomorrow's plan for audit and diffing. The app still re-plans
   //     on open; this is history, not truth.
-  const { result } = await getPlanBundle();
+  //
+  //     There is no browser session here, so the athlete has to be named: cron
+  //     runs as nobody, and `plans.user_id` is `not null` and behind RLS. This
+  //     is the same `LONGEVITY_USER_ID` the Oura sync uses — Seth's auth uuid,
+  //     which he can read off his own row after his first sign-in.
+  const cronUserId = process.env.LONGEVITY_USER_ID ?? '';
   const supabase = serviceSupabase();
-  if (supabase) {
+  if (!cronUserId) {
+    steps.plan = 'no_longevity_user_id';
+  } else if (!supabase) {
+    steps.plan = 'supabase_not_configured';
+  } else {
+    const { result } = await planFor(cronUserId);
     await supabase.from('plans').upsert({
+      user_id: cronUserId,
       date: result.today.date,
       signature: result.signature,
       payload: result as unknown as Record<string, unknown>,
     });
     steps.plan = 'snapshotted';
-  } else {
-    steps.plan = 'supabase_not_configured';
   }
 
   // 4 — Morning brief

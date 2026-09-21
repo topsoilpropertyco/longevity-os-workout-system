@@ -1,6 +1,8 @@
 import Link from 'next/link';
 import DataExport from '@/components/DataExport';
 import GoalModePicker from '@/components/GoalModePicker';
+import { signOut } from '@/lib/actions';
+import { getViewer } from '@/lib/auth';
 import { getPlanBundle } from '@/lib/plan';
 import { ouraStatus } from '@/lib/integrations-bridge';
 import { lb, minutes } from '@/lib/format';
@@ -64,6 +66,7 @@ function CredentialRow({
 
 export default async function SettingsPage() {
   const { input, result } = await getPlanBundle();
+  const viewer = await getViewer();
   const hrMax = input.athlete.hr_max ?? 220 - 34;
   const zones: [string, number, number][] = [
     ['Z1 recovery', 0.5, 0.6],
@@ -106,6 +109,36 @@ export default async function SettingsPage() {
         <p className="label">Set it once</p>
         <h1 className="text-2xl">Settings</h1>
       </header>
+
+      {/*
+        First card on the screen because it answers the question everything else
+        depends on: is this my data, or the demo? Getting that wrong silently is
+        the failure this section exists to make impossible.
+      */}
+      <section className="card p-4">
+        <h2 className="text-base">Account</h2>
+        {viewer.kind === 'member' ? (
+          <>
+            <p className="mt-1 text-sm" style={{ color: 'var(--ink-2)' }}>
+              Signed in as <span className="font-semibold">{viewer.email ?? 'this device'}</span>. Everything below is
+              read from your own rows.
+            </p>
+            <form action={signOut}>
+              <button type="submit" className="btn tap mt-3 w-full">
+                Sign out
+              </button>
+            </form>
+            <p className="mt-2 text-xs" style={{ color: 'var(--ink-3)' }}>
+              You will need a new emailed link to get back in. There is no reason to do this on your own phone.
+            </p>
+          </>
+        ) : (
+          <p className="mt-1 text-sm" style={{ color: 'var(--ink-2)' }}>
+            <span className="font-semibold">Demo data.</span> This build has no Supabase keys, so every screen is
+            showing the fixture athlete — nothing you do here is saved anywhere but this browser.
+          </p>
+        )}
+      </section>
 
       <section className="card p-4">
         <h2 className="text-base">Goal mode</h2>

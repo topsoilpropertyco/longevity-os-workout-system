@@ -200,3 +200,68 @@ describe('weekly dose', () => {
     expect(sessionsToday(history, TODAY)).toHaveLength(1);
   });
 });
+
+describe('the phase calendar decides which days are program days', () => {
+  const ZERO = { scheduled: true, phaseName: 'Zero', scheduledDays: 'Mon, Wed and Fri' };
+
+  it('picks the program on a day the phase trains', () => {
+    const d = choose({ programToday: ZERO });
+    expect(d.type).toBe('kot');
+    expect(d.rationale).toMatch(/Zero trains Mon, Wed and Fri, and today is one/);
+  });
+
+  it('scores the program at zero on a day the phase does not train', () => {
+    const d = choose({ programToday: { ...ZERO, scheduled: false } });
+    expect(d.type).not.toBe('kot');
+    const kot = d.considered.find((c) => c.type === 'kot');
+    expect(kot?.score).toBe(0);
+    expect(kot?.note).toMatch(/Zero trains Mon, Wed and Fri — today is not one of them/);
+  });
+
+  // "KOT is a knee program. Fresh calves are not a reason to run it on cooked
+  // quads." The calendar is the program's claim; ≥48 h on a region is a hard
+  // constraint, and a hard constraint outranks a claim (invariant 5).
+  it('still refuses a scheduled day when the knees are inside their window', () => {
+    const history: SessionLog[] = [{
+      id: 'x', date: addDays(TODAY, -1), type: 'kot', duration_min: 40, completed: true,
+      exercises: [{ exercise_id: 'atg-split-squat', sets: [
+        { set_index: 0, reps: 5, load_lb: 120, rpe: 9, completed: true },
+        { set_index: 1, reps: 5, load_lb: 120, rpe: 9, completed: true },
+      ] }],
+    }];
+    const ledger = buildLedger({ today: TODAY, history, exercises: EXERCISES });
+    const d = choose({ programToday: ZERO, ledger, history });
+    expect(d.type).not.toBe('kot');
+    expect(d.considered.find((c) => c.type === 'kot')?.note).toMatch(/Lower body is still recovering/);
+  });
+
+  it('drops the weekly session cap when the phase names its own weekdays', () => {
+    // Dense trains five days a week. The evidence default of 2–3 KOT sessions
+    // must not be what stops Thursday from happening.
+    const history: SessionLog[] = [1, 2, 3].map((n) => ({
+      id: `k${n}`, date: addDays(TODAY, -n), type: 'kot' as const, duration_min: 30,
+      completed: true, exercises: [],
+    }));
+    const d = choose({
+      programToday: { scheduled: true, phaseName: 'Dense', scheduledDays: 'Mon, Tue, Wed, Thu and Fri' },
+      history,
+    });
+    expect(d.type).toBe('kot');
+  });
+
+  it('does not penalise a scheduled program day for following another one', () => {
+    const history: SessionLog[] = [{
+      id: 'k', date: addDays(TODAY, -1), type: 'kot', duration_min: 30, completed: true, exercises: [],
+    }];
+    const withSchedule = choose({ programToday: ZERO, history });
+    const withoutSchedule = choose({ history });
+    const scoreOf = (d: ReturnType<typeof choose>): number =>
+      d.considered.find((c) => c.type === 'kot')?.score ?? 0;
+    expect(scoreOf(withSchedule)).toBeGreaterThan(scoreOf(withoutSchedule));
+  });
+
+  it('falls back to the weekly count when the program names no weekdays', () => {
+    const d = choose({});
+    expect(d.considered.find((c) => c.type === 'kot')?.note).toMatch(/KOT sessions done this week/);
+  });
+});

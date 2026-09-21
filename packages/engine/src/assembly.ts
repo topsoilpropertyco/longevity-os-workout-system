@@ -31,6 +31,8 @@ import type {
   PrescribedExercise,
   PrescribedSet,
   Program,
+  ProgramDay,
+  ProgramPhase,
   ProgramProgress,
   ProgramStep,
   ReadinessAssessment,
@@ -39,10 +41,130 @@ import type {
   SessionLog,
   SessionType,
 } from './types.js';
-import { clamp, rankBy, round } from './util.js';
+import { clamp, dayOfWeek, rankBy, round } from './util.js';
+import { phaseLabel } from './why.js';
 
 /** A static hold with no stated standard: 30 seconds a side is the usual dose. */
 const DEFAULT_HOLD_S = 30;
+
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Phased programs
+//
+// Knees Over Toes is not one program, it is three run in sequence: Zero is
+// twelve weeks of bodyweight, Dense ramps load off the calendar, Standards
+// chases twelve benchmarks. Every one of the 69 steps carries the phase it
+// belongs to, and every training weekday carries a session template. Without
+// the gating below the whole 69-step pool is in play on day one, and the
+// engine will offer a Standards benchmark — a hinge at bodyweight — on the
+// first Monday of a rehab phase that is supposed to be unloaded.
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * The phase being run right now. The progress record is the authority — it is
+ * the thing that advances — and the program's own `current_phase_id` is the
+ * seed for an athlete who has no progress row yet.
+ */
+export function resolvePhase(
+  program: Program | undefined,
+  progress: ProgramProgress | undefined,
+): ProgramPhase | undefined {
+  if (!program?.phases?.length) return undefined;
+  const id = progress?.phase_id ?? program.current_phase_id;
+  if (!id) return undefined;
+  return program.phases.find((p) => p.id === id);
+}
+
+/** 1-based week inside the active phase. Absent means week 1, not week zero. */
+export function weekInPhase(progress: ProgramProgress | undefined): number {
+  return Math.max(1, Math.round(progress?.week_in_phase ?? 1));
+}
+
+/**
+ * The session template for today, or nothing if this phase does not train
+ * today. `ProgramDay.weekday` and `ProgramPhase.weekdays` both follow
+ * `Date.getDay()`: 0 = Sunday … 6 = Saturday.
+ */
+export function programDayFor(
+  program: Program | undefined,
+  progress: ProgramProgress | undefined,
+  date: string,
+): ProgramDay | undefined {
+  const phase = resolvePhase(program, progress);
+  if (!phase || !program?.days?.length) return undefined;
+  const weekday = dayOfWeek(date);
+  if (!phase.weekdays.includes(weekday)) return undefined;
+  return program.days.find((d) => d.phase_id === phase.id && d.weekday === weekday);
+}
+
+/** True when the phase's calendar says today is a training day. */
+export function isProgramDay(
+  program: Program | undefined,
+  progress: ProgramProgress | undefined,
+  date: string,
+): boolean | undefined {
+  const phase = resolvePhase(program, progress);
+  if (!phase) return undefined;
+  return phase.weekdays.includes(dayOfWeek(date));
+}
+
+/**
+ * What the phase's load rule PROPOSES, in total pounds, before readiness, the
+ * ledger, the deload and the equipment rounding have had their say. `null`
+ * means the rule has no opinion and the usual history/standard machinery
+ * decides.
+ *
+ *   - `bodyweight_only`  → 0, and that zero is load-bearing: it has to survive
+ *                          `achievableLoad`, which rounds UP to the lightest
+ *                          dumbbell in the room. Zero is a rehab phase; a
+ *                          10 lb floor on the split squat is not "close
+ *                          enough", it is the phase not being run.
+ *   - `percent_bw_ramp`  → week 1 bodyweight, week 2 `start_pct`, and
+ *                          `weekly_increment_pct` per week after that.
+ *                          Percentages here are WHOLE NUMBERS — 25 means 25%
+ *                          — unlike `ProgramStandard.pct_bodyweight`, which is
+ *                          a fraction.
+ *   - `standards_driven` → null. The benchmark on the step is the target and
+ *                          there is no calendar in it.
+ */
+export function phaseLoadFor(args: {
+  phase: ProgramPhase | undefined;
+  weekInPhase: number;
+  bodyweightLb: number;
+}): number | null {
+  const { phase, bodyweightLb } = args;
+  if (!phase) return null;
+  const week = Math.max(1, Math.round(args.weekInPhase));
+
+  switch (phase.load_rule.kind) {
+    case 'bodyweight_only':
+      return 0;
+    case 'percent_bw_ramp': {
+      if (week < 2) return 0;
+      const pct = phase.load_rule.start_pct + (week - 2) * phase.load_rule.weekly_increment_pct;
+      // TODO(kot): the ATG split squat ramps at 2.5% a week, not 5% — the phase
+      // description says so in prose and nothing in the schema carries it, so
+      // every step in DENSE currently gets the same increment. It needs a
+      // per-step override field on `ProgramStep` (a `load_rule_override`, or a
+      // `weekly_increment_pct` of its own) before the exception can be honoured.
+      // Until then the split squat climbs twice as fast as the program intends.
+      return round((pct / 100) * bodyweightLb, 1);
+    }
+    case 'standards_driven':
+      return null;
+  }
+}
+
+/**
+ * The steps in play: this phase's, plus any step that declares no phase at all.
+ *
+ * A step with no `phase_id` is always in play — that is what keeps a flat,
+ * unphased program behaving exactly as it did before phases existed.
+ */
+export function stepsInPhase(program: Program, phase: ProgramPhase | undefined): ProgramStep[] {
+  if (!phase) return program.steps;
+  return program.steps.filter((s) => !s.phase_id || s.phase_id === phase.id);
+}
 
 export interface AssemblyInput {
   today: string;
@@ -138,6 +260,16 @@ export function prescribe(args: {
   isPrimary: boolean;
   why: string;
   programStepId?: string;
+  /**
+   * The program step being fulfilled, when the caller already knows it.
+   *
+   * Looking it up by exercise slug is not good enough on a phased program:
+   * `tibialis-raise` is step 2 of Zero, step 17 of Dense and step 45 of
+   * Standards, and the by-slug lookup returns whichever comes first in the
+   * file. That is how a Standards benchmark ends up prescribed with a Zero
+   * dose, or the other way around.
+   */
+  step?: ProgramStep;
   repOverride?: [number, number];
   setOverride?: number;
   /**
@@ -152,7 +284,8 @@ export function prescribe(args: {
   const { readiness, goal, history, bodyweightLb, location, deloadVolumeMultiplier, deloadLoadMultiplier } = input;
 
   const base = setsAndReps({ goal, readiness, isPrimary, deloadVolumeMultiplier });
-  const step = findProgramStep(input.program, exercise.slug);
+  const step = args.step ?? findProgramStep(input.program, input.programProgress, exercise.slug);
+  const phase = resolvePhase(input.program, input.programProgress);
 
   // A program step carries its own dose. Knees Over Toes says 10 minutes of
   // backward walking and 25 tibialis raises; overriding that with the goal
@@ -161,10 +294,20 @@ export function prescribe(args: {
   const std = step?.standard;
   const repRange: [number, number] =
     args.repOverride ?? (std?.reps ? [std.reps, std.reps] : base.reps);
+  // A checklist line that says "25 reps" and names no set count means one set of
+  // 25, not the goal mode's three of them. Multiplying a stated program dose by
+  // the goal band is the same error as overriding its rep count — 75 tibialis
+  // raises is not Knee Ability Zero.
+  const programSetDefault = std && std.sets === undefined ? 1 : base.sets;
   const setCount =
-    args.setOverride ?? (std?.sets ? Math.max(1, Math.round(std.sets * deloadVolumeMultiplier)) : base.sets);
+    args.setOverride ??
+    (std?.sets ? Math.max(1, Math.round(std.sets * deloadVolumeMultiplier)) : programSetDefault);
   // Prescribe at the bottom of the range: double progression climbs from there.
-  const reps = repRange[0];
+  // A per-side step is prescribed as the TOTAL across both sides: 25 a side is
+  // 50 reps of work and 50 reps' worth of minutes, and counting it as 25
+  // undercounts the ledger, the tonnage and the clock by half.
+  const perSide = step?.per_side === true;
+  const reps = repRange[0] * (perSide ? 2 : 1);
 
   // Timed and distance work has no rep count at all.
   // A plank, a dead hang and a deep squat hold are measured in seconds. "Side
@@ -176,13 +319,20 @@ export function prescribe(args: {
       exercise.pattern === 'anti_rotation' ||
       exercise.pattern === 'anti_lateral_flexion');
 
-  const holdSeconds =
+  const statedHold =
     std?.hold_s ??
     (std?.duration_min ? std.duration_min * 60 : undefined) ??
     (isStaticHold ? DEFAULT_HOLD_S : undefined);
+  // `hold_s` on a per-side step is per side: a 60-second couch stretch is two
+  // minutes on the clock. `duration_min` is already a whole-session figure, so
+  // it is left alone.
+  const holdSeconds =
+    statedHold !== undefined && perSide && std?.duration_min === undefined
+      ? statedHold * 2
+      : statedHold;
 
   const isTimed = holdSeconds !== undefined || exercise.pattern === 'gait';
-  const prediction = predictionBand({
+  const rawPrediction = predictionBand({
     exerciseId: exercise.id,
     reps,
     history,
@@ -195,13 +345,51 @@ export function prescribe(args: {
   const injuryMultiplier = injuryLoadMultiplier(exercise, input.injuries);
   const bump = doubleProgressionBump({ exerciseId: exercise.id, exercise, history, repRange });
 
-  const desired =
-    (prediction.probable || loadForReps(currentE1rm(exercise.id, history), reps)) * allowance.multiplier *
-      injuryMultiplier * deloadLoadMultiplier +
-    bump.bump;
-
+  // The phase rule proposes; readiness, the ledger, the injury register, the
+  // deload and the equipment rounding dispose. A calendar ramp is a plan for an
+  // ordinary week — it does not get to push load up on a day the rest of the
+  // engine has already decided to back off.
+  const phaseLoad = step ? phaseLoadFor({ phase, weekInPhase: weekInPhase(input.programProgress), bodyweightLb }) : null;
+  // `bodyweight_only` says no external load ANYWHERE in the phase, so on a
+  // program day it governs the whole session, not only the program's own steps.
+  // Zero is twelve weeks of unloaded knee rehab; bolting a loaded goblet squat
+  // onto the end to use up the remaining budget is not "filling around the
+  // program" (PRD §8.4), it is quietly cancelling it. Other session types in the
+  // same twelve weeks — his strength days — are untouched.
+  const unloadedSession = input.type === 'kot' && phase?.load_rule.kind === 'bodyweight_only';
+  const unloadedPhase = unloadedSession || phaseLoad === 0;
   const cap = loadCapability(exercise, location);
-  const { load_lb, capped } = achievableLoad(desired, cap);
+  // A wall tibialis raise cannot hold a dumbbell. Handing it the phase's ramped
+  // 40% of bodyweight produces a prescription of 82 lb, which `achievableLoad`
+  // then clamps to the movement's ceiling of zero and reports as "capped at
+  // 0 lb — that is the heaviest here". The ramp simply does not apply to a
+  // movement with nowhere to put the weight.
+  const canTakeLoad = exercise.load_style !== 'none' && cap.max_lb > 0;
+  // A calendar ramp IS the progression. Adding the double-progression bump on
+  // top would advance the same load twice in the same week.
+  const ramped = canTakeLoad && phaseLoad !== null && phaseLoad > 0;
+
+  const desired = ramped
+    ? phaseLoad * readiness.load_multiplier * allowance.multiplier * injuryMultiplier * deloadLoadMultiplier
+    : (prediction.probable || loadForReps(currentE1rm(exercise.id, history), reps)) * allowance.multiplier *
+        injuryMultiplier * deloadLoadMultiplier +
+      bump.bump;
+
+  // `achievableLoad` rounds UP to the lightest thing in the room, which is the
+  // right answer for every load except zero. A bodyweight-only phase that came
+  // back with the 10 lb Bowflex floor would not be a bodyweight phase.
+  const { load_lb, capped } = unloadedPhase || (phaseLoad !== null && !canTakeLoad)
+    ? { load_lb: 0, capped: null as 'min' | 'max' | null }
+    : achievableLoad(desired, cap);
+
+  // The band is what the card shows above the prescribed number. On a
+  // bodyweight phase it has to agree with it. Seth runs KOT twice through
+  // (PRD §3), so his second pass at Zero starts with a year of loaded split
+  // squats in history — and "0 lb · probable 62 lb" on the same card is the
+  // engine arguing with itself.
+  const prediction = unloadedPhase
+    ? { normal: [0, 0] as [number, number], probable: 0, max: 0, confidence: rawPrediction.confidence, basis: rawPrediction.basis }
+    : rawPrediction;
 
   // Timed and mobility work does not get an RPE target: "hold this stretch at
   // RPE 8" is not an instruction anyone can follow.
@@ -221,21 +409,27 @@ export function prescribe(args: {
     : rawHold;
   const cappedHoldSeconds = Math.min(rawHold, capSeconds);
 
+  // A step that states its own rest states it for a reason — the 30 seconds
+  // between ATG split-squat sets is part of the protocol, not a default.
+  const restS = step?.rest_s ?? (isTimed ? 30 : base.rest_s);
+
   const sets: PrescribedSet[] = Array.from({ length: timedSetCount }, (_, i) => ({
     set_index: i,
     reps: isTimed ? 0 : reps,
     load_lb: exercise.load_style === 'none' ? 0 : load_lb,
     rpe_target: rpe,
-    rest_s: isTimed ? 30 : base.rest_s,
+    rest_s: restS,
     ...(isTimed ? { duration_s: cappedHoldSeconds } : {}),
     ...(std?.distance_mi ? { distance_mi: std.distance_mi } : {}),
+    ...(perSide ? { per_side: true } : {}),
     // The database's non-negative-load CHECK is waived only for assisted work,
     // so the flag has to travel with the prescription rather than be inferred later.
     is_assisted: exercise.load_style === 'assisted',
   }));
 
   const reasons = [why];
-  if (bump.bump > 0) reasons.push(bump.reason);
+  if (bump.bump > 0 && !ramped) reasons.push(bump.reason);
+  if (ramped) reasons.push(`Week ${weekInPhase(input.programProgress)} of ${phase ? phaseLabel(phase.name) : 'the phase'} — the ramp puts this at ${load_lb} lb.`);
   if (capped === 'max') reasons.push(`Capped at ${load_lb} lb — that is the heaviest here.`);
   if (capped === 'min') reasons.push(`${load_lb} lb is the lightest available — add reps instead.`);
   if (injuryMultiplier < 1) reasons.push('Lightened for a flagged region.');
@@ -246,7 +440,7 @@ export function prescribe(args: {
     exercise,
     sets,
     prediction,
-    why: reasons.join(' '),
+    why: sentences(reasons),
     program_step_id: programStepId ?? step?.id,
     estimated_min: estimateMinutes(sets),
   };
@@ -265,8 +459,32 @@ function injuryLoadMultiplier(ex: Exercise, injuries: Injury[]): number {
   return m;
 }
 
-function findProgramStep(program: Program | undefined, slug: string): ProgramStep | undefined {
-  return program?.steps.find((s) => s.exercise_slug === slug);
+/**
+ * Last-resort lookup for a prescription that arrived without its step — an
+ * engine-chosen accessory that happens to match a program movement. Scoped to
+ * the active phase, because the same slug appears in all three of KOT's phases
+ * with three different doses and the unscoped lookup silently returns Zero's.
+ */
+function findProgramStep(
+  program: Program | undefined,
+  progress: ProgramProgress | undefined,
+  slug: string,
+): ProgramStep | undefined {
+  if (!program) return undefined;
+  return stepsInPhase(program, resolvePhase(program, progress)).find((s) => s.exercise_slug === slug);
+}
+
+/**
+ * Join clauses into something that reads as prose. Each reason is written as a
+ * sentence but not all of them end like one, and a bare-space join produced
+ * lines like "25 reps, per side 10 lb is the lightest available".
+ */
+function sentences(parts: string[]): string {
+  return parts
+    .map((p) => p.trim())
+    .filter((p) => p.length > 0)
+    .map((p) => (/[.!?…:]$/.test(p) ? p : `${p}.`))
+    .join(' ');
 }
 
 /**
@@ -289,8 +507,8 @@ export function assemble(input: AssemblyInput): AssemblyResult {
     kind: SessionBlock['kind'],
     title: string,
     items: {
-      exercise: Exercise; why: string; isPrimary: boolean; stepId?: string;
-      reps?: [number, number]; sets?: number; timeShare?: number;
+      exercise: Exercise; why: string; isPrimary: boolean; stepId?: string; step?: ProgramStep;
+      reps?: [number, number]; sets?: number; timeShare?: number; allowRepeat?: boolean;
     }[],
   ): void => {
     const prescribed: PrescribedExercise[] = [];
@@ -302,7 +520,14 @@ export function assemble(input: AssemblyInput): AssemblyResult {
       // The McGill Big 3 floor and the Core block both want the curl-up, and a
       // session listing the same movement twice reads as a bug to the person
       // doing it — because it is one.
-      if (chosen.some((c) => c.id === item.exercise.id)) continue;
+      //
+      // A program day's repeat is the exception, and it is not an accident: Knee
+      // Ability Zero puts the tibialis raise at the top of the session and again
+      // a few minutes later, alternating with the calf raises. That second
+      // listing is half the prescribed dose for the movement the phase exists to
+      // train, so it is kept rather than swallowed by a guard aimed at
+      // accidental overlap between blocks the ENGINE chose.
+      if (!item.allowRepeat && chosen.some((c) => c.id === item.exercise.id)) continue;
 
       const conflict = violatedExclusion(item.exercise, chosen, { flaggedRegions: flagged });
       if (conflict) {
@@ -316,6 +541,7 @@ export function assemble(input: AssemblyInput): AssemblyResult {
         isPrimary: item.isPrimary,
         why: item.why,
         programStepId: item.stepId,
+        ...(item.step ? { step: item.step } : {}),
         repOverride: item.reps,
         setOverride: item.sets,
         // Divide what is left between the steps still to come, so the first
@@ -355,27 +581,93 @@ export function assemble(input: AssemblyInput): AssemblyResult {
 
   // ── Program block first when the session is a program day ──────────────────
   if (input.type === 'kot' && input.program) {
-    const steps = orderedProgramSteps(input.program, input.programProgress);
-    const items = steps
-      .map((step) => {
-        const ex = resolveStepExercise(step, input);
-        return ex ? { step, ex } : null;
-      })
-      .filter((x): x is { step: ProgramStep; ex: Exercise } => x !== null)
-      .map(({ step, ex }, i, all) => ({
+    const program = input.program;
+    const phase = resolvePhase(program, input.programProgress);
+    const day = programDayFor(program, input.programProgress, input.today);
+
+    const daySteps: ProgramStep[] = day
+      ? day.blocks.flatMap((b) =>
+          b.step_ids.map((id) => program.steps.find((st) => st.id === id)).filter((st): st is ProgramStep => Boolean(st)),
+        )
+      : orderedProgramSteps(program, input.programProgress, input.today);
+
+    const resolved = daySteps
+      .map((step) => ({ step, ex: resolveStepExercise(step, input) }))
+      .filter((x): x is { step: ProgramStep; ex: Exercise } => x.ex !== null);
+
+    // A step the location cannot do leaves a hole in a session the program
+    // authored, and a hole nobody can see is indistinguishable from a bug. Say
+    // so once per step rather than only when the whole day comes back empty.
+    for (const step of daySteps) {
+      if (resolved.some((r) => r.step.id === step.id)) continue;
+      notes.push(`Left out ${step.name}: nothing here can do it, and it has no substitution that can.`);
+    }
+
+    // Does the program's own session fit the time on offer? Zero is a 10–20
+    // minute session; on a 45-minute day there is nothing to ration, and
+    // rationing anyway shortens the opening walk from the prescribed five
+    // minutes to three for no reason. The time cap exists for the short day —
+    // it is what stops ten minutes of backward walking eating a thirty-minute
+    // session — so it is applied only when the session genuinely does not fit.
+    const natural = resolved.reduce(
+      (a, { step, ex }) =>
+        a + prescribe({ exercise: ex, input, isPrimary: true, why: '', step, programStepId: step.id }).estimated_min,
+      0,
+    );
+    const rationTime = natural > input.budgetMin;
+    const stepCount = resolved.length;
+    let placed = 0;
+
+    const itemFor = (step: ProgramStep): {
+      exercise: Exercise; why: string; isPrimary: boolean; stepId: string; step: ProgramStep;
+      timeShare?: number; allowRepeat: boolean;
+    } | null => {
+      const ex = resolveStepExercise(step, input);
+      if (!ex) return null;
+      placed++;
+      return {
         exercise: ex,
-        why: `${input.program?.name ?? 'Program'} — ${step.standard_text}`,
+        why: `${program.name} — ${step.standard_text}`,
         isPrimary: true,
         stepId: step.id,
-        // An equal share of the remaining budget, so the ground-up ordering does
-        // not mean the ground gets everything.
-        timeShare: 1 / Math.max(1, all.length - i),
-      }));
+        step,
+        // An equal share of what is left, so the ground-up ordering does not
+        // mean the ground gets everything.
+        ...(rationTime ? { timeShare: 1 / Math.max(1, stepCount - placed + 1) } : {}),
+        allowRepeat: true,
+      };
+    };
 
-    if (items.length === 0) {
-      notes.push('No program movements are available at this location today.');
+    if (day) {
+      // The day template IS the session: its blocks give the order, its
+      // `step_ids` give the steps. Two blocks may share a title — Zero has a
+      // second "Knee Ability" at the very end for the optional body squat —
+      // and merging them by title would move that movement to before the
+      // stretches, which is not the session the program prescribes.
+      let anyPlaced = false;
+      for (const block of day.blocks) {
+        const items = block.step_ids
+          .map((id) => program.steps.find((st) => st.id === id))
+          .filter((st): st is ProgramStep => Boolean(st))
+          .map(itemFor)
+          .filter((x): x is NonNullable<typeof x> => x !== null);
+        if (items.length === 0) continue;
+        anyPlaced = true;
+        tryAdd('program', `${phase?.name ?? program.name} — ${block.title}`, items);
+      }
+      if (!anyPlaced) {
+        notes.push('No program movements are available at this location today.');
+      }
+    } else {
+      const items = orderedProgramSteps(program, input.programProgress, input.today)
+        .map(itemFor)
+        .filter((x): x is NonNullable<typeof x> => x !== null);
+
+      if (items.length === 0) {
+        notes.push('No program movements are available at this location today.');
+      }
+      tryAdd('program', `${program.name} — ground up`, items);
     }
-    tryAdd('program', `${input.program.name} — ground up`, items);
   }
 
   // ── Power: always first, always fresh, never after aerobic work ────────────
@@ -486,12 +778,35 @@ export function assemble(input: AssemblyInput): AssemblyResult {
   return { blocks: sortBlocks(blocks), notes, estimatedMin };
 }
 
-/** KOT's ground-up ordering, and program-progress gating on prerequisites. */
-function orderedProgramSteps(program: Program, progress?: ProgramProgress): ProgramStep[] {
+/**
+ * KOT's ground-up ordering, gated by phase, prerequisites and progress.
+ *
+ * This is the fallback path: it is what a program with no weekday templates
+ * gets, and what a templated program gets on a day its template does not
+ * cover. The phase filter comes FIRST and is not overridable, because the
+ * `current_step_ids` fallback below ("if nothing is current, use everything")
+ * is exactly how a stale or empty progress row used to open the whole 69-step
+ * pool on a Zero Monday.
+ */
+export function orderedProgramSteps(
+  program: Program,
+  progress?: ProgramProgress,
+  date?: string,
+): ProgramStep[] {
   const blockOrder = new Map(program.blocks.map((b) => [b.id, b.order]));
   const met = new Set(Object.keys(progress?.met ?? {}));
+  const phase = resolvePhase(program, progress);
 
-  const unlocked = program.steps.filter((s) => {
+  // A day template, when one exists for today, is the authority on both which
+  // steps run and in what order.
+  if (date) {
+    const day = programDayFor(program, progress, date);
+    if (day) return stepsForDay(program, day);
+  }
+
+  const inPhase = stepsInPhase(program, phase);
+
+  const unlocked = inPhase.filter((s) => {
     if (!s.prerequisites || s.prerequisites.length === 0) return true;
     return s.prerequisites.every((p) => met.has(p));
   });
@@ -508,6 +823,14 @@ function orderedProgramSteps(program: Program, progress?: ProgramProgress): Prog
     if (ba !== bb) return ba - bb;
     return a.order - b.order;
   });
+}
+
+/** Every step a day template names, in the template's order, repeats included. */
+function stepsForDay(program: Program, day: ProgramDay): ProgramStep[] {
+  const byId = new Map(program.steps.map((s) => [s.id, s]));
+  return day.blocks.flatMap((b) =>
+    b.step_ids.map((id) => byId.get(id)).filter((s): s is ProgramStep => Boolean(s)),
+  );
 }
 
 /** The exercise for a program step here, following its substitution rules. */
@@ -578,22 +901,40 @@ function sortBlocks(blocks: SessionBlock[]): SessionBlock[] {
   return [...blocks].sort((a, b) => (order[a.kind] ?? 9) - (order[b.kind] ?? 9));
 }
 
-/** Bookend blocks, added outside the working budget when settings say so. */
+/**
+ * Bookend blocks, added outside the working budget when settings say so.
+ *
+ * These deliberately prescribe nothing. The engine owns every prescription
+ * (CLAUDE.md invariant 1) and a warm-up is the one part of a session where the
+ * honest answer is "move the bits you are about to use" — a prescribed list
+ * would have to pass the ledger, the injury register and the exclusions to say
+ * something Seth already knows how to do, and a five-minute block of vetted
+ * movements is five minutes he spends reading instead of moving.
+ *
+ * What the block DOES carry is the focus, so the card is five minutes with a
+ * subject rather than five blank ones. The focus string used to be computed
+ * here and dropped on the floor, which is how the bookends became an
+ * unexplained ten minutes.
+ */
 export function warmupBlock(minutes: number, targetRegions: Region[]): SessionBlock {
   const focus = targetRegions.length
-    ? `Focus: ${targetRegions.map((r) => r.replace(/_/g, ' ')).join(', ')}.`
-    : 'General.';
+    ? `Ease into today's work: ${targetRegions.map((r) => r.replace(/_/g, ' ')).join(', ')}.`
+    : 'Easy general movement — raise the temperature before anything gets loaded.';
   return {
     kind: 'warmup',
     title: 'Warm-up',
     exercises: [],
     estimated_min: minutes,
+    note: focus,
     cardio: undefined,
   };
 }
 
-export function cooldownBlock(minutes: number): SessionBlock {
-  return { kind: 'cooldown', title: 'Cool-down', exercises: [], estimated_min: minutes };
+export function cooldownBlock(minutes: number, targetRegions: Region[] = []): SessionBlock {
+  const focus = targetRegions.length
+    ? `Walk it off and stretch what you just worked: ${targetRegions.map((r) => r.replace(/_/g, ' ')).join(', ')}.`
+    : 'Walk it off and let the heart rate come down.';
+  return { kind: 'cooldown', title: 'Cool-down', exercises: [], estimated_min: minutes, note: focus };
 }
 
 export { REGION_GROUPS };

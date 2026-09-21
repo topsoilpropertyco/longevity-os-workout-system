@@ -44,9 +44,9 @@ Each stage consumes the one before it. Nothing loops back.
 
 **5. Measure the weekly dose.** Zone 2 minutes against target and against the ≤10%/week ramp ceiling, VO2 sessions, strength minutes against the 60–120 band, mobility sessions, plyo contacts, tonnage, session count. This produces the week's deficits, and deficits are what drive the choice of day.
 
-**6. Choose the day type.** Reconcile the biggest deficit with the readiness band, the available regions and the program's claim on 2–3 days a week. Honour `forced_session_type` if the carousel set one. KOT, when it is due and the knees are available, wins.
+**6. Choose the day type.** Reconcile the biggest deficit with the readiness band, the available regions and the program's claim on the week. On a phased program that claim is a list of weekdays (§8), not a session count. Honour `forced_session_type` if the carousel set one. KOT, when the phase's calendar says so and the knees are available, wins.
 
-**7. Place the program slot.** If today is a program day, the program's steps come first, in the program's own order. KOT is strictly ground-up: backward walk → lower legs → step-ups → split squat → deep squat.
+**7. Place the program slot.** If today is a program day, the program's steps come first. On a phased program the active phase's template for today's weekday supplies both the steps and their order (§8); otherwise the program's own ordering rule does, and KOT's is strictly ground-up: backward walk → lower legs → step-ups → split squat → deep squat.
 
 **8. Select exercises.** Fill the remaining slots in assembly priority order: power → strength → conditioning → Zone 2 → mobility. Every candidate must pass the equipment filter, the ledger, the injury register and the pairing exclusions. Barbell lifts at a barbell-free location are replaced by their `barbell_free` alternatives before selection, not after.
 
@@ -69,7 +69,7 @@ Defaults, editable. Every one of them traces to a section of the research founda
 | Slot | Default | Evidence |
 | --- | --- | --- |
 | **Strength** | 2–3 sessions, **60–120 min/week total** | RESEARCH §6.1. Mortality risk reduction is J-shaped: maximum around 60 min/week in one meta-analysis, 90–120 min/week optimal in a 2026 BJSM cohort, benefits diminishing above ~140 min/week. So the ceiling is a feature — more is not better here. |
-| **KOT (program slot)** | 2–3 sessions, placed **first** in the session | RESEARCH §7. Knees Over Toes is the current program and the knee-rehab pathway; its internal order is ground-up and non-negotiable. §6.3 makes it the rehab route for the seeded knee injury. |
+| **KOT (program slot)** | 2–3 sessions, placed **first** in the session — or, on a phased program, exactly the weekdays the active phase trains (§8) | RESEARCH §7. Knees Over Toes is the current program and the knee-rehab pathway; its internal order is ground-up and non-negotiable. §6.3 makes it the rehab route for the seeded knee injury. |
 | **VO2 work** | 1 session/week, **4×4 min at 85–95% HRmax**, 3-min active recovery | RESEARCH §6.1. Norwegian 4×4, ~7% VO2max gain in 8 weeks in trained subjects. Alternatives 8×2 min or 30/30s, work:rest ~1:1. VO2max has the strongest linear dose-response with all-cause mortality of anything we can train — ~12–15% lower risk per 1-MET gain. |
 | **Zone 2** | accumulating toward **150–240 min/week**, ramping **≤10%/week from baseline** | RESEARCH §6.1. 180–240 min/week across 3–5 sessions is the consensus longevity target at 60–70% HRmax, conversational. Seth starts at 0.5–1 mi/week of running, so the ramp ceiling matters far more than the target for the first few months; early minutes are made up on bike, rower, rucking and brisk walking. |
 | **Power / plyo** | 1–2 blocks/week, **always fresh, first in session** | RESEARCH §6.2 and §6.5. Concurrent-training interference shows up in explosive strength and rate of force development specifically, and only when aerobic work shares the session. Power complexes (heavy lift + plyo, post-activation potentiation) go 1–2×/week, always first. |
@@ -167,7 +167,138 @@ Behind a disclosure: Strength (3–5 reps), Power, Endurance, Rehab, VO2 focus, 
 
 ---
 
-## 8. Autoregulated deloads
+## 8. Phased programs
+
+Knees Over Toes is not one program. It is three, run in sequence, and they have
+almost nothing in common with each other:
+
+| Phase | Length | Days | Session | Load |
+| --- | --- | --- | --- | --- |
+| **Zero** | 12 weeks | Mon, Wed, Fri | 10–20 min | Bodyweight. None. Anywhere. |
+| **Dense** | 12 weeks | Mon–Fri | 30–45 min | Ramps as a percentage of bodyweight, week over week. |
+| **Standards** | open-ended | Mon, Tue, Thu, Fri | 45–60 min | Whatever reaches the twelve benchmarks. |
+
+The 69 steps in `programs/kot/program.json` each carry the phase they belong to,
+and each training weekday of each phase carries a session template. Without the
+machinery below, all 69 are in play on day one — and the engine will offer a
+Standards benchmark, a hinge at 100% of bodyweight, on the first Monday of the
+rehab phase that exists precisely because the knees cannot take that yet.
+
+**Which phase.** `ProgramProgress.phase_id` is the authority, because progress is
+the thing that advances. `Program.current_phase_id` is the seed for an athlete
+with no progress row. A program with no `phases` at all is unphased and behaves
+exactly as it did before any of this existed.
+
+**Which steps.** Only steps whose `phase_id` matches the active phase. A step
+with **no** `phase_id` is always in play — that is what keeps a flat program
+flat. The phase filter runs *first*, before prerequisites and before
+`current_step_ids`, because the `current_step_ids` fallback is "if nothing is
+current, everything is", and a stale progress row used to open the whole pool.
+
+**Which session.** `Program.days` holds one entry per (phase, weekday) the
+program trains. `ProgramDay.weekday` and `ProgramPhase.weekdays` follow
+`Date.getDay()`: 0 = Sunday … 6 = Saturday. When today has an entry, that entry
+**is** the session — its `blocks` give the order, its `step_ids` give the steps,
+and each block becomes its own block on the card. Two things in the real data
+that look like mistakes and are not:
+
+- **A step can appear twice in one day.** Zero lists `zero-tibialis-raise` at
+  the top of the session and again a few minutes later, alternating with the
+  calf raises. Both are kept. Collapsing them deletes half the prescribed dose
+  of the movement the phase is named for. The de-duplication guard that stops
+  the McGill Big 3 and the Core block both prescribing the curl-up still runs —
+  it is aimed at accidental overlap between blocks the *engine* chose, not at
+  work the program authored.
+- **Two blocks can share a title.** Zero has a "Knee Ability" block near the
+  front and another at the very end, for the optional body squat that comes
+  after the stretches. Merging them by title moves that movement fifteen minutes
+  earlier, which is not the session the program prescribes.
+
+A step whose movement this location cannot perform, and whose substitutions
+cannot either, is dropped with a note naming it. A hole in an authored session
+that nobody can see is indistinguishable from a bug.
+
+**Which days.** The phase's `weekdays` decide whether today is a program day —
+not a weekly session count. Zero claims three days, Dense claims five, and
+refusing Dense's Thursday because three sessions are already logged would mean
+not running the phase as written. A scheduled day is also exempt from the "don't
+repeat yesterday's type" damping, because Dense trains Monday through Friday on
+purpose.
+
+**The safety rules still win.** A scheduled program day that would violate the
+regional load ledger or a pairing exclusion is still refused, and the note says
+which. The calendar is the program's *claim*; ≥48 hours between hard stimuli to
+the same region is a *constraint* (invariant 5), and a constraint is not
+outvoted by a claim any more than by a deficit. The comment in `template.ts`
+puts it better: KOT is a knee program, and fresh calves are not a reason to run
+it on cooked quads.
+
+### Load rules
+
+`PhaseLoadRule` is how a phase turns bodyweight into a number. It **proposes**;
+readiness, the ledger, the injury register, the deload and the equipment
+rounding all still dispose, in that order, exactly as they do for any other
+prescription. A calendar ramp never pushes load up on a low-readiness day or
+during a deload.
+
+| Kind | What it does |
+| --- | --- |
+| `bodyweight_only` | Load is zero, and the zero is load-bearing: it survives `achievableLoad`, which otherwise rounds *up* to the lightest dumbbell in the room. This is the whole reason Zero week 1 used to open with a 10 lb split squat. On a program day it governs the **whole session**, not only the program's own steps — bolting a loaded goblet squat onto the end to use up the budget is not "filling around the program", it is quietly cancelling it. Other session types in those twelve weeks are untouched. |
+| `percent_bw_ramp` | Week 1 is bodyweight. Week 2 is `start_pct`. Week N ≥ 2 is `start_pct + (N − 2) × weekly_increment_pct`. For Dense that is 0 → 25% → 30% → 35% …  **These percentages are whole numbers** — 25 means 25% — unlike `ProgramStandard.pct_bodyweight`, which is a fraction. A ramp replaces the history-driven estimate rather than adding to it, and it suppresses the double-progression bump: the calendar *is* the progression, and applying both advances the same load twice in one week. |
+| `standards_driven` | No calendar at all. The step's own `standard` is the target, through the usual prediction band. |
+
+A ramp only applies to a movement that can actually hold weight. A wall tibialis
+raise handed 40% of bodyweight produces 82 lb, which the equipment layer then
+clamps to the movement's ceiling of zero and reports as "capped at 0 lb — that
+is the heaviest here". The ramp simply does not apply there.
+
+> **Known gap — the split squat.** Dense's own description says every week adds
+> 5% *"except the split squat, which adds 2.5%"*. Nothing in the schema carries
+> that: `PhaseLoadRule` has one increment for the whole phase. Every Dense step
+> therefore climbs at 5%, and the ATG split squat climbs twice as fast as the
+> program intends. There is a `TODO(kot)` on `phaseLoadFor` in `assembly.ts`. It
+> needs a per-step override on `ProgramStep` before it can be honoured, and that
+> is an additive schema change plus a re-ingest of `programs/kot/`, which is
+> outside the engine.
+
+### Per-side volume, and rest
+
+Twenty of the 69 steps are `per_side`, and the engine used to ignore it — so
+"25 reps per side" was counted, timed and ledgered as 25 reps. Half the work
+went missing.
+
+A per-side step is now prescribed as the **total across both sides**: 25 a side
+is 50 reps, a 60-second hold per side is 120 seconds. This is the same
+convention the app already uses for load, where a dumbbell pair is logged as the
+sum of both hands (PRD §8.2), and it means the ledger, the weekly tonnage and
+the time estimate all see the real work without any of them needing to know what
+a side is. `PrescribedSet.per_side` travels with the set so the runtime can
+render "25 each side" on the card.
+
+`ProgramStep.rest_s`, where a step states one, is now the prescribed rest. The
+30 seconds between ATG split-squat sets is part of the protocol, not a default.
+
+One more dose rule falls out of this: a step whose standard names reps or a hold
+but **no set count** is one set. A checklist line reading "25 reps" is the whole
+dose; multiplying it by the goal mode's three sets is the same class of error as
+overriding its rep count, and it turns Zero's tibialis raise into 75 reps twice
+over.
+
+### What Seth reads
+
+The why line names the phase and the week in his language, not the schema's:
+
+> **Knees Over Toes — Zero, week 1.** Readiness 75 — run it as written. Zero
+> trains Mon, Wed and Fri, and today is one.
+
+Phase names arrive from the source material shouting (`ZERO`, `DENSE`,
+`STANDARDS`) because that is how the checklist prints them; `phaseLabel` in
+`why.ts` turns them back into words. No id, no underscore and no week-zero ever
+reaches the card.
+
+---
+
+## 9. Autoregulated deloads
 
 Fixed-calendar deloads show **no advantage** over continuous training in recent RCTs (Coleman 2024; Pancar 2025 within-subject). So the engine does not schedule them. It watches for them.
 
@@ -184,7 +315,7 @@ Fixed-calendar deloads show **no advantage** over continuous training in recent 
 
 ---
 
-## 9. Session assembly within a time budget
+## 10. Session assembly within a time budget
 
 The budget is real. 30 minutes means 30 minutes, including rest, including setup, minus the location's travel overhead if any.
 
@@ -197,7 +328,7 @@ The budget is real. 30 minutes means 30 minutes, including rest, including setup
 
 ---
 
-## 10. Worked example: Tuesday, 30 minutes, home, readiness 72
+## 11. Worked example: Tuesday, 30 minutes, home, readiness 72
 
 **This section is generated from a real engine run, not written by hand.** The
 input is `DOCS_WORKED_EXAMPLE` in `packages/engine/fixtures/days.ts`, and
@@ -322,20 +453,33 @@ knees quads: Hard session 24h ago — needs 24h more.
 posterior chain: Hard session 24h ago — needs 24h more.
 low back: Hard session 24h ago — needs 24h more.
 hips glutes: Hard session 24h ago — needs 24h more.
-Not kot today: Lower body is still recovering.
+Not kot today: Zero trains Mon, Wed and Fri — today is not one of them.
 ```
+
+Both facts about KOT are true today and only one of them is the reason. The
+four blocked regions are printed immediately above, but the schedule answers
+first: Tuesday is not a Zero training day at all, so the ledger never gets a
+turn. On a Wednesday with those same four regions blocked the note reads
+"Lower body is still recovering" instead — see §8.
 
 ### Stage 9 — The week
 
 ```
 Tue  vo2      ← today
-Wed  power
+Wed  kot
 Thu  zone2
 Fri  kot
 Sat  mobility
 Sun  zone2
-Mon  strength
+Mon  kot
 ```
+
+Every program day lands on a Monday, a Wednesday or a Friday, because those are
+the weekdays Phase 1 Zero trains (§8). Before phase scheduling existed the week
+came back `vo2 · power · zone2 · kot · mobility · zone2 · strength` — one KOT
+session instead of three, on whichever day the weekly-deficit arithmetic
+happened to favour. The four days that changed are the whole point of the
+mechanism.
 
 Each projected day is planned against a ledger carrying the days before it, and
 each one counts toward the weekly dose as though it had been performed — so
@@ -352,12 +496,13 @@ included.
 
 ---
 
-## 11. Testing
+## 12. Testing
 
 Because the engine is pure, testing it is just a table of inputs and expected outputs.
 
-- **Fixture days** in `packages/engine/fixtures/`: high readiness, low readiness, injury flare, 15-minute home, 90-minute Planet Fitness. PRD §9 requires these five. Two more exist: cold start (no history, no Oura, no sliders) and `DOCS_WORKED_EXAMPLE`, which is the input §10 above is generated from.
+- **Fixture days** in `packages/engine/fixtures/`: high readiness, low readiness, injury flare, 15-minute home, 90-minute Planet Fitness. PRD §9 requires these five. Two more exist: cold start (no history, no Oura, no sliders) and `DOCS_WORKED_EXAMPLE`, which is the input §11 above is generated from.
 - **Golden-file tests** on session assembly: the whole `PlanResult` is serialized and compared, so an unintended change anywhere shows up as a diff rather than as a surprise in March.
 - **Invariant assertions** that run against every fixture: no session violates the ledger; no session violates a pairing exclusion; no session exceeds its budget; no session prescribes equipment the location does not have; no barbell movement survives at a barbell-free location.
-- **324 tests, 96% statement coverage** at the time of writing. `npm run test` from `packages/engine`, `npm run check` from the repo root for contracts, types, tests and data together.
+- **Phased-program tests** in `test/program.test.ts`: phase gating, the weekday templates and their authored repeats, the three load rules and their interaction with readiness and deload, per-side volume and prescribed rest.
+- **381 tests** at the time of writing. `npm run test` from `packages/engine`, `npm run check` from the repo root for contracts, types, tests and data together.
 - **Every engine change ships with a fixture or a test.** That is in `CLAUDE.md` and in `CONTRIBUTING.md`, and it is the reason the ledger stays a constraint rather than drifting into a suggestion.
