@@ -371,7 +371,7 @@ export function prescribe(args: {
 
   const desired = ramped
     ? phaseLoad * readiness.load_multiplier * allowance.multiplier * injuryMultiplier * deloadLoadMultiplier
-    : (prediction.probable || loadForReps(currentE1rm(exercise.id, history), reps)) * allowance.multiplier *
+    : (rawPrediction.probable || loadForReps(currentE1rm(exercise.id, history), reps)) * allowance.multiplier *
         injuryMultiplier * deloadLoadMultiplier +
       bump.bump;
 
@@ -598,9 +598,11 @@ export function assemble(input: AssemblyInput): AssemblyResult {
     // A step the location cannot do leaves a hole in a session the program
     // authored, and a hole nobody can see is indistinguishable from a bug. Say
     // so once per step rather than only when the whole day comes back empty.
-    for (const step of daySteps) {
-      if (resolved.some((r) => r.step.id === step.id)) continue;
-      notes.push(`Left out ${step.name}: nothing here can do it, and it has no substitution that can.`);
+    const unresolvable = new Set(
+      daySteps.filter((step) => !resolved.some((r) => r.step.id === step.id)).map((step) => step.name),
+    );
+    for (const name of unresolvable) {
+      notes.push(`Left out ${name}: nothing here can do it, and it has no substitution that can.`);
     }
 
     // Does the program's own session fit the time on offer? Zero is a 10–20
@@ -644,7 +646,7 @@ export function assemble(input: AssemblyInput): AssemblyResult {
       // second "Knee Ability" at the very end for the optional body squat —
       // and merging them by title would move that movement to before the
       // stretches, which is not the session the program prescribes.
-      let anyPlaced = false;
+      const before = blocks.length;
       for (const block of day.blocks) {
         const items = block.step_ids
           .map((id) => program.steps.find((st) => st.id === id))
@@ -652,10 +654,12 @@ export function assemble(input: AssemblyInput): AssemblyResult {
           .map(itemFor)
           .filter((x): x is NonNullable<typeof x> => x !== null);
         if (items.length === 0) continue;
-        anyPlaced = true;
-        tryAdd('program', `${phase?.name ?? program.name} — ${block.title}`, items);
+        tryAdd('program', `${phase ? phaseLabel(phase.name) : program.name} — ${block.title}`, items);
       }
-      if (!anyPlaced) {
+      // Counted in blocks actually placed, not items offered: a step can resolve
+      // to a movement and still not fit the minutes, and a session with no
+      // program work in it needs to say so either way.
+      if (blocks.length === before) {
         notes.push('No program movements are available at this location today.');
       }
     } else {

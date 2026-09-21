@@ -57,9 +57,12 @@ export default function SignInForm({ initialError, next }: { initialError?: stri
   const field = 'tap mt-1 w-full rounded-xl border bg-transparent px-3 text-base';
   const fieldStyle = { borderColor: 'var(--line)', color: 'var(--ink)' } as const;
 
-  // One idea per screen, and this one is short — so it sits in the middle of the
-  // phone rather than stranded under the notch above 400px of nothing.
-  const pane = 'app-pad flex flex-1 flex-col justify-center pb-32 pt-8';
+  // Top-aligned with a generous lead-in, exactly like OnboardingFlow — the other
+  // full-screen, nav-less, one-question flow in the app. Vertical centring was
+  // tried and does not work here: `.app-frame` has only a min-height, so a
+  // percentage height inside it resolves to auto and `flex-1` has nothing to
+  // grow into. It silently renders top-aligned anyway, just with worse padding.
+  const pane = 'app-pad flex-1 pb-8 pt-10';
 
   const ready = Boolean(email.trim()) && phase !== 'sending';
 

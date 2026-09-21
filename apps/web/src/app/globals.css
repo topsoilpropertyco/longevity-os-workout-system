@@ -42,6 +42,18 @@
   --grid: rgba(22, 23, 26, 0.10);
 
   --nav-h: 4.25rem;
+  /*
+    Height of the floating action bar (`.thumb-bar`): its 3.5rem `.btn-lg` plus
+    the bar's own 0.75rem / 0.5rem padding. It is a token because two different
+    rules need the same number — the bar's own box, and the space a page has to
+    leave under its content so the bar is never parked on top of it.
+
+    Deliberately NOT added to the Tailwind theme's `spacing` scale. A `thumb`
+    key would emit `.bottom-thumb`, `.pb-thumb` and friends after the components
+    layer, which is exactly how the nav once ended up 68px in the air (see the
+    note above `.app-nav`). Reference it as `var(--thumb-h)` instead.
+  */
+  --thumb-h: 4.75rem;
   --radius: 1.25rem;
 }
 
@@ -176,6 +188,26 @@
     padding-bottom: calc(var(--nav-h) + env(safe-area-inset-bottom) + 0.5rem);
   }
 
+  /*
+    A screen with a `.thumb-bar` has TWO fixed layers stacked at the bottom, not
+    one, and the bar is the taller of them. Reserving only the nav leaves the
+    last card sitting under the Start button with nowhere left to scroll.
+
+    The reservation is keyed off the bar actually being on the page, so a screen
+    without one does not gain 76px of dead space — and a bar that appears or
+    disappears mid-render (the sign-in form drops it once the link is sent) is
+    followed without the page having to say anything. That is the whole reason
+    this is `:has()` and not a class each page remembers to set: a screen author
+    who forgets a magic number is precisely the bug being fixed.
+
+    `:has()` is Safari 15.4+ (March 2022). Where it is missing the page falls
+    back to exactly the behaviour that shipped before this rule, so nothing
+    regresses on an old browser — it just is not fixed there.
+  */
+  .app-frame:has(.thumb-bar) {
+    padding-bottom: calc(var(--nav-h) + var(--thumb-h) + env(safe-area-inset-bottom) + 0.5rem);
+  }
+
   .app-pad {
     padding-left: 1.125rem;
     padding-right: 1.125rem;
@@ -210,6 +242,9 @@
     right: 0;
     bottom: calc(var(--nav-h) + env(safe-area-inset-bottom));
     z-index: 35;
+    /* Pinned to the token the page reserves against, so the two cannot drift
+       apart the next time this padding is adjusted. */
+    min-height: var(--thumb-h);
     padding: 0.75rem 1.125rem calc(0.5rem);
     background: linear-gradient(to top, var(--bg) 62%, transparent);
   }
