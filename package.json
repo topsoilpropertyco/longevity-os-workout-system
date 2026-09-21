@@ -14,7 +14,7 @@
   "scripts": {
     "dev": "npm run dev --workspace=@longevity/web",
     "build": "npm run build --workspace=@longevity/engine && npm run build --workspace=@longevity/web",
-    "test": "npm run test --workspace=@longevity/engine",
+    "test": "npm run test --workspaces --if-present",
     "test:watch": "npm run test:watch --workspace=@longevity/engine",
     "typecheck": "npm run typecheck --workspaces --if-present",
     "lint": "npm run lint --workspaces --if-present",
