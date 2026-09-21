@@ -306,7 +306,7 @@ signature     934e06f6
 
 **Session why:**
 > VO2 day. Readiness 72 — run it as written. The single highest-leverage session
-> for lifespan. 30 minutes.
+> for lifespan.
 
 **Cardio why:**
 > 8 × 2 min at 85–95% max. VO2max carries the strongest dose-response with

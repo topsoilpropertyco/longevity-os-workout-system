@@ -60,9 +60,11 @@ describe('session why', () => {
     expect(why).toMatch(/HRV is 14%/);
   });
 
-  it('always names the time budget', () => {
-    expect(sessionWhy({ type: 'zone2', rationale: 'r', budgetMin: 20, dose: DOSE, deload: NO_DELOAD, readiness: neutralReadiness() }))
-      .toMatch(/20 minutes/);
+  it('does not state the minutes — the card shows the estimate right above it', () => {
+    // Printing the 45-minute BUDGET under a 33-minute ESTIMATE reads as a
+    // contradiction. The bot, which has no card, composes its own.
+    const why = sessionWhy({ type: 'zone2', rationale: 'r', budgetMin: 20, dose: DOSE, deload: NO_DELOAD, readiness: neutralReadiness() });
+    expect(why).not.toMatch(/\d+ minutes/);
   });
 
   it('does not repeat itself when the rationale echoes the opener', () => {

@@ -46,7 +46,7 @@ exports[`golden plans > cold_start is unchanged 1`] = `
     },
     "title": "VO2 intervals",
     "type": "vo2",
-    "why": "VO2 day. Readiness 75 — run it as written. The single highest-leverage session for lifespan. 30 minutes.",
+    "why": "VO2 day. Readiness 75 — run it as written. The single highest-leverage session for lifespan.",
   },
   "warnings": [],
   "week": [
@@ -158,7 +158,7 @@ exports[`golden plans > fifteen_min_home is unchanged 1`] = `
     },
     "title": "Knees Over Toes",
     "type": "kot",
-    "why": "Knees Over Toes. Readiness 79 — run it as written. 0/3 KOT sessions done this week. 15 minutes.",
+    "why": "Knees Over Toes. Readiness 79 — run it as written. 0/3 KOT sessions done this week.",
   },
   "warnings": [],
   "week": [
@@ -343,7 +343,7 @@ exports[`golden plans > high_readiness is unchanged 1`] = `
     },
     "title": "Knees Over Toes",
     "type": "kot",
-    "why": "Knees Over Toes. Readiness 94 — green light, take the extra set. 0/3 KOT sessions done this week. 45 minutes.",
+    "why": "Knees Over Toes. Readiness 94 — green light, take the extra set. 0/3 KOT sessions done this week.",
   },
   "warnings": [],
   "week": [
@@ -528,7 +528,7 @@ exports[`golden plans > injury_flare is unchanged 1`] = `
     },
     "title": "Knees Over Toes",
     "type": "kot",
-    "why": "Knees Over Toes. Readiness 78 — run it as written. 0/3 KOT sessions done this week. 45 minutes.",
+    "why": "Knees Over Toes. Readiness 78 — run it as written. 0/3 KOT sessions done this week.",
   },
   "warnings": [],
   "week": [
@@ -684,7 +684,7 @@ exports[`golden plans > low_readiness is unchanged 1`] = `
     },
     "title": "Recovery",
     "type": "recovery",
-    "why": "Recovery day. Deload week — 7-day readiness averaging 62 — below 65.. Readiness 45 — today is mobility, an easy walk, and breathing. 45 minutes.",
+    "why": "Recovery day. Deload week — 7-day readiness averaging 62 — below 65.. Readiness 45 — today is mobility, an easy walk, and breathing.",
   },
   "warnings": [],
   "week": [
@@ -890,7 +890,7 @@ exports[`golden plans > ninety_min_pf is unchanged 1`] = `
     },
     "title": "Knees Over Toes",
     "type": "kot",
-    "why": "Knees Over Toes. Readiness 83 — run it as written. 0/3 KOT sessions done this week. 90 minutes.",
+    "why": "Knees Over Toes. Readiness 83 — run it as written. 0/3 KOT sessions done this week.",
   },
   "warnings": [],
   "week": [
@@ -1000,7 +1000,7 @@ exports[`the worked example in docs/ENGINE.md > is unchanged 1`] = `
     },
     "title": "VO2 intervals",
     "type": "vo2",
-    "why": "VO2 day. Readiness 72 — run it as written. The single highest-leverage session for lifespan. 30 minutes.",
+    "why": "VO2 day. Readiness 72 — run it as written. The single highest-leverage session for lifespan.",
   },
   "warnings": [],
   "week": [

@@ -68,7 +68,12 @@ export function sessionWhy(args: {
   }
 
   parts.push(rationale);
-  parts.push(`${budgetMin} minutes.`);
+
+  // Deliberately no minutes here. The card shows the ESTIMATE ("33 min · Home")
+  // right above this line, and the budget is what Seth asked for — printing
+  // "45 minutes" underneath "33 min" reads as a contradiction rather than as
+  // two different facts. The Telegram brief, which has no card, adds its own.
+  void budgetMin;
 
   return dedupe(parts).join(' ');
 }
