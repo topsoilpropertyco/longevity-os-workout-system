@@ -107,6 +107,33 @@ jobs:
             done
           done
 
+      # THE test this suite was missing. psql gives every statement its own
+      # implicit transaction; the Supabase SQL Editor wraps a pasted script in
+      # ONE. That difference hid a real failure: `alter type ... add value`
+      # followed by a row using that value is legal across two transactions and
+      # illegal inside one (SQLSTATE 55P04). It passed here and failed in the
+      # editor, in front of the user.
+      - name: The one-paste bundle, in a single transaction
+        env:
+          PGPASSWORD: postgres
+        run: |
+          psql -h localhost -U postgres -d longevity -c "drop schema public cascade; create schema public;" -q
+          for pass in 1 2; do
+            echo "-- single-transaction pass $pass --"
+            psql -h localhost -U postgres -d longevity -v ON_ERROR_STOP=1 --single-transaction -q \
+              -f supabase/SCHEMA_ALL_IN_ONE.sql
+          done
+
+      - name: The bundle matches the migrations it is generated from
+        run: |
+          npm run sql:bundle
+          if ! git diff --quiet -- supabase/SCHEMA_ALL_IN_ONE.sql; then
+            echo "SCHEMA_ALL_IN_ONE.sql is stale. Run 'npm run sql:bundle' and commit the result."
+            git diff --stat -- supabase/SCHEMA_ALL_IN_ONE.sql
+            exit 1
+          fi
+          echo "Bundle is up to date."
+
       - name: Every public table has RLS
         env:
           PGPASSWORD: postgres
