@@ -1,469 +1,2181 @@
 {
-  "_note": "BUILT FROM THE PUBLIC KNEES OVER TOES SCAFFOLD, NOT FROM SETH'S OWN PROGRAM. Every step, standard, rep count and progression below was assembled from the publicly described ATG/KOT structure captured in docs/RESEARCH_FOUNDATION.md §7. It is a placeholder so the engine has something real to plan against today. It MUST be reconciled against Seth's own spreadsheets once he drops them in docs/programs/kot/raw/ — run `npx tsx scripts/ingest-kot.ts`, read data/reports/kot-reconciliation.md, and correct this file. Until that happens, do not present this to Seth as his program: it is the public scaffold.",
-  "slug": "kot",
-  "name": "Knees Over Toes (Public Scaffold)",
-  "description": "Ground-up knee resilience work: backward locomotion, then lower legs, then step-ups, then split squat, then deep squat, with upper-body and posterior-chain accessories at the end. Two phases: Zero (bodyweight, no equipment, 3x/week) and Dense (loaded, sled/slant board/tib bar or their substitutions). Standards are expressed as a percentage of bodyweight.",
-  "ordering": "ground_up",
-  "days_per_week": [2, 3],
-  "target_cycles": 2,
-  "source": "public scaffold — RESEARCH_FOUNDATION.md §7",
-  "attribution": "Structure and standards are the publicly described Knees Over Toes / ATG scaffold. Not affiliated with, endorsed by, or licensed from ATG. Replace with Seth's own program data when available.",
-  "_phases": {
-    "zero": {
-      "name": "Zero",
-      "note": "Bodyweight, no equipment, 3x/week. The entry phase — every step here is doable at home with a wall, a low step and a floor.",
-      "step_ids": [
-        "zero-backward-walk",
-        "zero-tib-raise",
-        "zero-fhl-calf-raise",
-        "zero-single-leg-calf-raise",
-        "zero-patrick-step",
-        "zero-atg-split-squat-assisted",
-        "zero-atg-split-squat-flat",
-        "zero-elephant-walk",
-        "zero-couch-stretch",
-        "zero-deep-squat-hold",
-        "zero-l-sit"
-      ]
-    },
-    "dense": {
-      "name": "Dense",
-      "note": "Loaded phase. Adds sled (or its substitute), Poliquin step, Nordic progressions, reverse Nordic, seated good morning, Jefferson curl on a slant board, and the ATG RDL. Each Dense step lists the Zero step it unlocks from.",
-      "step_ids": [
-        "dense-backward-sled",
-        "dense-tib-bar-raise",
-        "dense-single-leg-calf-raise",
-        "dense-poliquin-step",
-        "dense-atg-split-squat",
-        "dense-atg-squat",
-        "dense-atg-rdl",
-        "dense-nordic",
-        "dense-reverse-nordic",
-        "dense-seated-good-morning",
-        "dense-jefferson-curl",
-        "dense-ql-extension",
-        "dense-incline-db-press",
-        "dense-external-rotation",
-        "dense-cross-bench-pullover"
-      ]
-    }
-  },
+  "_note": "Built from SETH’S OWN material: the \"ATG Knees Over Toes Workout Checklist\" prepared for him in April 2026, plus his ATG_Workouts and YouTube-links spreadsheets and the Knee Ability Zero book. This REPLACES the earlier public scaffold, which was inferred from public descriptions of the method and had the structure wrong (two flat buckets, 26 steps, no weekday templates). Regenerate with `npx tsx scripts/ingest-kot.ts`; do not hand-edit. STILL UNCERTAIN: (1) \"25 DB\" on the split squat is 25 lb per hand or 25 lb total, unstated; (2) Neck Brace Exercises carries no reps, sets or duration in any source; (3) the Hip Flexor Tri-Set is \"alternate to failure\" on the checklist but \"pick one\" on the sheet; (4) KOT Calf Raise and Body Squat read \"as prescribed\" — their numbers come from the book, not from Seth; (5) backward walking and the sled appear nowhere in Seth’s files, though they are the public method’s signature; (6) several movements resolve to a stand-in exercise because the library has no record of the real one. All of it is itemised in data/reports/kot-reconciliation.md.",
+  "attribution": "Knees Over Toes / ATG is Ben Patrick’s method. This file records the structure and numbers of Seth’s own copy of the program so his training app can schedule it. No ATG coaching text or imagery is reproduced. Not affiliated with, endorsed by, or licensed from ATG.",
   "blocks": [
     {
-      "id": "backward_locomotion",
-      "name": "Backward Locomotion",
-      "order": 1,
-      "note": "Always first. Backward walking or sled work — 'reverse out knee pain'. No sled at Home or Planet Fitness: substitute a powered-off treadmill or backward walking outdoors."
+      "id": "warm_up",
+      "name": "Warm-Up",
+      "note": "Walking and the foot/ankle prep that precedes every session.",
+      "order": 1
     },
     {
       "id": "lower_legs",
       "name": "Lower Legs",
-      "order": 2,
-      "note": "Tibialis and calves before anything loads the knee from above."
+      "note": "Tibialis and calves. Always before anything loads the knee from above.",
+      "order": 2
     },
     {
-      "id": "step_ups",
-      "name": "Step-Ups",
-      "order": 3,
-      "note": "Patrick step then Poliquin step. Knee travels forward over the toes under control."
+      "id": "knee_ability",
+      "name": "Knee Ability",
+      "note": "Step-ups, split squats and squats — the knees-over-toes work itself.",
+      "order": 3
     },
     {
-      "id": "split_squat",
-      "name": "Split Squat",
-      "order": 4,
-      "note": "ATG split squat assisted, then flat, then loaded. Plus the hip and quad length work (elephant walk, couch stretch) that makes full range possible."
+      "id": "posterior_chain",
+      "name": "Posterior Chain & Spine",
+      "note": "Hamstrings, low back and the loaded spinal flexion work.",
+      "order": 4
     },
     {
-      "id": "deep_squat",
-      "name": "Deep Squat",
-      "order": 5,
-      "note": "Full-depth squat holds and loaded ATG squats, plus the L-sit."
+      "id": "hip_flexors_core",
+      "name": "Hip Flexors & Core",
+      "note": "L-sits, hanging work and the low-cable hip-flexor pull.",
+      "order": 5
     },
     {
-      "id": "upper_body_accessory",
-      "name": "Upper Body & Posterior-Chain Accessory",
-      "order": 6,
-      "note": "Performed after the ground-up lower-body sequence: hamstring/low-back work (Nordic, reverse Nordic, ATG RDL, seated good morning, Jefferson curl, QL extension) and the upper-body standards (incline DB press, external rotation, cross-bench pullover)."
+      "id": "upper_body",
+      "name": "Upper Body",
+      "note": "Pressing, pulling and shoulder health. Comes after the lower-body sequence.",
+      "order": 6
+    },
+    {
+      "id": "mobility_cooldown",
+      "name": "Mobility & Cool-Down",
+      "note": "Held stretches. Closes every session.",
+      "order": 7
     }
   ],
+  "current_phase_id": "zero",
+  "days": [
+    {
+      "blocks": [
+        {
+          "step_ids": [
+            "zero-bodyweight-walk-warm-up"
+          ],
+          "title": "Warm-Up"
+        },
+        {
+          "step_ids": [
+            "zero-tibialis-raise",
+            "zero-calf-raise-slant-board",
+            "zero-tibialis-raise",
+            "zero-kot-calf-raise"
+          ],
+          "title": "Lower Legs"
+        },
+        {
+          "step_ids": [
+            "zero-patrick-step-slant-board",
+            "zero-atg-split-squat"
+          ],
+          "title": "Knee Ability"
+        },
+        {
+          "step_ids": [
+            "zero-nordic-curl"
+          ],
+          "title": "Posterior Chain & Spine"
+        },
+        {
+          "step_ids": [
+            "zero-l-sit"
+          ],
+          "title": "Hip Flexors & Core"
+        },
+        {
+          "step_ids": [
+            "zero-elephant-walk",
+            "zero-couch-stretch",
+            "zero-standing-pigeon",
+            "zero-neck-brace-exercises"
+          ],
+          "title": "Mobility & Cool-Down"
+        },
+        {
+          "step_ids": [
+            "zero-body-squat-slant-board"
+          ],
+          "title": "Knee Ability"
+        }
+      ],
+      "demo_url": "https://www.youtube.com/watch?v=gNS_QjGAs_k&list=PLKwcvRjG9E-GDP8LAmFk_obbDak3sO-j0&index=1&ab_channel=TheKneesovertoesguy",
+      "focus": "Same Workout",
+      "phase_id": "zero",
+      "title": "ZERO — Monday",
+      "weekday": 1
+    },
+    {
+      "blocks": [
+        {
+          "step_ids": [
+            "zero-bodyweight-walk-warm-up"
+          ],
+          "title": "Warm-Up"
+        },
+        {
+          "step_ids": [
+            "zero-tibialis-raise",
+            "zero-calf-raise-slant-board",
+            "zero-tibialis-raise",
+            "zero-kot-calf-raise"
+          ],
+          "title": "Lower Legs"
+        },
+        {
+          "step_ids": [
+            "zero-patrick-step-slant-board",
+            "zero-atg-split-squat"
+          ],
+          "title": "Knee Ability"
+        },
+        {
+          "step_ids": [
+            "zero-nordic-curl"
+          ],
+          "title": "Posterior Chain & Spine"
+        },
+        {
+          "step_ids": [
+            "zero-l-sit"
+          ],
+          "title": "Hip Flexors & Core"
+        },
+        {
+          "step_ids": [
+            "zero-elephant-walk",
+            "zero-couch-stretch",
+            "zero-standing-pigeon",
+            "zero-neck-brace-exercises"
+          ],
+          "title": "Mobility & Cool-Down"
+        },
+        {
+          "step_ids": [
+            "zero-body-squat-slant-board"
+          ],
+          "title": "Knee Ability"
+        }
+      ],
+      "demo_url": "https://www.youtube.com/watch?v=gNS_QjGAs_k&list=PLKwcvRjG9E-GDP8LAmFk_obbDak3sO-j0&index=1&ab_channel=TheKneesovertoesguy",
+      "focus": "Same Workout",
+      "phase_id": "zero",
+      "title": "ZERO — Wednesday",
+      "weekday": 3
+    },
+    {
+      "blocks": [
+        {
+          "step_ids": [
+            "zero-bodyweight-walk-warm-up"
+          ],
+          "title": "Warm-Up"
+        },
+        {
+          "step_ids": [
+            "zero-tibialis-raise",
+            "zero-calf-raise-slant-board",
+            "zero-tibialis-raise",
+            "zero-kot-calf-raise"
+          ],
+          "title": "Lower Legs"
+        },
+        {
+          "step_ids": [
+            "zero-patrick-step-slant-board",
+            "zero-atg-split-squat"
+          ],
+          "title": "Knee Ability"
+        },
+        {
+          "step_ids": [
+            "zero-nordic-curl"
+          ],
+          "title": "Posterior Chain & Spine"
+        },
+        {
+          "step_ids": [
+            "zero-l-sit"
+          ],
+          "title": "Hip Flexors & Core"
+        },
+        {
+          "step_ids": [
+            "zero-elephant-walk",
+            "zero-couch-stretch",
+            "zero-standing-pigeon",
+            "zero-neck-brace-exercises"
+          ],
+          "title": "Mobility & Cool-Down"
+        },
+        {
+          "step_ids": [
+            "zero-body-squat-slant-board"
+          ],
+          "title": "Knee Ability"
+        }
+      ],
+      "demo_url": "https://www.youtube.com/watch?v=gNS_QjGAs_k&list=PLKwcvRjG9E-GDP8LAmFk_obbDak3sO-j0&index=1&ab_channel=TheKneesovertoesguy",
+      "focus": "Same Workout",
+      "phase_id": "zero",
+      "title": "ZERO — Friday",
+      "weekday": 5
+    },
+    {
+      "blocks": [
+        {
+          "step_ids": [
+            "dense-bodyweight-walk-warm-up"
+          ],
+          "title": "Warm-Up"
+        },
+        {
+          "step_ids": [
+            "dense-patrick-step"
+          ],
+          "title": "Knee Ability"
+        },
+        {
+          "step_ids": [
+            "dense-seated-good-morning"
+          ],
+          "title": "Posterior Chain & Spine"
+        },
+        {
+          "step_ids": [
+            "dense-tibialis-raise"
+          ],
+          "title": "Lower Legs"
+        }
+      ],
+      "demo_url": "https://www.youtube.com/playlist?list=PLKwcvRjG9E-E6wwMyWoRIcgdNGw47bk6e",
+      "focus": "Lower Body",
+      "phase_id": "dense",
+      "title": "DENSE — Monday",
+      "weekday": 1
+    },
+    {
+      "blocks": [
+        {
+          "step_ids": [
+            "dense-bodyweight-walk-warm-up"
+          ],
+          "title": "Warm-Up"
+        },
+        {
+          "step_ids": [
+            "dense-chin-up",
+            "dense-dips",
+            "dense-smith-machine-curl",
+            "dense-french-press"
+          ],
+          "title": "Upper Body"
+        },
+        {
+          "step_ids": [
+            "dense-jefferson-curl-slant-board"
+          ],
+          "title": "Posterior Chain & Spine"
+        },
+        {
+          "step_ids": [
+            "dense-slant-board-calf-raise-loaded"
+          ],
+          "title": "Lower Legs"
+        },
+        {
+          "step_ids": [
+            "dense-tibialis-stretch"
+          ],
+          "title": "Mobility & Cool-Down"
+        }
+      ],
+      "demo_url": "https://www.youtube.com/playlist?list=PLKwcvRjG9E-EfQI5vy-k1nw2-YzQY-QEt",
+      "focus": "Upper + Mobility",
+      "phase_id": "dense",
+      "title": "DENSE — Tuesday",
+      "weekday": 2
+    },
+    {
+      "blocks": [
+        {
+          "step_ids": [
+            "dense-bodyweight-walk-warm-up"
+          ],
+          "title": "Warm-Up"
+        },
+        {
+          "step_ids": [
+            "dense-atg-split-squat"
+          ],
+          "title": "Knee Ability"
+        },
+        {
+          "step_ids": [
+            "dense-hip-flexor-tri-set"
+          ],
+          "title": "Hip Flexors & Core"
+        },
+        {
+          "step_ids": [
+            "dense-single-leg-calf-raise"
+          ],
+          "title": "Lower Legs"
+        }
+      ],
+      "demo_url": "https://www.youtube.com/playlist?list=PLKwcvRjG9E-HyWJZ5AtckjTXYfyD1uyAh",
+      "focus": "Split Squat + Hip Flexors",
+      "phase_id": "dense",
+      "title": "DENSE — Wednesday",
+      "weekday": 3
+    },
+    {
+      "blocks": [
+        {
+          "step_ids": [
+            "dense-bodyweight-walk-warm-up"
+          ],
+          "title": "Warm-Up"
+        },
+        {
+          "step_ids": [
+            "dense-bench-pullover",
+            "dense-atg-shoulder-press",
+            "dense-shoulder-external-rotation"
+          ],
+          "title": "Upper Body"
+        },
+        {
+          "step_ids": [
+            "dense-couch-stretch",
+            "dense-piriformis-stretch",
+            "dense-butterfly-stretch"
+          ],
+          "title": "Mobility & Cool-Down"
+        }
+      ],
+      "demo_url": "https://www.youtube.com/playlist?list=PLKwcvRjG9E-HOcZ0gQ8b6K1Afbx8M-Itq",
+      "focus": "Upper + Mobility",
+      "phase_id": "dense",
+      "title": "DENSE — Thursday",
+      "weekday": 4
+    },
+    {
+      "blocks": [
+        {
+          "step_ids": [
+            "dense-bodyweight-walk-warm-up"
+          ],
+          "title": "Warm-Up"
+        },
+        {
+          "step_ids": [
+            "dense-vmo-squat",
+            "dense-kot-squat-eccentric"
+          ],
+          "title": "Knee Ability"
+        },
+        {
+          "step_ids": [
+            "dense-nordic-curl-eccentric",
+            "dense-ql-extension"
+          ],
+          "title": "Posterior Chain & Spine"
+        }
+      ],
+      "demo_url": "https://www.youtube.com/playlist?list=PLKwcvRjG9E-G8GFxHHOdYCSHPOAkNrTL8",
+      "focus": "Squat Focus",
+      "phase_id": "dense",
+      "title": "DENSE — Friday",
+      "weekday": 5
+    },
+    {
+      "blocks": [
+        {
+          "step_ids": [
+            "standards-plantar-fascia-stretch",
+            "standards-tibialis-stretch",
+            "standards-bodyweight-walk"
+          ],
+          "title": "Warm-Up"
+        },
+        {
+          "step_ids": [
+            "standards-single-leg-elevated-pike"
+          ],
+          "title": "Hip Flexors & Core"
+        },
+        {
+          "step_ids": [
+            "standards-poliquin-step-up"
+          ],
+          "title": "Knee Ability"
+        },
+        {
+          "step_ids": [
+            "standards-jefferson-curl"
+          ],
+          "title": "Posterior Chain & Spine"
+        },
+        {
+          "step_ids": [
+            "standards-hanging-leg-raise"
+          ],
+          "title": "Hip Flexors & Core"
+        },
+        {
+          "step_ids": [
+            "standards-tibialis-raise"
+          ],
+          "title": "Lower Legs"
+        },
+        {
+          "step_ids": [
+            "standards-incline-dumbbell-press",
+            "standards-trx-face-pull"
+          ],
+          "title": "Upper Body"
+        },
+        {
+          "step_ids": [
+            "standards-pigeon",
+            "standards-couch-stretch"
+          ],
+          "title": "Mobility & Cool-Down"
+        }
+      ],
+      "focus": "Lower + Upper + Cool Down",
+      "phase_id": "standards",
+      "title": "STANDARDS — Monday",
+      "weekday": 1
+    },
+    {
+      "blocks": [
+        {
+          "step_ids": [
+            "standards-calf-stretch",
+            "standards-bodyweight-walk"
+          ],
+          "title": "Warm-Up"
+        },
+        {
+          "step_ids": [
+            "standards-relaxed-lunge",
+            "standards-atg-split-squat"
+          ],
+          "title": "Knee Ability"
+        },
+        {
+          "step_ids": [
+            "standards-seated-good-morning"
+          ],
+          "title": "Posterior Chain & Spine"
+        },
+        {
+          "step_ids": [
+            "standards-garhammer-raise"
+          ],
+          "title": "Hip Flexors & Core"
+        },
+        {
+          "step_ids": [
+            "standards-single-leg-calf-raise"
+          ],
+          "title": "Lower Legs"
+        },
+        {
+          "step_ids": [
+            "standards-atg-dips",
+            "standards-shoulder-external-rotation"
+          ],
+          "title": "Upper Body"
+        },
+        {
+          "step_ids": [
+            "standards-pigeon",
+            "standards-butterfly-stretch",
+            "standards-seated-pancake"
+          ],
+          "title": "Mobility & Cool-Down"
+        }
+      ],
+      "focus": "Lower + Upper + Cool Down",
+      "phase_id": "standards",
+      "title": "STANDARDS — Tuesday",
+      "weekday": 2
+    },
+    {
+      "blocks": [
+        {
+          "step_ids": [
+            "standards-plantar-fascia-stretch",
+            "standards-tibialis-stretch",
+            "standards-bodyweight-walk"
+          ],
+          "title": "Warm-Up"
+        },
+        {
+          "step_ids": [
+            "standards-single-leg-elevated-pike"
+          ],
+          "title": "Hip Flexors & Core"
+        },
+        {
+          "step_ids": [
+            "standards-atg-squat"
+          ],
+          "title": "Knee Ability"
+        },
+        {
+          "step_ids": [
+            "standards-nordic-curl"
+          ],
+          "title": "Posterior Chain & Spine"
+        },
+        {
+          "step_ids": [
+            "standards-low-cable-pull-in"
+          ],
+          "title": "Hip Flexors & Core"
+        },
+        {
+          "step_ids": [
+            "standards-tibialis-raise"
+          ],
+          "title": "Lower Legs"
+        },
+        {
+          "step_ids": [
+            "standards-atg-shoulder-press",
+            "standards-chin-up"
+          ],
+          "title": "Upper Body"
+        },
+        {
+          "step_ids": [
+            "standards-pigeon",
+            "standards-couch-stretch"
+          ],
+          "title": "Mobility & Cool-Down"
+        }
+      ],
+      "focus": "Lower + Upper + Cool Down",
+      "phase_id": "standards",
+      "title": "STANDARDS — Thursday",
+      "weekday": 4
+    },
+    {
+      "blocks": [
+        {
+          "step_ids": [
+            "standards-calf-stretch",
+            "standards-bodyweight-walk"
+          ],
+          "title": "Warm-Up"
+        },
+        {
+          "step_ids": [
+            "standards-atg-deadlift"
+          ],
+          "title": "Posterior Chain & Spine"
+        },
+        {
+          "step_ids": [
+            "standards-sissy-squat"
+          ],
+          "title": "Knee Ability"
+        },
+        {
+          "step_ids": [
+            "standards-l-sit"
+          ],
+          "title": "Hip Flexors & Core"
+        },
+        {
+          "step_ids": [
+            "standards-single-leg-calf-raise"
+          ],
+          "title": "Lower Legs"
+        },
+        {
+          "step_ids": [
+            "standards-bench-pullover",
+            "standards-trap-raise"
+          ],
+          "title": "Upper Body"
+        },
+        {
+          "step_ids": [
+            "standards-pigeon",
+            "standards-butterfly-stretch",
+            "standards-seated-pancake"
+          ],
+          "title": "Mobility & Cool-Down"
+        }
+      ],
+      "focus": "Lower + Upper + Cool Down",
+      "phase_id": "standards",
+      "title": "STANDARDS — Friday",
+      "weekday": 5
+    }
+  ],
+  "days_per_week": [
+    3,
+    5
+  ],
+  "description": "Seth’s three-phase Knees Over Toes program. Zero builds bodyweight ankle and knee ability three days a week for twelve weeks; Dense loads it five days a week for twelve more, adding a fixed percentage of bodyweight each week; Standards runs four days a week, open-ended, until all twelve benchmarks are met. Every phase is ordered from the ground up: feet and lower legs, then the knee itself, then the posterior chain, then upper body, then held stretches.",
+  "name": "Knees Over Toes",
+  "ordering": "ground_up",
+  "phases": [
+    {
+      "days_per_week": 3,
+      "description": "12 weeks. 3 days a week, Monday, Wednesday, Friday. 10–20 minutes a session. Bodyweight throughout — no external load anywhere in the phase.",
+      "id": "zero",
+      "load_rule": {
+        "kind": "bodyweight_only"
+      },
+      "name": "ZERO",
+      "order": 1,
+      "session_min": [
+        10,
+        20
+      ],
+      "weekdays": [
+        1,
+        3,
+        5
+      ],
+      "weeks": 12
+    },
+    {
+      "days_per_week": 5,
+      "description": "12 weeks. 5 days a week, Monday, Tuesday, Wednesday, Thursday, Friday. 30–45 minutes a session. Week 1 is bodyweight, week 2 starts at 25% of bodyweight, and every week after adds 5% — except the split squat, which adds 2.5%. Load only goes up once the full set count is completed inside the time cap.",
+      "id": "dense",
+      "load_rule": {
+        "kind": "percent_bw_ramp",
+        "start_pct": 25,
+        "weekly_increment_pct": 5
+      },
+      "name": "DENSE",
+      "order": 2,
+      "session_min": [
+        30,
+        45
+      ],
+      "weekdays": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "weeks": 12
+    },
+    {
+      "days_per_week": 4,
+      "description": "Open-ended: it runs until every benchmark is met. 4 days a week, Monday, Tuesday, Thursday, Friday. 45–60 minutes a session. Load is whatever it takes to reach the twelve benchmarks; there is no calendar ramp.",
+      "id": "standards",
+      "load_rule": {
+        "kind": "standards_driven"
+      },
+      "name": "STANDARDS",
+      "order": 3,
+      "session_min": [
+        45,
+        60
+      ],
+      "weekdays": [
+        1,
+        2,
+        4,
+        5
+      ],
+      "weeks": null
+    }
+  ],
+  "slug": "kot",
+  "source": "Seth’s ATG Knees Over Toes checklist and spreadsheets, April 2026 (docs/programs/kot/raw/, gitignored)",
   "steps": [
     {
-      "id": "zero-backward-walk",
+      "block": "warm_up",
+      "exercise_slug": "zone-2-steady",
+      "id": "zero-bodyweight-walk-warm-up",
+      "name": "Bodyweight Walk (Warm-Up)",
       "order": 1,
-      "block": "backward_locomotion",
-      "name": "Backward Walking (Zero)",
-      "exercise_slug": "backward-walk-outdoors",
-      "standard_text": "10 minutes of continuous backward walking, 3x/week.",
-      "standard": { "duration_min": 10 },
+      "phase_id": "zero",
+      "standard": {
+        "duration_min": 5
+      },
+      "standard_text": "5–10 min — Easy pace, not a training stimulus.",
       "substitutions": [
         {
           "equipment_missing": "outdoor_route",
-          "use_slug": "backward-treadmill-walk",
-          "note": "Planet Fitness or bad weather: walk backwards on a POWERED-OFF treadmill, driving the belt yourself."
+          "note": "Planet Fitness or bad weather: treadmill at an easy pace.",
+          "use_slug": "walking-treadmill"
         }
       ]
     },
     {
-      "id": "dense-backward-sled",
-      "order": 2,
-      "block": "backward_locomotion",
-      "name": "Backward Sled Drag (Dense)",
-      "exercise_slug": "backward-sled-drag",
-      "standard_text": "Backward sled drag at roughly 50% bodyweight, 10 minutes of accumulated work.",
-      "standard": { "pct_bodyweight": 0.5, "duration_min": 10 },
-      "prerequisites": ["zero-backward-walk"],
-      "substitutions": [
-        {
-          "equipment_missing": "sled",
-          "use_slug": "backward-treadmill-walk",
-          "note": "Planet Fitness has no sled: backward walking on a powered-off treadmill is the substitute (RESEARCH §2, §7)."
-        },
-        {
-          "equipment_missing": "sled",
-          "use_slug": "backward-walk-outdoors",
-          "note": "Home: backward walking outdoors, in a hallway, or up a gentle incline."
-        }
-      ]
-    },
-    {
-      "id": "zero-tib-raise",
-      "order": 3,
       "block": "lower_legs",
-      "name": "Tibialis Raise (Zero)",
       "exercise_slug": "tibialis-raise",
-      "standard_text": "25 unbroken bodyweight tibialis raises against a wall.",
-      "standard": { "reps": 25, "sets": 1 }
-    },
-    {
-      "id": "dense-tib-bar-raise",
-      "order": 4,
-      "block": "lower_legs",
-      "name": "Tib Bar Raise (Dense)",
-      "exercise_slug": "tib-bar-raise",
-      "standard_text": "Tib bar curl at 25% bodyweight for 5 sets of 5.",
-      "standard": { "pct_bodyweight": 0.25, "reps": 5, "sets": 5 },
-      "prerequisites": ["zero-tib-raise"],
+      "id": "zero-tibialis-raise",
+      "name": "Tibialis Raise",
+      "order": 2,
+      "phase_id": "zero",
+      "progressions": [
+        "Stand closer to the wall — less load, easier.",
+        "Step farther from the wall — more load, harder.",
+        "Add load: a dumbbell held between the feet, or a band over the forefoot.",
+        "Tib bar, once one is available."
+      ],
+      "standard": {
+        "reps": 25
+      },
+      "standard_text": "25 reps",
       "substitutions": [
         {
-          "equipment_missing": "tibialis_bar",
-          "use_slug": "tibialis-raise-dumbbell",
-          "note": "No tib bar at Home or Planet Fitness: stand a dumbbell on end and pinch it between the feet."
+          "equipment_missing": "wall_space",
+          "note": "No wall to lean on: anchor a band low in front and loop it over the forefoot.",
+          "use_slug": "tibialis-raise-band"
         },
         {
           "equipment_missing": "tibialis_bar",
-          "use_slug": "tibialis-raise-band",
-          "note": "Band looped over the forefoot and anchored low in front — the travel version."
+          "note": "No tib bar at either gym: stand a dumbbell on end and pinch it between the feet.",
+          "use_slug": "tibialis-raise-dumbbell"
         }
       ]
     },
     {
-      "id": "zero-fhl-calf-raise",
-      "order": 5,
       "block": "lower_legs",
-      "name": "FHL Calf Raise (Zero)",
       "exercise_slug": "fhl-calf-raise",
-      "standard_text": "3 sets of 25 bodyweight calf raises pressing through the big toe (flexor hallucis longus emphasis).",
-      "standard": { "reps": 25, "sets": 3 }
-    },
-    {
-      "id": "zero-single-leg-calf-raise",
-      "order": 6,
-      "block": "lower_legs",
-      "name": "Single-Leg Calf Raise (Zero)",
-      "exercise_slug": "single-leg-calf-raise",
-      "standard_text": "3 sets of 10 bodyweight single-leg calf raises per side, full stretch at the bottom.",
-      "standard": { "reps": 10, "sets": 3 },
-      "prerequisites": ["zero-fhl-calf-raise"]
-    },
-    {
-      "id": "dense-single-leg-calf-raise",
-      "order": 7,
-      "block": "lower_legs",
-      "name": "Loaded Single-Leg Calf Raise (Dense)",
-      "exercise_slug": "single-leg-calf-raise",
-      "standard_text": "25% bodyweight held in one hand, 10 reps per leg, off a step or slant board.",
-      "standard": { "pct_bodyweight": 0.25, "per_hand": true, "reps": 10 },
-      "prerequisites": ["zero-single-leg-calf-raise"],
+      "id": "zero-calf-raise-slant-board",
+      "name": "Calf Raise (Slant Board)",
+      "order": 3,
+      "phase_id": "zero",
+      "progressions": [
+        "Both feet, full range: heels below the platform at the bottom.",
+        "One leg at a time (wrap the free leg behind).",
+        "Add a weight vest or hold a dumbbell."
+      ],
+      "standard": {
+        "reps": 25
+      },
+      "standard_text": "25 reps",
       "substitutions": [
         {
           "equipment_missing": "slant_board",
-          "use_slug": "single-leg-calf-raise",
-          "note": "No slant board: use a stair edge, a plate stack, or a DIY plywood wedge for the heel drop."
+          "note": "Seth owns a slant board, so the slant version is the prescription at home. Travelling or at Planet Fitness: the same movement off a stair edge or a stack of plates, accepting the shorter range.",
+          "use_slug": "fhl-calf-raise"
         }
       ]
     },
     {
-      "id": "zero-patrick-step",
-      "order": 8,
-      "block": "step_ups",
-      "name": "Patrick Step (Zero)",
+      "block": "lower_legs",
+      "exercise_slug": "seated-calf-raise",
+      "id": "zero-kot-calf-raise",
+      "name": "KOT Calf Raise",
+      "order": 4,
+      "phase_id": "zero",
+      "progressions": [
+        "Small knee bend, both feet.",
+        "Deeper knee bend as the ankle allows — heels lift slightly at the bottom.",
+        "One leg at a time.",
+        "Add a weight vest."
+      ],
+      "standard": {
+        "reps": 25
+      },
+      "standard_text": "25 reps — The checklist says \"as prescribed\"; the reps come from the Knee Ability Zero recap."
+    },
+    {
+      "block": "knee_ability",
       "exercise_slug": "patrick-step",
-      "standard_text": "3 sets of 10 per side off a 2–4 inch step, free leg locked straight, heel taps the floor.",
-      "standard": { "reps": 10, "sets": 3 },
-      "substitutions": [
-        {
-          "equipment_missing": "plyo_box",
-          "use_slug": "patrick-step",
-          "note": "Any stable 2–4 inch rise: a stair, a stack of plates, a low bench."
-        }
-      ]
-    },
-    {
-      "id": "dense-poliquin-step",
-      "order": 9,
-      "block": "step_ups",
-      "name": "Poliquin Step-Up (Dense)",
-      "exercise_slug": "poliquin-step",
-      "standard_text": "66% bodyweight (total load) for 20 reps on a 3–4 inch box, heel elevated.",
-      "standard": { "pct_bodyweight": 0.66, "reps": 20 },
-      "prerequisites": ["zero-patrick-step"],
+      "id": "zero-patrick-step-slant-board",
+      "name": "Patrick Step (Slant Board)",
+      "order": 5,
+      "per_side": true,
+      "phase_id": "zero",
+      "progressions": [
+        "Hold a wall or rail for balance.",
+        "Free-standing.",
+        "Reach the free leg farther forward.",
+        "Raise the standing surface.",
+        "Add load."
+      ],
+      "standard": {
+        "reps": 25
+      },
+      "standard_text": "25 reps, per side",
       "substitutions": [
         {
           "equipment_missing": "slant_board",
-          "use_slug": "poliquin-step",
-          "note": "No slant board for the heel wedge: stack two plates or use a DIY plywood wedge."
-        },
-        {
-          "equipment_missing": "plyo_box",
-          "use_slug": "patrick-step",
-          "note": "No 3–4 inch box: regress to the Patrick step off a stair until a box is available."
+          "note": "Seth owns a slant board, so the slant version is the prescription at home. Travelling or at Planet Fitness: the same movement off a stair edge or a stack of plates, accepting the shorter range.",
+          "use_slug": "patrick-step"
         }
       ]
     },
     {
-      "id": "zero-atg-split-squat-assisted",
-      "order": 10,
-      "block": "split_squat",
-      "name": "ATG Split Squat — Assisted (Zero)",
-      "exercise_slug": "atg-split-squat-assisted",
-      "standard_text": "3 sets of 10 per side holding a rail or band for assistance; hamstring covers the calf at the bottom.",
-      "standard": { "reps": 10, "sets": 3 }
-    },
-    {
-      "id": "zero-atg-split-squat-flat",
-      "order": 11,
-      "block": "split_squat",
-      "name": "ATG Split Squat — Flat (Zero)",
+      "block": "knee_ability",
       "exercise_slug": "atg-split-squat",
-      "standard_text": "3 sets of 10 per side, bodyweight, no hands, full range on flat ground.",
-      "standard": { "reps": 10, "sets": 3 },
-      "prerequisites": ["zero-atg-split-squat-assisted"]
-    },
-    {
-      "id": "dense-atg-split-squat",
-      "order": 12,
-      "block": "split_squat",
-      "name": "ATG Split Squat — Loaded (Dense)",
-      "exercise_slug": "atg-split-squat",
-      "standard_text": "25% of bodyweight PER HAND (dumbbells) through full range, each side.",
-      "standard": { "pct_bodyweight": 0.25, "per_hand": true },
-      "prerequisites": ["zero-atg-split-squat-flat"],
+      "id": "zero-atg-split-squat",
+      "name": "ATG Split Squat",
+      "order": 6,
+      "per_side": true,
+      "phase_id": "zero",
+      "progressions": [
+        "Front foot elevated, holding a rail for assistance.",
+        "Front foot elevated, no hands.",
+        "Flat ground, no hands, back knee to the floor.",
+        "Dumbbells in both hands, toward 25% bodyweight per hand."
+      ],
+      "rest_s": 30,
+      "standard": {
+        "reps": 25
+      },
+      "standard_text": "25 reps, per side",
       "substitutions": [
         {
-          "equipment_missing": "dumbbell",
-          "use_slug": "atg-split-squat",
-          "note": "Bodyweight or a weight vest / loaded backpack at home until dumbbells are heavy enough."
+          "equipment_missing": "adjustable_dumbbell",
+          "note": "Travelling: bodyweight, or a loaded backpack.",
+          "use_slug": "atg-split-squat"
         }
       ]
     },
     {
-      "id": "zero-elephant-walk",
-      "order": 13,
-      "block": "split_squat",
-      "name": "Elephant Walk (Zero)",
-      "exercise_slug": "elephant-walk",
-      "standard_text": "20 alternating reps with the hands on the floor and the knee locked on the pressing side.",
-      "standard": { "reps": 20, "sets": 1 }
-    },
-    {
-      "id": "zero-couch-stretch",
-      "order": 14,
-      "block": "split_squat",
-      "name": "Couch Stretch (Zero)",
-      "exercise_slug": "couch-stretch",
-      "standard_text": "90 seconds per side with the pelvis tucked and the glute squeezed.",
-      "standard": { "hold_s": 90, "sets": 2 }
-    },
-    {
-      "id": "zero-deep-squat-hold",
-      "order": 15,
-      "block": "deep_squat",
-      "name": "Deep Squat Hold (Zero)",
-      "exercise_slug": "deep-squat-hold",
-      "standard_text": "3 holds of 60 seconds at full depth with the heels flat.",
-      "standard": { "hold_s": 60, "sets": 3 },
-      "substitutions": [
-        {
-          "equipment_missing": "slant_board",
-          "use_slug": "deep-squat-hold",
-          "note": "Heels lifting: elevate them on a DIY wedge or stacked plates until ankle range allows flat feet."
-        }
-      ]
-    },
-    {
-      "id": "dense-atg-squat",
-      "order": 16,
-      "block": "deep_squat",
-      "name": "ATG Squat (Dense)",
-      "exercise_slug": "atg-squat",
-      "standard_text": "25% of bodyweight for 20 reps at full depth.",
-      "standard": { "pct_bodyweight": 0.25, "reps": 20 },
-      "prerequisites": ["zero-deep-squat-hold", "zero-atg-split-squat-flat"]
-    },
-    {
-      "id": "zero-l-sit",
-      "order": 17,
-      "block": "deep_squat",
-      "name": "L-Sit (Zero)",
-      "exercise_slug": "l-sit",
-      "standard_text": "3 holds of 20 seconds with the knees locked and the heels off the floor.",
-      "standard": { "hold_s": 20, "sets": 3 }
-    },
-    {
-      "id": "dense-atg-rdl",
-      "order": 18,
-      "block": "upper_body_accessory",
-      "name": "ATG RDL (Dense)",
-      "exercise_slug": "atg-rdl",
-      "standard_text": "100% of bodyweight for 10 reps, or 50% of bodyweight for 20 reps.",
-      "standard": { "pct_bodyweight": 1, "reps": 10 },
-      "substitutions": [
-        {
-          "equipment_missing": "barbell",
-          "use_slug": "atg-rdl",
-          "note": "No barbell at Planet Fitness (floor deadlifts are also not permitted): use dumbbells, a fixed bar, or the Smith machine."
-        }
-      ]
-    },
-    {
-      "id": "dense-nordic",
-      "order": 19,
-      "block": "upper_body_accessory",
-      "name": "Nordic Hamstring Curl (Dense)",
+      "block": "posterior_chain",
       "exercise_slug": "nordic-hamstring-curl",
-      "standard_text": "Full bodyweight Nordic curl for 10 reps, lowering under control.",
-      "standard": { "pct_bodyweight": 1, "reps": 10 },
-      "prerequisites": ["dense-atg-rdl"],
+      "id": "zero-nordic-curl",
+      "name": "Nordic Curl",
+      "order": 7,
+      "phase_id": "zero",
+      "progressions": [
+        "Lower a short way, hands catch early.",
+        "Lower farther each week, hands catch late.",
+        "Full lower, push back up with the hands.",
+        "Full rep down and up, no hands — the standard is 10."
+      ],
+      "standard": {
+        "reps": 5
+      },
+      "standard_text": "5 reps",
       "substitutions": [
         {
           "equipment_missing": "nordic_support",
-          "use_slug": "nordic-hamstring-curl",
-          "note": "Home: use the adjustable bench with the Nordic support (ankles anchored under the pad/roller)."
+          "note": "Planet Fitness has no GHD and nothing safe to anchor the ankles under: run the seated leg curl machine instead.",
+          "use_slug": "seated-leg-curl"
         },
         {
-          "equipment_missing": "ghd",
-          "use_slug": "atg-rdl",
-          "note": "Planet Fitness has no GHD and nothing safe to anchor under: run the ATG RDL instead that day."
+          "equipment_missing": "nordic_support",
+          "note": "Travelling: reverse Nordic needs no anchor and keeps the eccentric quality.",
+          "use_slug": "reverse-nordic"
         }
       ]
     },
     {
-      "id": "dense-reverse-nordic",
-      "order": 20,
-      "block": "upper_body_accessory",
-      "name": "Reverse Nordic Curl (Dense)",
-      "exercise_slug": "reverse-nordic",
-      "standard_text": "3 sets of 8–10 through the fullest controllable range, hips locked straight.",
-      "standard": { "reps": 10, "sets": 3 },
-      "prerequisites": ["zero-couch-stretch"]
+      "block": "hip_flexors_core",
+      "exercise_slug": "l-sit",
+      "id": "zero-l-sit",
+      "name": "L-Sit",
+      "order": 8,
+      "phase_id": "zero",
+      "progressions": [
+        "Level 1 — alternate lifting one leg at a time, seated, for the full time.",
+        "Level 2 — same, with the hips off the floor.",
+        "Level 3 — full L-sit, both legs and hips off the floor."
+      ],
+      "standard": {
+        "hold_s": 60
+      },
+      "standard_text": "60 s hold"
     },
     {
-      "id": "dense-seated-good-morning",
-      "order": 21,
-      "block": "upper_body_accessory",
-      "name": "Seated Good Morning (Dense)",
-      "exercise_slug": "seated-good-morning",
-      "standard_text": "50% of bodyweight across the upper back, seated, with the arch held.",
-      "standard": { "pct_bodyweight": 0.5 },
-      "substitutions": [
-        {
-          "equipment_missing": "smith_machine",
-          "use_slug": "seated-good-morning",
-          "note": "No Smith or fixed bar: hold a single heavy dumbbell at the chest and hinge from the hips."
-        }
-      ]
+      "block": "mobility_cooldown",
+      "exercise_slug": "elephant-walk",
+      "id": "zero-elephant-walk",
+      "name": "Elephant Walk",
+      "order": 9,
+      "phase_id": "zero",
+      "progressions": [
+        "Hands well forward, on fingertips or a box, knees bent.",
+        "Alternate straightening one leg at a time.",
+        "Walk the hands back until the palms reach the floor in front of the toes."
+      ],
+      "standard": {
+        "reps": 25
+      },
+      "standard_text": "25 reps"
     },
     {
-      "id": "dense-jefferson-curl",
-      "order": 22,
-      "block": "upper_body_accessory",
-      "name": "Jefferson Curl (Dense)",
-      "exercise_slug": "jefferson-curl",
-      "standard_text": "25% of bodyweight for 10 reps, rolling down until the wrists are below the toes.",
-      "standard": { "pct_bodyweight": 0.25, "reps": 10 },
-      "prerequisites": ["zero-elephant-walk"],
+      "block": "mobility_cooldown",
+      "exercise_slug": "couch-stretch",
+      "id": "zero-couch-stretch",
+      "name": "Couch Stretch",
+      "order": 10,
+      "per_side": true,
+      "phase_id": "zero",
+      "progressions": [
+        "Knee down, torso upright, hands on the floor.",
+        "Hands to the front thigh.",
+        "Hands to the hips.",
+        "Shoulders to the wall."
+      ],
+      "standard": {
+        "hold_s": 60
+      },
+      "standard_text": "60 s hold, per side"
+    },
+    {
+      "block": "mobility_cooldown",
+      "exercise_slug": "seated-piriformis-stretch",
+      "id": "zero-standing-pigeon",
+      "name": "Standing Pigeon",
+      "order": 11,
+      "per_side": true,
+      "phase_id": "zero",
+      "standard": {
+        "hold_s": 90,
+        "sets": 2
+      },
+      "standard_text": "2 sets, 90 s hold, per side — The checklist says only \"hold each side\". The 2 x 90 s comes from the Knee Ability Zero recap, where the same slot is a seated piriformis stretch."
+    },
+    {
+      "block": "mobility_cooldown",
+      "exercise_slug": "isometric-neck-exercise-front-and-back",
+      "id": "zero-neck-brace-exercises",
+      "name": "Neck Brace Exercises",
+      "order": 12,
+      "phase_id": "zero",
+      "progressions": [
+        "Manual resistance, front and back.",
+        "Manual resistance, both sides.",
+        "Band or harness resistance through all four directions."
+      ],
+      "standard_text": "no sets, reps or duration given in the source — The checklist says \"as prescribed\" and gives no reps — the one step in Zero with no numbers anywhere in the sources."
+    },
+    {
+      "block": "knee_ability",
+      "exercise_slug": "bodyweight-squat",
+      "id": "zero-body-squat-slant-board",
+      "name": "Body Squat (Slant Board)",
+      "order": 13,
+      "phase_id": "zero",
+      "progressions": [
+        "Partial depth, heels on the board.",
+        "Full depth.",
+        "More sets before more depth."
+      ],
+      "rest_s": 30,
+      "standard": {
+        "reps": 5,
+        "sets": 5
+      },
+      "standard_text": "5 × 5 reps — The checklist says \"as prescribed\"; the sets and reps come from the Knee Ability Zero recap, where this step is explicitly optional.",
       "substitutions": [
         {
           "equipment_missing": "slant_board",
-          "use_slug": "jefferson-curl",
-          "note": "No slant board: stand on a DIY wedge, stacked plates, or the end of a flat bench so the wrists can pass below the toes."
+          "note": "Seth owns a slant board, so the slant version is the prescription at home. Travelling or at Planet Fitness: the same movement off a stair edge or a stack of plates, accepting the shorter range.",
+          "use_slug": "bodyweight-squat"
         }
       ]
     },
     {
-      "id": "dense-ql-extension",
+      "block": "warm_up",
+      "exercise_slug": "zone-2-steady",
+      "id": "dense-bodyweight-walk-warm-up",
+      "name": "Bodyweight Walk (Warm-Up)",
+      "order": 14,
+      "phase_id": "dense",
+      "standard": {
+        "duration_min": 5
+      },
+      "standard_text": "5–10 min — Easy pace, not a training stimulus.",
+      "substitutions": [
+        {
+          "equipment_missing": "outdoor_route",
+          "note": "Planet Fitness or bad weather: treadmill at an easy pace.",
+          "use_slug": "walking-treadmill"
+        }
+      ]
+    },
+    {
+      "block": "knee_ability",
+      "exercise_slug": "patrick-step",
+      "id": "dense-patrick-step",
+      "name": "Patrick Step",
+      "order": 15,
+      "per_side": true,
+      "phase_id": "dense",
+      "progressions": [
+        "Bodyweight.",
+        "Held dumbbells.",
+        "Raise the standing surface for more range."
+      ],
+      "standard": {
+        "duration_min": 20,
+        "reps": 10,
+        "sets": 10
+      },
+      "standard_text": "10 × 10 reps, 20 min, per side — Ten sets of ten inside twenty minutes at the current load before the load goes up.",
+      "substitutions": [
+        {
+          "equipment_missing": "slant_board",
+          "note": "Seth owns a slant board, so the slant version is the prescription at home. Travelling or at Planet Fitness: the same movement off a stair edge or a stack of plates, accepting the shorter range.",
+          "use_slug": "patrick-step"
+        }
+      ]
+    },
+    {
+      "block": "posterior_chain",
+      "exercise_slug": "seated-good-morning",
+      "id": "dense-seated-good-morning",
+      "name": "Seated Good Morning",
+      "order": 16,
+      "phase_id": "dense",
+      "progressions": [
+        "Bodyweight hinge, hands behind the head.",
+        "Light bar.",
+        "Toward 50% bodyweight, abs to the bench."
+      ],
+      "standard": {
+        "duration_min": 5,
+        "sets": 3
+      },
+      "standard_text": "3 sets, 5 min (reps 20, 10, 5)",
+      "substitutions": [
+        {
+          "equipment_missing": "barbell",
+          "note": "Neither gym has a barbell: Planet Fitness has the Smith machine and a seated good-morning lever.",
+          "use_slug": "lever-seated-good-morning"
+        },
+        {
+          "equipment_missing": "barbell",
+          "note": "Home: hold a single heavy dumbbell at the chest and hinge from the hips.",
+          "use_slug": "seated-good-mornings"
+        }
+      ]
+    },
+    {
+      "block": "lower_legs",
+      "demo_url": "https://www.youtube.com/watch?v=__AsD5K0i3Y&ab_channel=PerformanceHerts",
+      "exercise_slug": "tibialis-raise",
+      "id": "dense-tibialis-raise",
+      "name": "Tibialis Raise",
+      "order": 17,
+      "phase_id": "dense",
+      "progressions": [
+        "Stand closer to the wall — less load, easier.",
+        "Step farther from the wall — more load, harder.",
+        "Add load: a dumbbell held between the feet, or a band over the forefoot.",
+        "Tib bar, once one is available."
+      ],
+      "standard": {
+        "duration_min": 5,
+        "sets": 4
+      },
+      "standard_text": "4 sets, 5 min (reps 20, 15, 10, 5)",
+      "substitutions": [
+        {
+          "equipment_missing": "wall_space",
+          "note": "No wall to lean on: anchor a band low in front and loop it over the forefoot.",
+          "use_slug": "tibialis-raise-band"
+        },
+        {
+          "equipment_missing": "tibialis_bar",
+          "note": "No tib bar at either gym: stand a dumbbell on end and pinch it between the feet.",
+          "use_slug": "tibialis-raise-dumbbell"
+        }
+      ]
+    },
+    {
+      "block": "upper_body",
+      "exercise_slug": "chin-up",
+      "id": "dense-chin-up",
+      "name": "Chin-Up",
+      "order": 18,
+      "phase_id": "dense",
+      "progressions": [
+        "Band- or machine-assisted.",
+        "Bodyweight.",
+        "Weighted."
+      ],
+      "standard": {
+        "duration_min": 5
+      },
+      "standard_text": "5 min",
+      "substitutions": [
+        {
+          "equipment_missing": "pull_up_bar",
+          "note": "Planet Fitness has no free bar: the assisted pull-up machine.",
+          "use_slug": "assisted-standing-chin-up"
+        },
+        {
+          "equipment_missing": "pull_up_bar",
+          "note": "Planet Fitness alternative: lat pulldown.",
+          "use_slug": "cable-bar-lateral-pulldown"
+        }
+      ]
+    },
+    {
+      "block": "upper_body",
+      "exercise_slug": "chest-dip",
+      "id": "dense-dips",
+      "name": "Dips",
+      "order": 19,
+      "phase_id": "dense",
+      "progressions": [
+        "Bench dips.",
+        "Assisted parallel-bar dips.",
+        "Full-depth bodyweight dips."
+      ],
+      "standard": {
+        "duration_min": 5
+      },
+      "standard_text": "5 min",
+      "substitutions": [
+        {
+          "equipment_missing": "dip_station",
+          "note": "Neither location has a dip station: bench dips between two benches.",
+          "use_slug": "bench-dips"
+        }
+      ]
+    },
+    {
+      "block": "upper_body",
+      "demo_url": "https://vimeo.com/749630580",
+      "exercise_slug": "smith-machine-bicep-curl",
+      "id": "dense-smith-machine-curl",
+      "name": "Smith Machine Curl",
+      "order": 20,
+      "phase_id": "dense",
+      "standard": {
+        "duration_min": 5
+      },
+      "standard_text": "5 min",
+      "substitutions": [
+        {
+          "equipment_missing": "smith_machine",
+          "note": "Home has no Smith machine: dumbbell curls.",
+          "use_slug": "dumbbell-bicep-curl"
+        }
+      ]
+    },
+    {
+      "block": "upper_body",
+      "demo_url": "https://vimeo.com/749630580",
+      "exercise_slug": "barbell-lying-triceps-extension-skull-crusher",
+      "id": "dense-french-press",
+      "name": "French Press",
+      "order": 21,
+      "phase_id": "dense",
+      "standard": {
+        "duration_min": 5
+      },
+      "standard_text": "5 min",
+      "substitutions": [
+        {
+          "equipment_missing": "ez_curl_bar",
+          "note": "Home has no EZ bar: dumbbells.",
+          "use_slug": "dumbbell-lying-triceps-extension"
+        }
+      ]
+    },
+    {
+      "block": "posterior_chain",
+      "exercise_slug": "jefferson-curl",
+      "id": "dense-jefferson-curl-slant-board",
+      "name": "Jefferson Curl (Slant Board)",
+      "order": 22,
+      "phase_id": "dense",
+      "progressions": [
+        "Unloaded roll-down.",
+        "Light dumbbell.",
+        "Toward 25% bodyweight for 10 reps."
+      ],
+      "standard": {
+        "pct_bodyweight": 0.25,
+        "reps": 5
+      },
+      "standard_text": "5 reps, 25% bodyweight — Loaded spinal flexion — check it against the standing low-back injury before prescribing.",
+      "substitutions": [
+        {
+          "equipment_missing": "slant_board",
+          "note": "Seth owns a slant board, so the slant version is the prescription at home. Travelling or at Planet Fitness: the same movement off a stair edge or a stack of plates, accepting the shorter range.",
+          "use_slug": "jefferson-curl"
+        }
+      ]
+    },
+    {
+      "block": "lower_legs",
+      "exercise_slug": "fhl-calf-raise",
+      "id": "dense-slant-board-calf-raise-loaded",
+      "name": "Slant Board Calf Raise (Loaded)",
       "order": 23,
-      "block": "upper_body_accessory",
-      "name": "QL Extension (Dense)",
+      "phase_id": "dense",
+      "progressions": [
+        "Bodyweight both feet.",
+        "Bodyweight one leg.",
+        "Loaded one leg."
+      ],
+      "standard": {
+        "reps": 10
+      },
+      "standard_text": "10 reps",
+      "substitutions": [
+        {
+          "equipment_missing": "slant_board",
+          "note": "Seth owns a slant board, so the slant version is the prescription at home. Travelling or at Planet Fitness: the same movement off a stair edge or a stack of plates, accepting the shorter range.",
+          "use_slug": "fhl-calf-raise"
+        }
+      ]
+    },
+    {
+      "block": "mobility_cooldown",
+      "exercise_slug": "posterior-tibialis-stretch",
+      "id": "dense-tibialis-stretch",
+      "name": "Tibialis Stretch",
+      "order": 24,
+      "phase_id": "dense",
+      "standard": {
+        "hold_s": 60
+      },
+      "standard_text": "60 s hold"
+    },
+    {
+      "block": "knee_ability",
+      "exercise_slug": "atg-split-squat",
+      "id": "dense-atg-split-squat",
+      "name": "ATG Split Squat",
+      "order": 25,
+      "per_side": true,
+      "phase_id": "dense",
+      "progressions": [
+        "Front foot elevated, holding a rail for assistance.",
+        "Front foot elevated, no hands.",
+        "Flat ground, no hands, back knee to the floor.",
+        "Dumbbells in both hands, toward 25% bodyweight per hand."
+      ],
+      "rest_s": 30,
+      "standard": {
+        "duration_min": 20,
+        "reps": 5,
+        "sets": 10
+      },
+      "standard_text": "10 × 5 reps, 20 min, per side",
+      "substitutions": [
+        {
+          "equipment_missing": "adjustable_dumbbell",
+          "note": "Travelling: bodyweight, or a loaded backpack.",
+          "use_slug": "atg-split-squat"
+        }
+      ]
+    },
+    {
+      "block": "hip_flexors_core",
+      "exercise_slug": "l-sit",
+      "id": "dense-hip-flexor-tri-set",
+      "name": "Hip Flexor Tri-Set",
+      "order": 26,
+      "phase_id": "dense",
+      "progressions": [
+        "Dumbbell foot raise, no breaks.",
+        "Reverse squat at 50% bodyweight.",
+        "L-sit, maximum time off the ground."
+      ],
+      "standard": {
+        "duration_min": 5
+      },
+      "standard_text": "5 min — Three drills in one slot. The checklist says alternate them to failure; the spreadsheet says pick one per five minutes."
+    },
+    {
+      "block": "lower_legs",
+      "exercise_slug": "single-leg-calf-raise",
+      "id": "dense-single-leg-calf-raise",
+      "name": "Single-Leg Calf Raise",
+      "order": 27,
+      "per_side": true,
+      "phase_id": "dense",
+      "progressions": [
+        "Bodyweight, floor.",
+        "Bodyweight, heel below a step or board.",
+        "Loaded, one dumbbell in the same-side hand."
+      ],
+      "standard": {
+        "duration_min": 5
+      },
+      "standard_text": "5 min, per side",
+      "substitutions": [
+        {
+          "equipment_missing": "slant_board",
+          "note": "Seth owns a slant board, so the slant version is the prescription at home. Travelling or at Planet Fitness: the same movement off a stair edge or a stack of plates, accepting the shorter range.",
+          "use_slug": "single-leg-calf-raise"
+        }
+      ]
+    },
+    {
+      "block": "upper_body",
+      "exercise_slug": "bent-arm-dumbbell-pullover",
+      "id": "dense-bench-pullover",
+      "name": "Bench Pullover",
+      "order": 28,
+      "phase_id": "dense",
+      "progressions": [
+        "Along the bench.",
+        "Across the bench, hips low, for the full overhead stretch.",
+        "Toward 25% bodyweight."
+      ],
+      "standard": {
+        "duration_min": 5,
+        "pct_bodyweight": 0.25
+      },
+      "standard_text": "5 min, 25% bodyweight"
+    },
+    {
+      "block": "upper_body",
+      "exercise_slug": "dumbbell-shoulder-press",
+      "id": "dense-atg-shoulder-press",
+      "name": "ATG Shoulder Press",
+      "order": 29,
+      "phase_id": "dense",
+      "standard": {
+        "duration_min": 5,
+        "pct_bodyweight": 0.5
+      },
+      "standard_text": "5 min, 50% bodyweight"
+    },
+    {
+      "block": "upper_body",
+      "exercise_slug": "external-rotation",
+      "id": "dense-shoulder-external-rotation",
+      "name": "Shoulder External Rotation",
+      "order": 30,
+      "per_side": true,
+      "phase_id": "dense",
+      "standard": {
+        "duration_min": 5
+      },
+      "standard_text": "5 min, per side — Roughly 10% of bodyweight is the target; lighter is fine.",
+      "substitutions": [
+        {
+          "equipment_missing": "cable_machine",
+          "note": "Home: band external rotation, elbow pinned to the side.",
+          "use_slug": "external-rotation-with-band"
+        }
+      ]
+    },
+    {
+      "block": "mobility_cooldown",
+      "exercise_slug": "couch-stretch",
+      "id": "dense-couch-stretch",
+      "name": "Couch Stretch",
+      "order": 31,
+      "per_side": true,
+      "phase_id": "dense",
+      "progressions": [
+        "Knee down, torso upright, hands on the floor.",
+        "Hands to the front thigh.",
+        "Hands to the hips.",
+        "Shoulders to the wall."
+      ],
+      "standard": {
+        "hold_s": 60
+      },
+      "standard_text": "60 s hold, per side"
+    },
+    {
+      "block": "mobility_cooldown",
+      "exercise_slug": "seated-piriformis-stretch",
+      "id": "dense-piriformis-stretch",
+      "name": "Piriformis Stretch",
+      "order": 32,
+      "per_side": true,
+      "phase_id": "dense",
+      "standard": {
+        "hold_s": 60
+      },
+      "standard_text": "60 s hold, per side"
+    },
+    {
+      "block": "mobility_cooldown",
+      "exercise_slug": "butterfly-yoga-pose",
+      "id": "dense-butterfly-stretch",
+      "name": "Butterfly Stretch",
+      "order": 33,
+      "phase_id": "dense",
+      "standard": {
+        "hold_s": 60
+      },
+      "standard_text": "60 s hold"
+    },
+    {
+      "block": "knee_ability",
+      "exercise_slug": "sissy-squat",
+      "id": "dense-vmo-squat",
+      "name": "VMO Squat",
+      "order": 34,
+      "phase_id": "dense",
+      "progressions": [
+        "Bodyweight, heels elevated (weeks 1–2).",
+        "Goblet-held dumbbell at 5% bodyweight (week 3).",
+        "+5% bodyweight per week.",
+        "Bar on the back at 5% bodyweight from week 8."
+      ],
+      "standard": {
+        "duration_min": 10,
+        "reps": 10,
+        "sets": 10
+      },
+      "standard_text": "10 × 10 reps, 10 min",
+      "substitutions": [
+        {
+          "equipment_missing": "slant_board",
+          "note": "Seth owns a slant board, so the slant version is the prescription at home. Travelling or at Planet Fitness: the same movement off a stair edge or a stack of plates, accepting the shorter range.",
+          "use_slug": "sissy-squat"
+        }
+      ]
+    },
+    {
+      "block": "knee_ability",
+      "exercise_slug": "sissy-squat",
+      "id": "dense-kot-squat-eccentric",
+      "name": "KOT Squat (Eccentric)",
+      "order": 35,
+      "phase_id": "dense",
+      "progressions": [
+        "Lower to a high surface and stand back up.",
+        "Lower to a progressively lower surface.",
+        "Full range to the floor, controlled the whole way down."
+      ],
+      "standard": {
+        "duration_min": 5,
+        "reps": 25
+      },
+      "standard_text": "25 reps, 5 min"
+    },
+    {
+      "block": "posterior_chain",
+      "exercise_slug": "nordic-hamstring-curl",
+      "id": "dense-nordic-curl-eccentric",
+      "name": "Nordic Curl (Eccentric)",
+      "order": 36,
+      "phase_id": "dense",
+      "progressions": [
+        "Lowering only, hands catch.",
+        "Slower lowering.",
+        "Full reps down and up."
+      ],
+      "standard": {
+        "duration_min": 5,
+        "reps": 25
+      },
+      "standard_text": "25 reps, 5 min — Lowering phase only — no concentric.",
+      "substitutions": [
+        {
+          "equipment_missing": "nordic_support",
+          "note": "Planet Fitness: seated leg curl machine.",
+          "use_slug": "seated-leg-curl"
+        },
+        {
+          "equipment_missing": "nordic_support",
+          "note": "Travelling: reverse Nordic.",
+          "use_slug": "reverse-nordic"
+        }
+      ]
+    },
+    {
+      "block": "posterior_chain",
       "exercise_slug": "ql-extension",
-      "standard_text": "25% of bodyweight for 10 reps, segmental flexion and extension under control.",
-      "standard": { "pct_bodyweight": 0.25, "reps": 10 },
-      "prerequisites": ["dense-seated-good-morning"],
+      "id": "dense-ql-extension",
+      "name": "QL Extension",
+      "order": 37,
+      "per_side": true,
+      "phase_id": "dense",
+      "progressions": [
+        "Bodyweight, short range.",
+        "Full range.",
+        "Holding a plate."
+      ],
+      "standard": {
+        "reps": 10,
+        "sets": 3
+      },
+      "standard_text": "3 × 10 reps, per side",
       "substitutions": [
         {
           "equipment_missing": "back_extension_bench",
-          "use_slug": "seated-good-morning",
-          "note": "No back-extension bench: the seated good morning covers the same low-back standard."
+          "note": "Neither gym has a back-extension bench: the seated good morning covers the same low-back standard.",
+          "use_slug": "seated-good-morning"
         }
       ]
     },
     {
-      "id": "dense-incline-db-press",
-      "order": 24,
-      "block": "upper_body_accessory",
-      "name": "Incline Dumbbell Press (Dense)",
+      "block": "warm_up",
+      "exercise_slug": "foot-smr",
+      "id": "standards-plantar-fascia-stretch",
+      "name": "Plantar Fascia Stretch",
+      "order": 38,
+      "phase_id": "standards",
+      "standard": {
+        "duration_min": 2
+      },
+      "standard_text": "2 min"
+    },
+    {
+      "block": "warm_up",
+      "exercise_slug": "posterior-tibialis-stretch",
+      "id": "standards-tibialis-stretch",
+      "name": "Tibialis Stretch",
+      "order": 39,
+      "phase_id": "standards",
+      "standard": {
+        "duration_min": 2
+      },
+      "standard_text": "2 min"
+    },
+    {
+      "block": "warm_up",
+      "exercise_slug": "zone-2-steady",
+      "id": "standards-bodyweight-walk",
+      "name": "Bodyweight Walk",
+      "order": 40,
+      "phase_id": "standards",
+      "standard": {
+        "distance_mi": 0.25
+      },
+      "standard_text": "0.25 mile",
+      "substitutions": [
+        {
+          "equipment_missing": "outdoor_route",
+          "note": "Planet Fitness or bad weather: treadmill at an easy pace.",
+          "use_slug": "walking-treadmill"
+        }
+      ]
+    },
+    {
+      "block": "hip_flexors_core",
+      "exercise_slug": "leg-up-hamstring-stretch",
+      "id": "standards-single-leg-elevated-pike",
+      "name": "Single-Leg Elevated Pike",
+      "order": 41,
+      "per_side": true,
+      "phase_id": "standards",
+      "standard": {
+        "hold_s": 60,
+        "sets": 3
+      },
+      "standard_text": "3 sets, 60 s hold, per side"
+    },
+    {
+      "block": "knee_ability",
+      "exercise_slug": "poliquin-step",
+      "id": "standards-poliquin-step-up",
+      "name": "Poliquin Step-Up",
+      "order": 42,
+      "per_side": true,
+      "phase_id": "standards",
+      "progressions": [
+        "Bodyweight off a low rise.",
+        "Heel elevated on the board.",
+        "Loaded toward the 66%-bodyweight standard."
+      ],
+      "standard": {
+        "pct_bodyweight": 0.66,
+        "reps": 20,
+        "sets": 5
+      },
+      "standard_text": "5 × 20 reps, per side — BENCHMARK: 66% BW, heel elevated, 3-4\" box.",
+      "substitutions": [
+        {
+          "equipment_missing": "plyo_box",
+          "note": "No 3–4 inch box at either gym: a stair or a stacked pair of plates is the rise; the Patrick Step is the regression until one exists.",
+          "use_slug": "patrick-step"
+        },
+        {
+          "equipment_missing": "slant_board",
+          "note": "Seth owns a slant board, so the slant version is the prescription at home. Travelling or at Planet Fitness: the same movement off a stair edge or a stack of plates, accepting the shorter range.",
+          "use_slug": "poliquin-step"
+        }
+      ]
+    },
+    {
+      "block": "posterior_chain",
+      "exercise_slug": "jefferson-curl",
+      "id": "standards-jefferson-curl",
+      "name": "Jefferson Curl",
+      "order": 43,
+      "phase_id": "standards",
+      "progressions": [
+        "Unloaded roll-down off a box.",
+        "Light bar.",
+        "Toward 25% bodyweight for 10 reps."
+      ],
+      "standard": {
+        "pct_bodyweight": 0.25,
+        "reps": 10,
+        "sets": 5
+      },
+      "standard_text": "5 × 10 reps — Loaded spinal flexion — check it against the standing low-back injury before prescribing. — BENCHMARK: 25% BW for 10 reps.",
+      "substitutions": [
+        {
+          "equipment_missing": "barbell",
+          "note": "No barbell at either gym: a single heavy dumbbell held in both hands works to about 50 lb.",
+          "use_slug": "jefferson-curl"
+        },
+        {
+          "equipment_missing": "plyo_box",
+          "note": "No box: stand on the slant board or the end of a flat bench so the hands can pass below the toes.",
+          "use_slug": "jefferson-curl"
+        }
+      ]
+    },
+    {
+      "block": "hip_flexors_core",
+      "exercise_slug": "hanging-leg-raise",
+      "id": "standards-hanging-leg-raise",
+      "name": "Hanging Leg Raise",
+      "order": 44,
+      "phase_id": "standards",
+      "progressions": [
+        "Bent-knee raise.",
+        "Straight-leg raise to horizontal.",
+        "Toes to bar."
+      ],
+      "standard": {
+        "reps": 10,
+        "sets": 3
+      },
+      "standard_text": "3 × 10 reps — BENCHMARK: Toes to bar.",
+      "substitutions": [
+        {
+          "equipment_missing": "pull_up_bar",
+          "note": "Planet Fitness has no free-hanging bar: the captain’s-chair or a bench leg pull-in is the substitute.",
+          "use_slug": "leg-pull-in"
+        }
+      ]
+    },
+    {
+      "block": "lower_legs",
+      "exercise_slug": "tibialis-raise",
+      "id": "standards-tibialis-raise",
+      "name": "Tibialis Raise",
+      "order": 45,
+      "phase_id": "standards",
+      "progressions": [
+        "Stand closer to the wall — less load, easier.",
+        "Step farther from the wall — more load, harder.",
+        "Add load: a dumbbell held between the feet, or a band over the forefoot.",
+        "Tib bar, once one is available."
+      ],
+      "standard": {
+        "reps": 20,
+        "sets": 3
+      },
+      "standard_text": "3 × 20 reps",
+      "substitutions": [
+        {
+          "equipment_missing": "wall_space",
+          "note": "No wall to lean on: anchor a band low in front and loop it over the forefoot.",
+          "use_slug": "tibialis-raise-band"
+        },
+        {
+          "equipment_missing": "tibialis_bar",
+          "note": "No tib bar at either gym: stand a dumbbell on end and pinch it between the feet.",
+          "use_slug": "tibialis-raise-dumbbell"
+        }
+      ]
+    },
+    {
+      "block": "upper_body",
       "exercise_slug": "incline-dumbbell-press",
-      "standard_text": "66% of bodyweight (total, both dumbbells) for 10 reps on an incline bench.",
-      "standard": { "pct_bodyweight": 0.66, "reps": 10 },
+      "id": "standards-incline-dumbbell-press",
+      "name": "Incline Dumbbell Press",
+      "order": 46,
+      "phase_id": "standards",
+      "standard": {
+        "reps": 10,
+        "sets": 4
+      },
+      "standard_text": "4 × 10 reps"
+    },
+    {
+      "block": "upper_body",
+      "exercise_slug": "face-pull",
+      "id": "standards-trx-face-pull",
+      "name": "TRX Face Pull",
+      "order": 47,
+      "phase_id": "standards",
+      "standard": {
+        "reps": 10,
+        "sets": 4
+      },
+      "standard_text": "4 × 10 reps",
       "substitutions": [
         {
-          "equipment_missing": "bench_adjustable",
-          "use_slug": "incline-dumbbell-press",
-          "note": "No adjustable bench: use the Smith machine incline or a chest-press machine set high."
+          "equipment_missing": "suspension_trainer",
+          "note": "Neither location has a TRX: Planet Fitness has the cable face pull; at home use a band anchored at head height.",
+          "use_slug": "face-pull"
         }
       ]
     },
     {
-      "id": "dense-external-rotation",
-      "order": 25,
-      "block": "upper_body_accessory",
-      "name": "Shoulder External Rotation (Dense)",
+      "block": "mobility_cooldown",
+      "exercise_slug": "seated-piriformis-stretch",
+      "id": "standards-pigeon",
+      "name": "Pigeon",
+      "order": 48,
+      "per_side": true,
+      "phase_id": "standards",
+      "standard": {
+        "hold_s": 90
+      },
+      "standard_text": "90 s hold, per side"
+    },
+    {
+      "block": "mobility_cooldown",
+      "exercise_slug": "couch-stretch",
+      "id": "standards-couch-stretch",
+      "name": "Couch Stretch",
+      "order": 49,
+      "per_side": true,
+      "phase_id": "standards",
+      "progressions": [
+        "Knee down, torso upright, hands on the floor.",
+        "Hands to the front thigh.",
+        "Hands to the hips.",
+        "Shoulders to the wall."
+      ],
+      "standard": {
+        "hold_s": 90
+      },
+      "standard_text": "90 s hold, per side"
+    },
+    {
+      "block": "warm_up",
+      "exercise_slug": "standing-calves-calf-stretch",
+      "id": "standards-calf-stretch",
+      "name": "Calf Stretch",
+      "order": 50,
+      "phase_id": "standards",
+      "standard": {
+        "hold_s": 60
+      },
+      "standard_text": "60 s hold"
+    },
+    {
+      "block": "knee_ability",
+      "exercise_slug": "kneeling-hip-flexor",
+      "id": "standards-relaxed-lunge",
+      "name": "Relaxed Lunge",
+      "order": 51,
+      "per_side": true,
+      "phase_id": "standards",
+      "standard": {
+        "hold_s": 60,
+        "sets": 3
+      },
+      "standard_text": "3 sets, 60 s hold, per side"
+    },
+    {
+      "block": "knee_ability",
+      "exercise_slug": "atg-split-squat",
+      "id": "standards-atg-split-squat",
+      "name": "ATG Split Squat",
+      "order": 52,
+      "per_side": true,
+      "phase_id": "standards",
+      "progressions": [
+        "Front foot elevated, holding a rail for assistance.",
+        "Front foot elevated, no hands.",
+        "Flat ground, no hands, back knee to the floor.",
+        "Dumbbells in both hands, toward 25% bodyweight per hand."
+      ],
+      "rest_s": 30,
+      "standard": {
+        "pct_bodyweight": 0.25,
+        "per_hand": true,
+        "reps": 5,
+        "sets": 5
+      },
+      "standard_text": "5 × 5 reps, per side — BENCHMARK: 25% BW per hand.",
+      "substitutions": [
+        {
+          "equipment_missing": "adjustable_dumbbell",
+          "note": "Travelling: bodyweight, or a loaded backpack.",
+          "use_slug": "atg-split-squat"
+        }
+      ]
+    },
+    {
+      "block": "posterior_chain",
+      "exercise_slug": "seated-good-morning",
+      "id": "standards-seated-good-morning",
+      "name": "Seated Good Morning",
+      "order": 53,
+      "phase_id": "standards",
+      "progressions": [
+        "Bodyweight hinge, hands behind the head.",
+        "Light bar.",
+        "Toward 50% bodyweight, abs to the bench."
+      ],
+      "standard": {
+        "pct_bodyweight": 0.5,
+        "reps": 10,
+        "sets": 5
+      },
+      "standard_text": "5 × 10 reps — BENCHMARK: 50% BW, abs to bench.",
+      "substitutions": [
+        {
+          "equipment_missing": "barbell",
+          "note": "Neither gym has a barbell: Planet Fitness has the Smith machine and a seated good-morning lever.",
+          "use_slug": "lever-seated-good-morning"
+        },
+        {
+          "equipment_missing": "barbell",
+          "note": "Home: hold a single heavy dumbbell at the chest and hinge from the hips.",
+          "use_slug": "seated-good-mornings"
+        }
+      ]
+    },
+    {
+      "block": "hip_flexors_core",
+      "exercise_slug": "hanging-oblique-knee-raise",
+      "id": "standards-garhammer-raise",
+      "name": "Garhammer Raise",
+      "order": 54,
+      "phase_id": "standards",
+      "progressions": [
+        "Level 1 — knees to 90°, short pull.",
+        "Level 2 — from 90°, curl the knees higher toward the chest for 10 reps."
+      ],
+      "standard": {
+        "reps": 10,
+        "sets": 3
+      },
+      "standard_text": "3 × 10 reps — BENCHMARK: 10 reps, Level 2.",
+      "substitutions": [
+        {
+          "equipment_missing": "pull_up_bar",
+          "note": "Planet Fitness: captain’s chair or bench leg pull-in.",
+          "use_slug": "leg-pull-in"
+        }
+      ]
+    },
+    {
+      "block": "lower_legs",
+      "exercise_slug": "single-leg-calf-raise",
+      "id": "standards-single-leg-calf-raise",
+      "name": "Single-Leg Calf Raise",
+      "order": 55,
+      "per_side": true,
+      "phase_id": "standards",
+      "progressions": [
+        "Bodyweight, floor.",
+        "Bodyweight, heel below a step or board.",
+        "Loaded — the benchmark is 25% bodyweight for 10 reps."
+      ],
+      "standard": {
+        "pct_bodyweight": 0.25,
+        "reps": 10,
+        "sets": 3
+      },
+      "standard_text": "3 × 10 reps, per side — BENCHMARK: 25% BW, 10 reps.",
+      "substitutions": [
+        {
+          "equipment_missing": "slant_board",
+          "note": "Seth owns a slant board, so the slant version is the prescription at home. Travelling or at Planet Fitness: the same movement off a stair edge or a stack of plates, accepting the shorter range.",
+          "use_slug": "single-leg-calf-raise"
+        }
+      ]
+    },
+    {
+      "block": "upper_body",
+      "exercise_slug": "chest-dip",
+      "id": "standards-atg-dips",
+      "name": "ATG Dips",
+      "order": 56,
+      "phase_id": "standards",
+      "progressions": [
+        "Partial depth.",
+        "Full depth, shoulder below elbow.",
+        "Weighted."
+      ],
+      "standard": {
+        "reps": 12,
+        "sets": 4
+      },
+      "standard_text": "4 × 12 reps",
+      "substitutions": [
+        {
+          "equipment_missing": "dip_station",
+          "note": "Neither location has a dip station: bench dips, accepting the shorter range.",
+          "use_slug": "bench-dips"
+        }
+      ]
+    },
+    {
+      "block": "upper_body",
       "exercise_slug": "external-rotation",
-      "standard_text": "10% of bodyweight for controlled external rotation reps, each side.",
-      "standard": { "pct_bodyweight": 0.1 },
+      "id": "standards-shoulder-external-rotation",
+      "name": "Shoulder External Rotation",
+      "order": 57,
+      "per_side": true,
+      "phase_id": "standards",
+      "standard": {
+        "reps": 12,
+        "sets": 4
+      },
+      "standard_text": "4 × 12 reps, per side",
       "substitutions": [
         {
-          "equipment_missing": "dumbbell",
-          "use_slug": "external-rotation-with-band",
-          "note": "Band or cable external rotation is equivalent for this standard."
+          "equipment_missing": "cable_machine",
+          "note": "Home: band external rotation, elbow pinned to the side.",
+          "use_slug": "external-rotation-with-band"
         }
       ]
     },
     {
-      "id": "dense-cross-bench-pullover",
-      "order": 26,
-      "block": "upper_body_accessory",
-      "name": "Cross-Bench Pullover (Dense)",
-      "exercise_slug": "dumbbell-pullover",
-      "standard_text": "25% of bodyweight, performed lying ACROSS the bench (hips low) for a full stretch overhead.",
-      "standard": { "pct_bodyweight": 0.25 },
+      "block": "mobility_cooldown",
+      "exercise_slug": "butterfly-yoga-pose",
+      "id": "standards-butterfly-stretch",
+      "name": "Butterfly Stretch",
+      "order": 58,
+      "phase_id": "standards",
+      "standard": {
+        "duration_min": 2
+      },
+      "standard_text": "2 min"
+    },
+    {
+      "block": "mobility_cooldown",
+      "exercise_slug": "the-straddle",
+      "id": "standards-seated-pancake",
+      "name": "Seated Pancake",
+      "order": 59,
+      "phase_id": "standards",
+      "standard": {
+        "duration_min": 2
+      },
+      "standard_text": "2 min"
+    },
+    {
+      "block": "knee_ability",
+      "exercise_slug": "atg-squat",
+      "id": "standards-atg-squat",
+      "name": "ATG Squat",
+      "order": 60,
+      "phase_id": "standards",
+      "progressions": [
+        "Bodyweight to full depth.",
+        "Goblet-held load.",
+        "Toward 25% bodyweight for 20 reps."
+      ],
+      "standard": {
+        "pct_bodyweight": 0.25,
+        "reps": 20,
+        "sets": 5
+      },
+      "standard_text": "5 × 20 reps — BENCHMARK: 25% BW, 20 reps."
+    },
+    {
+      "block": "posterior_chain",
+      "exercise_slug": "nordic-hamstring-curl",
+      "id": "standards-nordic-curl",
+      "name": "Nordic Curl",
+      "order": 61,
+      "phase_id": "standards",
+      "progressions": [
+        "Lower a short way, hands catch early.",
+        "Lower farther each week, hands catch late.",
+        "Full lower, push back up with the hands.",
+        "Full rep down and up, no hands — the standard is 10."
+      ],
+      "standard": {
+        "reps": 10,
+        "sets": 5
+      },
+      "standard_text": "5 × 10 reps — BENCHMARK: 10 full reps (no hands).",
       "substitutions": [
         {
-          "equipment_missing": "bench_flat",
-          "use_slug": "dumbbell-pullover",
-          "note": "No bench: lie on the floor and accept the reduced range, or use a stability ball."
+          "equipment_missing": "nordic_support",
+          "note": "Planet Fitness has no GHD and nothing safe to anchor the ankles under: run the seated leg curl machine instead.",
+          "use_slug": "seated-leg-curl"
+        },
+        {
+          "equipment_missing": "nordic_support",
+          "note": "Travelling: reverse Nordic needs no anchor and keeps the eccentric quality.",
+          "use_slug": "reverse-nordic"
         }
       ]
+    },
+    {
+      "block": "hip_flexors_core",
+      "exercise_slug": "leg-pull-in",
+      "id": "standards-low-cable-pull-in",
+      "name": "Low Cable Pull-In",
+      "order": 62,
+      "per_side": true,
+      "phase_id": "standards",
+      "progressions": [
+        "Bodyweight leg pull-in.",
+        "Light cable.",
+        "Toward 50% bodyweight for 20 reps."
+      ],
+      "standard": {
+        "pct_bodyweight": 0.5,
+        "reps": 20,
+        "sets": 3
+      },
+      "standard_text": "3 × 20 reps, per side — BENCHMARK: 50% BW, 20 reps.",
+      "substitutions": [
+        {
+          "equipment_missing": "cable_machine",
+          "note": "Home has no cable stack: a band anchored low at the ankle is the substitute, and the 50%-bodyweight standard is not reachable there.",
+          "use_slug": "leg-pull-in"
+        }
+      ]
+    },
+    {
+      "block": "upper_body",
+      "exercise_slug": "dumbbell-shoulder-press",
+      "id": "standards-atg-shoulder-press",
+      "name": "ATG Shoulder Press",
+      "order": 63,
+      "phase_id": "standards",
+      "standard": {
+        "reps": 10,
+        "sets": 4
+      },
+      "standard_text": "4 × 10 reps"
+    },
+    {
+      "block": "upper_body",
+      "exercise_slug": "chin-up",
+      "id": "standards-chin-up",
+      "name": "Chin-Up",
+      "order": 64,
+      "phase_id": "standards",
+      "progressions": [
+        "Band- or machine-assisted.",
+        "Bodyweight.",
+        "Weighted."
+      ],
+      "standard": {
+        "reps": 10,
+        "sets": 4
+      },
+      "standard_text": "4 × 10 reps",
+      "substitutions": [
+        {
+          "equipment_missing": "pull_up_bar",
+          "note": "Planet Fitness has no free bar: the assisted pull-up machine.",
+          "use_slug": "assisted-standing-chin-up"
+        },
+        {
+          "equipment_missing": "pull_up_bar",
+          "note": "Planet Fitness alternative: lat pulldown.",
+          "use_slug": "cable-bar-lateral-pulldown"
+        }
+      ]
+    },
+    {
+      "block": "posterior_chain",
+      "exercise_slug": "barbell-deadlift",
+      "id": "standards-atg-deadlift",
+      "name": "ATG Deadlift",
+      "order": 65,
+      "phase_id": "standards",
+      "progressions": [
+        "Partial range from blocks.",
+        "Floor.",
+        "Standing on a platform for extra range.",
+        "Toward 100% bodyweight for 10 reps."
+      ],
+      "standard": {
+        "pct_bodyweight": 1,
+        "reps": 10,
+        "sets": 5
+      },
+      "standard_text": "5 × 10 reps — BENCHMARK: 100% BW, 10 reps.",
+      "substitutions": [
+        {
+          "equipment_missing": "barbell",
+          "note": "Planet Fitness has no barbell and does not allow floor deadlifts: the Smith machine is the only route there.",
+          "use_slug": "smith-deadlift"
+        },
+        {
+          "equipment_missing": "barbell",
+          "note": "Home tops out at 52.5 lb per hand — the ATG RDL with dumbbells is the stand-in, well short of the 100%-bodyweight standard.",
+          "use_slug": "atg-rdl"
+        }
+      ]
+    },
+    {
+      "block": "knee_ability",
+      "exercise_slug": "sissy-squat",
+      "id": "standards-sissy-squat",
+      "name": "Sissy Squat",
+      "order": 66,
+      "phase_id": "standards",
+      "progressions": [
+        "One-arm assisted.",
+        "Free-standing.",
+        "Loaded."
+      ],
+      "standard": {
+        "reps": 20,
+        "sets": 5
+      },
+      "standard_text": "5 × 20 reps"
+    },
+    {
+      "block": "hip_flexors_core",
+      "exercise_slug": "l-sit",
+      "id": "standards-l-sit",
+      "name": "L-Sit",
+      "order": 67,
+      "phase_id": "standards",
+      "progressions": [
+        "Level 1 — alternate lifting one leg at a time, seated, for the full time.",
+        "Level 2 — same, with the hips off the floor.",
+        "Level 3 — full L-sit, both legs and hips off the floor."
+      ],
+      "standard": {
+        "hold_s": 15,
+        "sets": 3
+      },
+      "standard_text": "3 sets, 15 s hold"
+    },
+    {
+      "block": "upper_body",
+      "exercise_slug": "bent-arm-dumbbell-pullover",
+      "id": "standards-bench-pullover",
+      "name": "Bench Pullover",
+      "order": 68,
+      "phase_id": "standards",
+      "progressions": [
+        "Along the bench.",
+        "Across the bench, hips low, for the full overhead stretch.",
+        "Toward 25% bodyweight."
+      ],
+      "standard": {
+        "pct_bodyweight": 0.25,
+        "reps": 10,
+        "sets": 4
+      },
+      "standard_text": "4 × 10 reps — BENCHMARK: 25% BW."
+    },
+    {
+      "block": "upper_body",
+      "exercise_slug": "dumbbell-shrug",
+      "id": "standards-trap-raise",
+      "name": "Trap Raise",
+      "order": 69,
+      "phase_id": "standards",
+      "standard": {
+        "reps": 10,
+        "sets": 4
+      },
+      "standard_text": "4 × 10 reps"
     }
-  ]
+  ],
+  "target_cycles": 1
 }

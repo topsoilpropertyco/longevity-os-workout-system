@@ -1,0 +1,121 @@
+{
+  "_note": "Seth’s last recorded working weights, lifted from the \"Full Body\" sheet of his own ATG_Workouts spreadsheet (gitignored). They exist to seed cold-start predictions before any session is logged in this app. They are from April 2026 and this file is being read months later, so treat every number as a FLOOR — where he was, not where he should be aiming. The moment a real session is logged for an exercise, the logged history wins and the number here stops being used. Regenerate with `npx tsx scripts/ingest-kot.ts`.",
+  "as_of": "2026-04",
+  "dense_sheet_annotations": [
+    {
+      "as_of": "2026-04",
+      "exercise_slug": "patrick-step",
+      "load_lb": 35,
+      "note": "The sheet writes this as a total, so it is already the engine's total-load convention rather than a per-hand number.",
+      "sheet_name": "Pat Step",
+      "source": "YouTube_Links_ATG_Workouts.xlsx — \"Dense\" sheet annotation"
+    },
+    {
+      "as_of": "2026-04",
+      "exercise_slug": "seated-good-morning",
+      "load_lb": 35,
+      "note": "The sheet writes this as a total, so it is already the engine's total-load convention rather than a per-hand number.",
+      "sheet_name": "Seated Good Morning",
+      "source": "YouTube_Links_ATG_Workouts.xlsx — \"Dense\" sheet annotation"
+    },
+    {
+      "as_of": "2026-04",
+      "exercise_slug": "smith-machine-bicep-curl",
+      "load_lb": 22.5,
+      "note": "The sheet writes this as a total, so it is already the engine's total-load convention rather than a per-hand number.",
+      "sheet_name": "Smith Curl / French Press",
+      "source": "YouTube_Links_ATG_Workouts.xlsx — \"Dense\" sheet annotation"
+    },
+    {
+      "as_of": "2026-04",
+      "exercise_slug": "tibialis-raise",
+      "load_lb": 12.5,
+      "note": "The sheet gives no per-hand/total marking for this one.",
+      "sheet_name": "Tibialis Raise",
+      "source": "YouTube_Links_ATG_Workouts.xlsx — \"Dense\" sheet annotation"
+    },
+    {
+      "as_of": "2026-04",
+      "exercise_slug": "fhl-calf-raise",
+      "load_lb": 25,
+      "note": "The sheet writes this as a total, so it is already the engine's total-load convention rather than a per-hand number.",
+      "sheet_name": "Slant Board Calf Raises",
+      "source": "YouTube_Links_ATG_Workouts.xlsx — \"Dense\" sheet annotation"
+    }
+  ],
+  "lifts": [
+    {
+      "as_of": "2026-04",
+      "exercise_slug": "barbell-deadlift",
+      "load_lb": 95,
+      "reps": 10,
+      "sets": 4,
+      "sheet_name": "Deadlift",
+      "source": "ATG_Workouts.xlsx — \"Full Body\" sheet"
+    },
+    {
+      "as_of": "2026-04",
+      "exercise_slug": "atg-split-squat",
+      "load_lb": 25,
+      "note": "Sheet reads \"25 DB\" — 25 lb dumbbells. Whether that is 25 lb per hand (50 lb total, the engine convention) or 25 lb total is not stated.",
+      "reps": 10,
+      "sets": 4,
+      "sheet_name": "Split Squat",
+      "source": "ATG_Workouts.xlsx — \"Full Body\" sheet"
+    },
+    {
+      "as_of": "2026-04",
+      "exercise_slug": "sissy-squat",
+      "load_lb": 45,
+      "reps": 10,
+      "sets": 4,
+      "sheet_name": "VMO Squat",
+      "source": "ATG_Workouts.xlsx — \"Full Body\" sheet"
+    },
+    {
+      "as_of": "2026-04",
+      "exercise_slug": "patrick-step",
+      "load_lb": 55,
+      "reps": 5,
+      "sheet_name": "Pat Step",
+      "source": "ATG_Workouts.xlsx — \"Full Body\" sheet"
+    },
+    {
+      "as_of": "2026-04",
+      "exercise_slug": "dumbbell-bench-press",
+      "load_lb": 45,
+      "reps": 8,
+      "sets": 4,
+      "sheet_name": "Dumbbell Bench",
+      "source": "ATG_Workouts.xlsx — \"Full Body\" sheet"
+    },
+    {
+      "as_of": "2026-04",
+      "exercise_slug": "barbell-bench-press-medium-grip",
+      "load_lb": 115,
+      "reps": 8,
+      "sets": 4,
+      "sheet_name": "Bench",
+      "source": "ATG_Workouts.xlsx — \"Full Body\" sheet"
+    },
+    {
+      "as_of": "2026-04",
+      "exercise_slug": "barbell-decline-bench-press",
+      "load_lb": 95,
+      "reps": 8,
+      "sets": 4,
+      "sheet_name": "Decline Bench",
+      "source": "ATG_Workouts.xlsx — \"Full Body\" sheet"
+    },
+    {
+      "as_of": "2026-04",
+      "exercise_slug": "dumbbell-bicep-curl",
+      "load_lb": 25,
+      "reps": 8,
+      "sets": 4,
+      "sheet_name": "DB Curl",
+      "source": "ATG_Workouts.xlsx — \"Full Body\" sheet"
+    }
+  ],
+  "program_slug": "kot"
+}
