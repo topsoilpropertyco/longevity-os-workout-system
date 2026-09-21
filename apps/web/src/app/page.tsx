@@ -73,7 +73,7 @@ export default async function TodayPage() {
   const iso = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
 
   return (
-    <main className="app-pad mx-auto flex max-w-xl flex-col gap-5 pb-24 pt-5">
+    <main className="app-pad mx-auto flex max-w-xl flex-col gap-5 pb-6 pt-5">
       <header className="flex items-baseline justify-between">
         <div>
           <p className="label">{longDate(iso)}</p>
