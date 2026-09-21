@@ -17,6 +17,10 @@ out/
 build/
 *.tsbuildinfo
 
+# The encrypted Oura token set written by scripts/oura-auth.ts. Encrypted at
+# rest, but it is still a credential and has no business in git.
+.oura-tokens.enc
+
 # env — never commit secrets
 .env
 .env.local
