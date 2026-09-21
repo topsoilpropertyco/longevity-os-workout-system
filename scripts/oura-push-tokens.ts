@@ -127,14 +127,16 @@ function describe(t: OuraTokens): string {
 async function main(): Promise<void> {
   loadEnvLocal();
 
-  const userId = arg('user');
+  // `.env.local` already holds this — it is what LONGEVITY_USER_ID is for,
+  // and retyping a uuid is a good way to seed the wrong athlete.
+  const userId = arg('user') ?? process.env['LONGEVITY_USER_ID'];
   const dryRun = process.argv.includes('--dry-run');
   const keep = process.argv.includes('--keep');
 
   if (!userId || !UUID.test(userId)) {
     process.stderr.write(
-      '--user wants the uuid from public.users.\n\n' +
-        'Find it in the Supabase table editor, or with:\n' +
+      'No athlete. Set LONGEVITY_USER_ID in .env.local, or pass --user <uuid>.\n\n' +
+        'It is the id in public.users, which you can read with:\n' +
         '  select id, email from public.users;\n',
     );
     process.exit(2);

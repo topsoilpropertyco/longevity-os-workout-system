@@ -294,12 +294,14 @@ async function main(): Promise<void> {
   const url = process.env['SUPABASE_URL'] ?? process.env['NEXT_PUBLIC_SUPABASE_URL'] ?? '';
   const key = process.env['SUPABASE_SERVICE_ROLE_KEY'] ?? '';
   const dryRun = process.argv.includes('--dry-run');
-  const userId = arg('user');
+  // `.env.local` already holds this — it is what LONGEVITY_USER_ID is for,
+  // and retyping a uuid is a good way to seed the wrong athlete.
+  const userId = arg('user') ?? process.env['LONGEVITY_USER_ID'];
 
   if (userId !== undefined && !UUID.test(userId)) {
     process.stderr.write(
-      `--user wants the uuid from public.users, not "${userId}".\n` +
-        'Find it in the Supabase table editor, or with:\n' +
+      `That is not a uuid from public.users: "${userId}".\n` +
+        'It comes from LONGEVITY_USER_ID in .env.local, or --user. Read it with:\n' +
         "  select id, email from public.users;\n",
     );
     process.exit(2);
