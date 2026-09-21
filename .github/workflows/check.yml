@@ -44,6 +44,12 @@ jobs:
       - name: Validate generated data
         run: npx tsx scripts/validate-data.ts
 
+      # 0011_seed_kot.sql is generated from programs/kot/program.json. Hand-
+      # editing either one alone puts a step in the database that is not in the
+      # program, or the reverse — and nothing at runtime would say so.
+      - name: The KOT seed matches the program it is generated from
+        run: npx tsx scripts/gen-kot-sql.ts --check
+
       # A stray `tsc` without an outDir leaves .js beside the .ts sources, where
       # Vite's resolver prefers it and the tests silently run stale code. This
       # has already happened once.
@@ -133,6 +139,57 @@ jobs:
             exit 1
           fi
           echo "Bundle is up to date."
+
+      # packages/db/src/types.ts is hand-written until the project is linked and
+      # `supabase gen types` can run. A column added to a migration and missed
+      # there does not fail the build — it fails at runtime as a field that is
+      # quietly undefined. This is the only place that can catch it.
+      - name: The db contract matches the schema
+        env:
+          PGHOST: localhost
+          PGUSER: postgres
+          PGPASSWORD: postgres
+          PGDATABASE: longevity
+        run: npx tsx scripts/check-db-columns.ts
+
+      - name: The program seeded, whole
+        env:
+          PGPASSWORD: postgres
+        run: |
+          psql -h localhost -U postgres -d longevity -v ON_ERROR_STOP=1 -tAc "
+            select case
+              when (select count(*) from program_steps) = 0 then 'no program steps seeded'
+              when (select current_phase_id from programs where slug='kot') is null
+                then 'kot has no starting phase'
+              else ''
+            end;" | grep -q '^$' || { echo "The KOT seed did not land."; exit 1; }
+          echo "Seeded: $(psql -h localhost -U postgres -d longevity -tAc "
+            select (select count(*) from program_steps) || ' steps, '
+                || (select jsonb_array_length(phases) from programs where slug='kot') || ' phases, '
+                || (select jsonb_array_length(days) from programs where slug='kot') || ' weekday templates';")"
+
+      - name: Enrolling an athlete is idempotent
+        env:
+          PGPASSWORD: postgres
+        run: |
+          psql -h localhost -U postgres -d longevity -v ON_ERROR_STOP=1 -q <<'SQL'
+          insert into auth.users (id, email) values ('11111111-1111-1111-1111-111111111111','ci@example.com') on conflict do nothing;
+          insert into public.users (id, email) values ('11111111-1111-1111-1111-111111111111','ci@example.com') on conflict do nothing;
+          select public.start_program('11111111-1111-1111-1111-111111111111','kot');
+          select public.start_program('11111111-1111-1111-1111-111111111111','kot');
+          do $$
+          declare n integer; ph text; wk integer;
+          begin
+            select count(*), max(phase_id), max(week_in_phase) into n, ph, wk
+            from public.program_progress
+            where user_id = '11111111-1111-1111-1111-111111111111';
+            if n <> 1 then raise exception 'start_program created % progress rows, not 1', n; end if;
+            if ph <> 'zero' or wk <> 1 then
+              raise exception 'expected zero/week 1, got %/%', ph, wk;
+            end if;
+          end $$;
+          SQL
+          echo "start_program is idempotent and starts at Zero, week 1."
 
       - name: Every public table has RLS
         env:
