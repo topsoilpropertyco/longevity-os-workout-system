@@ -16,15 +16,23 @@ export const dynamic = 'force-dynamic';
  *
  * Endpoints that fail contribute nothing rather than failing the whole sync: a
  * night with readiness but no VO2max reading is still worth storing.
+ *
+ * Auth is OAuth2 since Oura retired personal access tokens in December 2025.
+ * The bearer is resolved per request from the token store, which refreshes and
+ * re-persists it when it is inside its expiry skew.
  */
 export async function POST(request: Request) {
   const url = new URL(request.url);
   const days = Math.min(30, Number(url.searchParams.get('days') ?? 7) || 7);
 
-  const client = ouraClient();
+  const client = await ouraClient();
   if (!client) {
     return NextResponse.json(
-      { ...notWired('oura'), days, hint: 'Set OURA_PAT. See docs/SETUP.md step 7.' },
+      {
+        ...notWired('oura'),
+        days,
+        hint: 'Set OURA_CLIENT_ID, OURA_CLIENT_SECRET and OURA_TOKEN_KEY, then connect Oura. See docs/SETUP.md step 8.',
+      },
       { status: 503 },
     );
   }
@@ -40,6 +48,26 @@ export async function POST(request: Request) {
 
   // One call per endpoint, all of them tolerant of individual failure.
   const bundle = await client.fetchDailyBundle(range);
+
+  // 409, not 500. A dead grant is not a transient fault: retrying cannot fix
+  // it, so a 5xx would put this in the "flaky upstream" bucket and get itself
+  // retried forever by the cron. Only a human opening a browser fixes it, and
+  // the status code has to say that out loud.
+  if (bundle.errors.some((e) => e.kind === 'needs_reauth')) {
+    return NextResponse.json(
+      {
+        ok: false,
+        reason: 'needs_reauth',
+        days,
+        message:
+          'Oura needs to be re-authorised in a browser. Open Settings → Connect Oura, or run ' +
+          '`npx tsx scripts/oura-auth.ts`. Retrying this endpoint will not help.',
+        detail: bundle.errors.find((e) => e.kind === 'needs_reauth')?.message,
+      },
+      { status: 409 },
+    );
+  }
+
   const { days: rows, warnings } = normalizeOuraBundle(bundle);
 
   if (rows.length === 0) {

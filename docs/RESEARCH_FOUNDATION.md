@@ -211,3 +211,94 @@ Apps Seth liked: **Fitbod** (equipment picker, swap carousel, predictions), **La
 4. Prototype the Strava HR-stream → Zone-minutes function against one real activity.
 5. Ingest Seth's KOT spreadsheets → `programs/kot/*.json` with step, standard, progression, equipment substitutions.
 6. Equipment image sourcing and license check for PF machines.
+
+---
+
+## Correction — 2026-09-21 · Oura Personal Access Tokens are retired
+
+**§3 above is wrong and must not be followed.** It says a Personal Access Token
+"is all a single user needs" and that "OAuth [is] only needed for multi-user
+later." Oura **retired Personal Access Tokens in December 2025**. The issuing
+page at `cloud.ouraring.com/personal-access-tokens` is gone and **no new PAT can
+be created**, by anyone, for any number of users. A PAT issued before that date
+still works, which is why `OuraClient` still accepts one — but nobody starting
+today can obtain one, so OAuth2 is not a later concern, it is the only route in.
+
+Verified on 2026-09-21 against the live OIDC discovery document, not from
+documentation or memory:
+
+`https://moi.ouraring.com/oauth/v2/ext/oauth-anonymous/.well-known/openid-configuration`
+
+### What §3 got wrong
+
+| §3 says | Actually |
+| --- | --- |
+| A PAT is all a single user needs | PATs cannot be issued; OAuth2 authorization code is the only way to get a credential |
+| OAuth is a multi-user concern for later | OAuth is required for one user reading their own ring |
+| No refresh dance | Refresh tokens rotate and are **single use**; each refresh invalidates the previous one |
+| (silent on scopes) | Scopes are namespaced `extapi:*`; the legacy bare names are silently ungranted |
+
+§3 is otherwise still accurate: the data endpoints, parameter families,
+`next_token` pagination, the rate limit, the sandbox and the endpoint list are
+all unchanged by this. **Only the handshake moved.**
+
+### Verified endpoints
+
+| | |
+| --- | --- |
+| issuer | `https://moi.ouraring.com/oauth/v2/ext/oauth-anonymous` |
+| authorize | `https://moi.ouraring.com/oauth/v2/ext/oauth-authorize` |
+| token | `https://moi.ouraring.com/oauth/v2/ext/oauth-token` |
+| revoke | `https://moi.ouraring.com/oauth/v2/ext/oauth-revoke` |
+| introspect | `https://moi.ouraring.com/oauth/v2/ext/oauth-introspect` |
+| auth methods | `client_secret_post`, `client_secret_basic` |
+| grant types | `authorization_code`, `refresh_token`, `client_credentials`, `implicit` |
+| PKCE | `S256` and `plain` supported; **not** mandatory — we use S256 regardless |
+
+**⚠️ The host matters and Oura's own docs are stale.** Oura's authentication
+documentation still shows `cloud.ouraring.com/oauth/authorize` and
+`api.ouraring.com/oauth/token`. Applications registered in the post-2025 portal
+**do not work against those** — they return `Invalid client` with perfect
+credentials, which reads exactly like a bad client ID and sends you looking in
+the wrong place. Use `moi.ouraring.com`.
+
+Data endpoints are **unchanged**: `https://api.ouraring.com/v2/usercollection/`
+with `Authorization: Bearer`.
+
+### Verified scopes
+
+`scopes_supported` includes: `extapi:personal`, `extapi:daily`,
+`extapi:heartrate`, `extapi:session`, `extapi:workout`, `extapi:tag`,
+`extapi:stress`, `extapi:heart_health`, `extapi:spo2`, `extapi:biomarkers`,
+`extapi:metabolic`, `extapi:research`, `openid`, `profile`, `email`.
+
+**The legacy bare names (`daily`, `heartrate`, `session`) are silently
+ungranted** — the authorize call succeeds, a token comes back, and every request
+then reads nothing. There is **no `offline_access` scope**; refresh tokens are
+issued because the `refresh_token` grant type is supported.
+
+Longevity OS requests exactly: `extapi:personal extapi:daily extapi:heartrate
+extapi:session extapi:workout extapi:stress extapi:heart_health`.
+
+### The failure mode to design against
+
+**Refresh tokens rotate and are single use.** Every successful refresh
+invalidates the token presented. The consequences are handled in
+`packages/integrations/src/oura/tokens.ts`: refresh only within a 120-second
+skew of expiry, persist the new pair **before** handing the access token to any
+caller, hold a single-flight lock so two callers cannot spend the same token,
+and treat `invalid_grant` as its own error kind (`needs_reauth`) that is never
+retried — retrying burns another token and only a browser re-authorisation
+fixes it.
+
+### Source of truth
+
+The discovery document is live and authoritative; this table is a snapshot of
+it. `discoverEndpoints()` in `packages/integrations/src/oura/oauth.ts` reads it
+on demand, so if Oura moves the endpoints again the recovery is a diagnostic
+run, not a code archaeology exercise. **Trust the discovery document over this
+file, over §3, and over Oura's own written documentation.**
+
+Implementation: `packages/integrations/src/oura/{oauth,tokens,client}.ts`,
+`scripts/oura-auth.ts`, `apps/web/src/app/api/oura/{connect,callback,sync}/`,
+`supabase/migrations/0008_oura_oauth.sql`. Walkthrough: `docs/SETUP.md` step 8.

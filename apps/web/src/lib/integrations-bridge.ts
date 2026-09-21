@@ -1,13 +1,21 @@
 import 'server-only';
 
 import {
+  FileTokenStore,
   OuraClient,
   StravaClient,
+  SupabaseTokenStore,
   TelegramClient,
+  accessTokenGetter,
   geminiProvider,
   lmStudioProvider,
   type LlmProvider,
+  type OuraOAuthCredentials,
+  type TokenRowStore,
+  type TokenStore,
 } from '@longevity/integrations';
+
+import { serviceSupabase } from './supabase/server';
 
 /**
  * INTEGRATIONS BRIDGE — the seam between the route handlers and
@@ -30,18 +38,115 @@ export function notWired(integration: string): NotWired {
   return { ok: false, reason: 'integration_not_wired', integration };
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Oura — OAuth2 since December 2025
+// ─────────────────────────────────────────────────────────────────────────────
+
 /**
- * Oura API v2. A personal access token is all a single user needs — PATs do not
- * expire, so there is no refresh dance to get wrong.
+ * Oura RETIRED PERSONAL ACCESS TOKENS IN DECEMBER 2025 and new ones cannot be
+ * created, so `OURA_CLIENT_ID` / `OURA_CLIENT_SECRET` are now the wired state.
+ * `OURA_PAT` is still honoured for a grandfathered token and nothing else.
  */
-export function ouraClient(): OuraClient | null {
-  const token = process.env.OURA_PAT;
-  if (!token) return null;
-  return new OuraClient({
-    token,
-    // Set OURA_SANDBOX=1 to read the canned collection instead of Seth's data.
-    sandbox: process.env.OURA_SANDBOX === '1',
-  });
+export function ouraCredentials(): OuraOAuthCredentials | null {
+  const clientId = process.env.OURA_CLIENT_ID;
+  const clientSecret = process.env.OURA_CLIENT_SECRET;
+  if (!clientId || !clientSecret) return null;
+  return { clientId, clientSecret };
+}
+
+/** Where Oura sends the browser back. Must match the Oura application exactly. */
+export function ouraRedirectUri(origin: string): string {
+  return process.env.OURA_REDIRECT_URI ?? `${origin}/api/oura/callback`;
+}
+
+/**
+ * The ~25 lines that keep `@longevity/integrations` free of the Supabase SDK —
+ * the same injected-client idea `worker/src/index.ts` uses for `llm_jobs`.
+ */
+function supabaseTokenRowStore(sb: NonNullable<ReturnType<typeof serviceSupabase>>): TokenRowStore {
+  return {
+    async insert(table, row) {
+      const { data, error } = await sb.from(table).insert(row).select().single();
+      if (error) throw new Error(`insert ${table}: ${error.message}`);
+      return data as Record<string, unknown>;
+    },
+    async update(table, match, patch) {
+      let q = sb.from(table).update(patch);
+      for (const [k, v] of Object.entries(match)) {
+        q = v === null || v === undefined ? q.is(k, null) : q.eq(k, v as never);
+      }
+      const { data, error } = await q.select();
+      if (error) throw new Error(`update ${table}: ${error.message}`);
+      return (data ?? []) as Record<string, unknown>[];
+    },
+    async select(table, query) {
+      let q = sb.from(table).select('*');
+      for (const [k, v] of Object.entries(query.match ?? {})) {
+        q = v === null || v === undefined ? q.is(k, null) : q.eq(k, v as never);
+      }
+      if (query.limit) q = q.limit(query.limit);
+      const { data, error } = await q;
+      if (error) throw new Error(`select ${table}: ${error.message}`);
+      return (data ?? []) as Record<string, unknown>[];
+    },
+  };
+}
+
+/**
+ * Where the encrypted token set lives.
+ *
+ * Deployed: the `integration_tokens` row, service-role only. Locally, or on the
+ * Mac mini, there is no Supabase service key and no `LONGEVITY_USER_ID`, so it
+ * falls back to the file `scripts/oura-auth.ts` writes — which is the whole
+ * point of that script: Oura works before anything is deployed.
+ *
+ * Returns null only when there is no encryption key, because a token store that
+ * cannot encrypt is one that would write a secret in the clear.
+ */
+export function ouraTokenStore(): TokenStore | null {
+  if (!process.env.OURA_TOKEN_KEY) return null;
+
+  const userId = process.env.LONGEVITY_USER_ID;
+  const sb = serviceSupabase();
+  if (sb && userId) {
+    return new SupabaseTokenStore({ store: supabaseTokenRowStore(sb), userId });
+  }
+  return new FileTokenStore(process.env.OURA_TOKEN_FILE ?? '.oura-tokens.enc');
+}
+
+/**
+ * Oura API v2.
+ *
+ * Async because the bearer now comes from a store: the client resolves it per
+ * request through `accessTokenGetter`, so a token rotated mid-sync is picked up
+ * on the next call and the rotated pair is persisted before it is used.
+ *
+ * Still returns `null` when Oura is not configured at all — the today card then
+ * renders the three sliders and Seth notices nothing (CLAUDE.md invariant 2).
+ */
+export async function ouraClient(): Promise<OuraClient | null> {
+  // Set OURA_SANDBOX=1 to read the canned collection instead of Seth's data.
+  const sandbox = process.env.OURA_SANDBOX === '1';
+
+  const creds = ouraCredentials();
+  const store = creds ? ouraTokenStore() : null;
+  if (creds && store) {
+    return new OuraClient({ getAccessToken: accessTokenGetter(store, creds), sandbox });
+  }
+
+  // Legacy path: an existing PAT still works. Oura stopped issuing them in
+  // December 2025, so nobody can arrive here for the first time.
+  const pat = process.env.OURA_PAT;
+  if (pat) return new OuraClient({ token: pat, sandbox });
+
+  return null;
+}
+
+/** Which Oura auth is configured, for the settings screen and error copy. */
+export function ouraStatus(): 'oauth' | 'legacy_pat' | 'unconfigured' {
+  if (ouraCredentials() && process.env.OURA_TOKEN_KEY) return 'oauth';
+  if (process.env.OURA_PAT) return 'legacy_pat';
+  return 'unconfigured';
 }
 
 /**

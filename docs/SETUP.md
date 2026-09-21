@@ -19,7 +19,7 @@ Anything marked ⚠️ is something the research foundation says to verify on th
 | 5 | `.env.local` | 5 | Everything |
 | 6 | Dev server | 2 | Everything |
 | 7 | Install the PWA on the iPhone | 3 | Daily use |
-| 8 | Oura PAT | 5 | Readiness |
+| 8 | Oura OAuth sign-in | 5 | Readiness |
 | 9 | Strava app + webhook | 20 | Cardio, Zone 2 |
 | 10 | Telegram bot | 10 | Daily brief |
 | 11 | LM Studio on the Mac mini | 25 | "Why" copy, chat, photo logs |
@@ -142,24 +142,111 @@ If the status bar overlaps content or the bottom button sits under the home indi
 
 ---
 
-## 8. Oura personal access token — 5 min
+## 8. Oura — 5 min
 
-**Check for an existing token first.** PRD §12 says so explicitly: Seth may already have an Oura PAT from other Claude Code work. Look in existing `.env` files and the keychain before creating a second one.
+> ⚠️ **Oura retired Personal Access Tokens in December 2025.** New ones cannot be
+> created; the page that issued them is gone. Connecting Oura is now an OAuth2
+> sign-in. If you already hold a PAT from earlier work it still functions — set
+> `OURA_PAT` and skip to the notes below — but nothing new can be issued.
 
-1. Go to **https://cloud.ouraring.com/personal-access-tokens**.
-2. Sign in with the Oura account tied to the ring.
-3. Create a token, name it `longevity-os`, and copy it — it is shown once.
-4. Put it in `.env.local` as `OURA_PAT`.
-5. Restart the dev server and open **Settings → Integrations**. It should show today's readiness.
+### The whole thing, in one command
 
-Notes worth knowing:
-- **PATs do not expire.** They are revocable, but there is no refresh dance and no OAuth flow. That is why we use one (RESEARCH §3).
-- Base URL is `https://api.ouraring.com/v2/usercollection/…` with Bearer auth.
-- We pull `daily_readiness`, `daily_sleep`, `sleep` (for `average_hrv`), `daily_activity`, `daily_stress`, `daily_resilience`, `vO2_max`, `daily_cardiovascular_age` and `personal_info`. VO2max and cardiovascular age are free and are the two best longevity markers on the dashboard.
-- Rate limit is reported as 5,000 requests per 5 minutes per token — irrelevant for one user.
-- There is a sandbox at `/v2/sandbox/usercollection/*` that returns canned data. Tests use it; nothing at runtime depends on it.
-- ⚠️ Confirm the actual payload shape of `vO2_max` and `daily_cardiovascular_age` against the sandbox before wiring the dashboard tiles (RESEARCH §10.3).
-- ⚠️ Oura's blood-work ingestion is **not** exposed via the API as of the research date. Lab PDFs are a v1.5 parser, not an integration.
+```bash
+npx tsx scripts/oura-auth.ts
+```
+
+It asks two questions, opens nothing you have to configure, and proves the
+connection with a real API call before it finishes. In detail:
+
+1. **Create the Oura application.** Go to
+   **https://cloud.ouraring.com/oauth/applications** and create one. Name it
+   `longevity-os`. Set its **redirect URI** to exactly:
+
+   ```
+   http://localhost:3000/api/oura/callback
+   ```
+
+   Oura shows a **Client ID** and a **Client Secret**. Leave the page open.
+
+2. **Run the script**, from the `longevity-os` folder:
+
+   ```bash
+   npx tsx scripts/oura-auth.ts
+   ```
+
+   It first checks Node 20+, that you are in the right folder, and that
+   `npm install` has been run — each with one sentence saying what to do if not.
+
+3. **Paste the two values** when it asks. The secret is hidden as you type.
+   Press Enter to accept the default redirect URI. The script writes
+   `.env.local` itself (creating it if needed, leaving any other keys alone) and
+   generates `OURA_TOKEN_KEY`, the AES-256-GCM key that encrypts the tokens at
+   rest. You never type that one.
+
+4. **Open the URL it prints**, sign in to Oura, approve. The script is listening
+   on port 3000 and catches the redirect by itself. If port 3000 is already busy
+   — usually `npm run dev` — it says so and names a free port instead of
+   crashing. If the redirect URI is not on localhost it falls back to asking you
+   to paste the address bar back in, which needs no server at all.
+
+5. **It saves and proves it.** The token set is written to `.oura-tokens.enc`
+   (encrypted, gitignored, permissions 600) the instant it arrives, then the
+   script calls `personal_info` and prints what Oura answered, plus the scopes
+   actually granted and when the access token expires.
+
+6. **Start the app**: `npm run dev`, then **Settings → Integrations**. It should
+   show today's readiness.
+
+7. **When you deploy** (step 13), add `OURA_CLIENT_ID`, `OURA_CLIENT_SECRET`,
+   `OURA_TOKEN_KEY` and `OURA_REDIRECT_URI` to the Vercel environment, set the
+   redirect URI to `https://<your-app>/api/oura/callback` on **both** the Oura
+   application page and in Vercel, and connect once more from **Settings →
+   Connect Oura**. That stores the tokens in `integration_tokens` instead of the
+   local file, encrypted with the same key.
+
+### Notes worth knowing
+
+- **⚠️ The endpoints are not the ones in Oura's own docs.** Applications
+  registered in the post-2025 portal authenticate against `moi.ouraring.com`:
+  `…/oauth/v2/ext/oauth-authorize` and `…/oauth/v2/ext/oauth-token`. Oura's
+  authentication documentation still prints the legacy
+  `cloud.ouraring.com/oauth/authorize` + `api.ouraring.com/oauth/token` pair,
+  and those answer **`Invalid client`** to perfectly good credentials. Do not
+  "fix" the code back to them. The live source of truth is the discovery
+  document at
+  `https://moi.ouraring.com/oauth/v2/ext/oauth-anonymous/.well-known/openid-configuration`.
+- **⚠️ Scopes are namespaced.** We request `extapi:personal extapi:daily
+  extapi:heartrate extapi:session extapi:workout extapi:stress
+  extapi:heart_health`. The legacy bare names (`daily`, `heartrate`, `session`)
+  are silently ungranted: you get a valid token that reads nothing. There is no
+  `offline_access` scope — refresh tokens come from the `refresh_token` grant
+  being supported.
+- **Refresh tokens are single use and rotate.** Every refresh invalidates the
+  previous one. `packages/integrations/src/oura/tokens.ts` owns that: it
+  refreshes only inside a 120-second skew of expiry, writes the new pair before
+  returning the access token to anyone, and holds a single-flight lock so two
+  callers cannot spend the same token. If it ever does break, the symptom is
+  `invalid_grant` and the only fix is re-running the script — retrying makes it
+  worse.
+- **Data endpoints did not move.** Still
+  `https://api.ouraring.com/v2/usercollection/…` with Bearer auth,
+  `start_date`/`end_date` for daily documents and `start_datetime`/`end_datetime`
+  for time series.
+- We pull `daily_readiness`, `daily_sleep`, `sleep` (for `average_hrv`),
+  `daily_activity`, `daily_stress`, `daily_resilience`, `vO2_max`,
+  `daily_cardiovascular_age` and `personal_info`. VO2max and cardiovascular age
+  are free and are the two best longevity markers on the dashboard.
+- Rate limit is reported as 5,000 requests per 5 minutes per token — irrelevant
+  for one user.
+- There is a sandbox at `/v2/sandbox/usercollection/*` that returns canned data.
+  Tests use it; nothing at runtime depends on it.
+- If the nightly sync ever answers **409 `needs_reauth`**, that is not a fault to
+  retry: the grant is gone and a browser re-authorisation is required. Run
+  `npx tsx scripts/oura-auth.ts` again, or use **Settings → Connect Oura**.
+- ⚠️ Confirm the actual payload shape of `vO2_max` and `daily_cardiovascular_age`
+  against the sandbox before wiring the dashboard tiles (RESEARCH §10.3).
+- ⚠️ Oura's blood-work ingestion is **not** exposed via the API as of the
+  research date. Lab PDFs are a v1.5 parser, not an integration.
 
 ---
 
@@ -334,7 +421,7 @@ Warm up first. This is a maximal effort, and it comes fresh — never after a le
 
 Live copy. Tick these off as you go.
 
-- [ ] **Oura personal access token** (check existing Claude Code env first) → Step 8
+- [ ] **Oura OAuth application** (client ID + secret; PATs were retired in Dec 2025) → Step 8
 - [ ] **Strava developer app**: client ID/secret, redirect URI → Step 9
 - [ ] **Telegram**: new bot via BotFather → token; your chat ID → Step 10
 - [ ] **KOT spreadsheets + links** → `docs/programs/kot/raw/` — see the README in that folder

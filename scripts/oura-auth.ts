@@ -188,18 +188,73 @@ async function ask(rl: Interface, query: string): Promise<string> {
 
 /** Same as `ask`, but the typed characters are not echoed. */
 async function askSecret(rl: Interface, query: string): Promise<string> {
-  const iface = rl as MutableInterface;
-  let mute = false;
-  iface._writeToOutput = (s: string): void => {
-    if (!mute) iface.output?.write(s);
-  };
-  const pending = rl.question(`   ${query}`);
-  mute = true;
-  const answer = await pending;
-  mute = false;
-  delete iface._writeToOutput;
-  process.stdout.write('\n');
-  return answer.trim();
+  // Overriding readline's `_writeToOutput` is NOT enough, and the difference is
+  // not academic: it only suppresses the echo readline itself performs. When the
+  // TTY is doing the echoing — which it is for an ordinary paste into Terminal —
+  // the secret appears on screen in full. That happened, on camera, to a real
+  // client secret. The only thing that actually stops it is turning the
+  // terminal's own echo off, which means raw mode.
+  const input = process.stdin;
+  if (!input.isTTY || typeof input.setRawMode !== 'function') {
+    // No TTY to mute. Say so rather than silently echoing a credential.
+    process.stdout.write(`   ${query}`);
+    const answer = await rl.question('');
+    process.stdout.write('   (input was not hidden — this terminal has no TTY)\n');
+    return answer.trim();
+  }
+
+  rl.pause();
+  process.stdout.write(`   ${query}`);
+
+  const wasRaw = input.isRaw === true;
+  input.setRawMode(true);
+  input.resume();
+  input.setEncoding('utf8');
+
+  return await new Promise<string>((resolve, reject) => {
+    let buf = '';
+
+    const cleanup = (): void => {
+      input.off('data', onData);
+      input.setRawMode(wasRaw);
+      input.pause();
+      process.stdout.write('\n');
+    };
+
+    const onData = (chunk: string): void => {
+      for (const ch of chunk) {
+        switch (ch) {
+          case '\r':
+          case '\n':
+            cleanup();
+            rl.resume();
+            resolve(buf.trim());
+            return;
+          case '\u0003': // Ctrl-C
+            cleanup();
+            reject(new Error('cancelled'));
+            return;
+          case '\u007f': // backspace
+          case '\b':
+            if (buf.length > 0) {
+              buf = buf.slice(0, -1);
+              process.stdout.write('\b \b');
+            }
+            break;
+          default:
+            // Ignore other control characters; echo one dot per real character
+            // so a paste still gives visible feedback without revealing length
+            // precisely enough to matter.
+            if (ch >= ' ') {
+              buf += ch;
+              process.stdout.write('•');
+            }
+        }
+      }
+    };
+
+    input.on('data', onData);
+  });
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
