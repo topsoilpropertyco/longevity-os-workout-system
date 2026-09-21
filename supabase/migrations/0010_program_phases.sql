@@ -74,7 +74,15 @@ alter table public.program_steps
   add column if not exists demo_url     text,
   -- True when the prescribed reps are PER SIDE. 20 steps in KOT are.
   add column if not exists per_side     boolean not null default false,
-  add column if not exists rest_s       integer;
+  add column if not exists rest_s       integer,
+  -- A phase's load rule is one rule for the whole phase. Dense's says: week 1
+  -- bodyweight, week 2 at 25% of bodyweight, +5% a week after — "except the
+  -- split squat, which adds 2.5%". That exception is per STEP and had nowhere
+  -- to live but the phase's prose, where nothing read it, so the ATG split
+  -- squat climbed at 5% like everything else: 75% of bodyweight by week 12 of
+  -- Dense instead of the intended ~48%, on the movement the method is named
+  -- for. Null — the normal case — means "follow the phase".
+  add column if not exists load_ramp_override jsonb;
 
 alter table public.program_steps
   drop constraint if exists program_steps_rest_nonneg;
@@ -93,6 +101,32 @@ comment on column public.program_steps.per_side is
   'Reps in `standard` are per side. "5 reps" on an ATG split squat means 5 each leg — ten sets of work, not five.';
 comment on column public.program_steps.rest_s is
   'Prescribed rest. Null means the engine chooses from the block and the goal mode.';
+comment on column public.program_steps.load_ramp_override is
+  'Per-step override of the phase''s percent_bw_ramp: {"start_pct":25,"weekly_increment_pct":2.5}. Either key may be absent and falls back to the phase''s. WHOLE-NUMBER percentages, matching PhaseLoadRule — not the fractions ProgramStandard.pct_bodyweight uses.';
+
+-- Shape, not just type. `{"weekly_increment_pct": "2.5"}` typed into the table
+-- editor is valid jsonb and then silently does nothing, because the engine
+-- reads a number. An unknown key is refused for the same reason: a typo that
+-- parses is a rule that quietly never applies.
+alter table public.program_steps
+  drop constraint if exists program_steps_load_ramp_shape;
+alter table public.program_steps
+  add constraint program_steps_load_ramp_shape check (
+    load_ramp_override is null
+    or (
+      jsonb_typeof(load_ramp_override) = 'object'
+      -- At least one of the two keys, and nothing else. Subtracting both known
+      -- keys and requiring an empty object is how a CHECK constraint says "no
+      -- unknown keys" — `not exists (select …)` cannot be used here, because a
+      -- check constraint may not contain a subquery.
+      and load_ramp_override ?| array['start_pct', 'weekly_increment_pct']
+      and load_ramp_override - 'start_pct' - 'weekly_increment_pct' = '{}'::jsonb
+      and (not (load_ramp_override ? 'start_pct')
+           or jsonb_typeof(load_ramp_override -> 'start_pct') = 'number')
+      and (not (load_ramp_override ? 'weekly_increment_pct')
+           or jsonb_typeof(load_ramp_override -> 'weekly_increment_pct') = 'number')
+    )
+  );
 
 create index if not exists program_steps_phase_idx
   on public.program_steps (program_id, phase_id, step_order);

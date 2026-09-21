@@ -361,6 +361,13 @@ interface StepSpec {
   standard?: ProgramStandard;
   per_side?: boolean;
   rest_s?: number;
+  /**
+   * Per-step override of the phase's `percent_bw_ramp`. Dense adds 5% of
+   * bodyweight a week "except the split squat, which adds 2.5%" — a sentence in
+   * the phase's prose that nothing could act on until `ProgramStep` had
+   * somewhere to put it. Whole-number percentages, matching `PhaseLoadRule`.
+   */
+  load_ramp_override?: { start_pct?: number; weekly_increment_pct?: number };
   progressions?: string[];
   substitutions?: Substitution[];
   /**
@@ -595,6 +602,10 @@ const STEP_SPECS: Record<string, StepSpec> = {
     equipment: ['adjustable_dumbbell'],
     per_side: true,
     rest_s: 30,
+    // Dense ramps at 5% a week; this movement, and only this movement, adds
+    // 2.5%. At 5% it would reach 75% of bodyweight by week 12 instead of the
+    // ~48% the program intends — on the lift the whole method is named for.
+    load_ramp_override: { weekly_increment_pct: 2.5 },
     progressions: [
       'Front foot elevated, holding a rail for assistance.',
       'Front foot elevated, no hands.',
@@ -1487,6 +1498,7 @@ function buildProgramShape(ex: Extracted): BuildResult {
         };
         if (per_side) step.per_side = true;
         if (spec.rest_s !== undefined) step.rest_s = spec.rest_s;
+        if (spec.load_ramp_override) step.load_ramp_override = { ...spec.load_ramp_override };
         if (spec.progressions?.length) step.progressions = spec.progressions;
         if (spec.substitutions?.length) {
           step.substitutions = spec.substitutions.map((sub) =>
