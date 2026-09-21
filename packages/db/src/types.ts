@@ -1432,6 +1432,7 @@ export type Database = {
           demo_url: string | null
           per_side: boolean
           rest_s: number | null
+          load_ramp_override: Json | null
           created_at: string
           updated_at: string
         }
@@ -1453,6 +1454,7 @@ export type Database = {
           demo_url?: string | null
           per_side?: boolean
           rest_s?: number | null
+          load_ramp_override?: Json | null
           created_at?: string
           updated_at?: string
         }
@@ -1474,6 +1476,7 @@ export type Database = {
           demo_url?: string | null
           per_side?: boolean
           rest_s?: number | null
+          load_ramp_override?: Json | null
           created_at?: string
           updated_at?: string
         }

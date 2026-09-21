@@ -1244,6 +1244,9 @@
       "block": "knee_ability",
       "exercise_slug": "atg-split-squat",
       "id": "dense-atg-split-squat",
+      "load_ramp_override": {
+        "weekly_increment_pct": 2.5
+      },
       "name": "ATG Split Squat",
       "order": 25,
       "per_side": true,

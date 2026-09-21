@@ -73,6 +73,7 @@ export interface ProgramStepRowish {
   demo_url?: string | null;
   per_side?: boolean | null;
   rest_s?: number | null;
+  load_ramp_override?: unknown;
 }
 
 export interface ProgramProgressRowish {
@@ -218,6 +219,7 @@ function toStep(row: ProgramStepRowish, i: number): ProgramStep {
     );
 
   const standard = obj(row.standard);
+  const ramp = toRampOverride(row.load_ramp_override);
   const progressions = strings(row.progressions);
   const prerequisites = strings(row.prerequisites);
   const demo = str(row.demo_url);
@@ -237,7 +239,32 @@ function toStep(row: ProgramStepRowish, i: number): ProgramStep {
     ...(demo ? { demo_url: demo } : {}),
     ...(row.per_side ? { per_side: true } : {}),
     ...(typeof row.rest_s === 'number' ? { rest_s: row.rest_s } : {}),
+    ...(ramp ? { load_ramp_override: ramp } : {}),
   };
+}
+
+/**
+ * A per-step ramp override, or `undefined`.
+ *
+ * Only whole numbers survive. The column is jsonb and the database constrains
+ * its shape, but a value that reached the table before that constraint existed
+ * — or through a path that bypassed it — would otherwise arrive as a string and
+ * silently prescribe `NaN` pounds. An override that cannot be read is better
+ * dropped: the step then follows its phase, which is the ordinary rule.
+ */
+function toRampOverride(v: unknown): ProgramStep['load_ramp_override'] | undefined {
+  const o = obj(v);
+  const out: NonNullable<ProgramStep['load_ramp_override']> = {};
+  if (typeof o['start_pct'] === 'number' && Number.isFinite(o['start_pct'])) {
+    out.start_pct = o['start_pct'];
+  }
+  if (
+    typeof o['weekly_increment_pct'] === 'number' &&
+    Number.isFinite(o['weekly_increment_pct'])
+  ) {
+    out.weekly_increment_pct = o['weekly_increment_pct'];
+  }
+  return Object.keys(out).length ? out : undefined;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

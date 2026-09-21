@@ -45,6 +45,7 @@ interface KotStep {
   demo_url?: string;
   per_side?: boolean;
   rest_s?: number;
+  load_ramp_override?: { start_pct?: number; weekly_increment_pct?: number };
 }
 
 interface KotProgram {
@@ -117,6 +118,7 @@ export function renderKotSql(p: KotProgram): string {
           lit(s.demo_url),
           s.per_side ? 'true' : 'false',
           num(s.rest_s),
+          s.load_ramp_override === undefined ? 'null' : json(s.load_ramp_override),
         ].join(', '),
         ')',
       ].join(''),
@@ -198,7 +200,8 @@ create temp table kot_incoming (
   progressions  jsonb not null,
   demo_url      text,
   per_side      boolean not null,
-  rest_s        integer
+  rest_s        integer,
+  load_ramp_override jsonb
 );
 
 insert into kot_incoming values
@@ -225,10 +228,10 @@ where p.slug = ${lit(p.slug)} and p.user_id is null and s.program_id = p.id
 insert into public.program_steps
   (user_id, program_id, step_key, step_order, name, standard_text, standard,
    exercise_slug, substitutions, prerequisites, block, phase_id, progressions,
-   demo_url, per_side, rest_s)
+   demo_url, per_side, rest_s, load_ramp_override)
 select null, p.id, i.step_key, i.step_order, i.name, i.standard_text, i.standard,
        i.exercise_slug, i.substitutions, i.prerequisites, i.block, i.phase_id,
-       i.progressions, i.demo_url, i.per_side, i.rest_s
+       i.progressions, i.demo_url, i.per_side, i.rest_s, i.load_ramp_override
 from kot_incoming i
 cross join public.programs p
 where p.slug = ${lit(p.slug)} and p.user_id is null
@@ -246,6 +249,7 @@ on conflict (program_id, step_key) do update set
   demo_url      = excluded.demo_url,
   per_side      = excluded.per_side,
   rest_s        = excluded.rest_s,
+  load_ramp_override = excluded.load_ramp_override,
   updated_at    = now();
 
 drop table if exists kot_incoming;
