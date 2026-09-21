@@ -79,6 +79,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # This job used to be pure psql and needed no Node. Two of its checks are
+      # now tsx scripts, and one of them imports a workspace package — without
+      # an install it fails with "Cannot find module '@longevity/db'", which
+      # reads like a broken import rather than a missing step.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install
+        run: npm ci || npm install
+
       # Supabase supplies the auth schema and the three roles; a bare Postgres
       # does not, so we stub exactly what the migrations reference and nothing
       # more. Running them anywhere else would catch nothing.
