@@ -8,7 +8,7 @@
  * │                                                                           │
  * │ (or `--project-id <ref>` against the hosted project.) Until then THIS     │
  * │ HAND-WRITTEN FILE IS THE CONTRACT. It was written directly against        │
- * │ supabase/migrations/0001…0005 and matches them column for column,         │
+ * │ supabase/migrations/0001…0011 and matches them column for column,         │
  * │ including nullability and which columns have defaults. If you change a    │
  * │ migration, change this file in the same commit.                           │
  * └───────────────────────────────────────────────────────────────────────────┘
@@ -775,6 +775,27 @@ export type Database = {
           }
         ]
       }
+      worker_heartbeat: {
+        Row: {
+          worker_id: string
+          last_seen: string
+          detail: Json
+          created_at: string
+        }
+        Insert: {
+          worker_id: string
+          last_seen?: string
+          detail?: Json
+          created_at?: string
+        }
+        Update: {
+          worker_id?: string
+          last_seen?: string
+          detail?: Json
+          created_at?: string
+        }
+        Relationships: []
+      }
       llm_jobs: {
         Row: {
           id: string
@@ -1338,6 +1359,8 @@ export type Database = {
           is_active: boolean
           met: Json
           current_step_ids: string[]
+          phase_id: string | null
+          week_in_phase: number | null
           started_on: string | null
           completed_on: string | null
           created_at: string
@@ -1351,6 +1374,8 @@ export type Database = {
           is_active?: boolean
           met?: Json
           current_step_ids?: string[]
+          phase_id?: string | null
+          week_in_phase?: number | null
           started_on?: string | null
           completed_on?: string | null
           created_at?: string
@@ -1364,6 +1389,8 @@ export type Database = {
           is_active?: boolean
           met?: Json
           current_step_ids?: string[]
+          phase_id?: string | null
+          week_in_phase?: number | null
           started_on?: string | null
           completed_on?: string | null
           created_at?: string
@@ -1400,6 +1427,11 @@ export type Database = {
           substitutions: Json
           prerequisites: string[]
           block: string | null
+          phase_id: string | null
+          progressions: Json
+          demo_url: string | null
+          per_side: boolean
+          rest_s: number | null
           created_at: string
           updated_at: string
         }
@@ -1416,6 +1448,11 @@ export type Database = {
           substitutions?: Json
           prerequisites?: string[]
           block?: string | null
+          phase_id?: string | null
+          progressions?: Json
+          demo_url?: string | null
+          per_side?: boolean
+          rest_s?: number | null
           created_at?: string
           updated_at?: string
         }
@@ -1432,6 +1469,11 @@ export type Database = {
           substitutions?: Json
           prerequisites?: string[]
           block?: string | null
+          phase_id?: string | null
+          progressions?: Json
+          demo_url?: string | null
+          per_side?: boolean
+          rest_s?: number | null
           created_at?: string
           updated_at?: string
         }
@@ -1466,6 +1508,9 @@ export type Database = {
           target_cycles: number
           source: string | null
           attribution: string | null
+          phases: Json
+          days: Json
+          current_phase_id: string | null
           created_at: string
           updated_at: string
         }
@@ -1482,6 +1527,9 @@ export type Database = {
           target_cycles?: number
           source?: string | null
           attribution?: string | null
+          phases?: Json
+          days?: Json
+          current_phase_id?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -1498,6 +1546,9 @@ export type Database = {
           target_cycles?: number
           source?: string | null
           attribution?: string | null
+          phases?: Json
+          days?: Json
+          current_phase_id?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -1982,6 +2033,14 @@ export type Database = {
         }
         Returns: string
       }
+      program_phase_ids: {
+        Args: { p_phases: Json }
+        Returns: string[]
+      }
+      start_program: {
+        Args: { p_user_id: string; p_slug: string; p_on?: string }
+        Returns: string
+      }
       cron_post: {
         Args: { p_path: string; p_body?: Json }
         Returns: boolean
@@ -2069,6 +2128,7 @@ export type SelfReportRow       = Tables<"self_reports">;
 export type BodyMetricRow       = Tables<"body_metrics">;
 export type InjuryRow           = Tables<"injuries">;
 export type InjuryCheckinRow    = Tables<"injury_checkins">;
+export type WorkerHeartbeatRow  = Tables<"worker_heartbeat">;
 export type ProgramRow          = Tables<"programs">;
 export type ProgramStepRow      = Tables<"program_steps">;
 export type ProgramProgressRow  = Tables<"program_progress">;

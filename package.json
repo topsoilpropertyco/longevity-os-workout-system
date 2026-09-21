@@ -20,7 +20,9 @@
     "lint": "npm run lint --workspaces --if-present",
     "ingest:exercises": "tsx scripts/ingest-exercises.ts",
     "ingest:kot": "tsx scripts/ingest-kot.ts",
-    "check": "npm run check:contracts && npm run typecheck && npm run test && npm run check:data",
+    "check": "npm run check:contracts && npm run typecheck && npm run test && npm run check:data && npm run check:kot-sql",
+    "check:kot-sql": "tsx scripts/gen-kot-sql.ts --check",
+    "sql:kot": "tsx scripts/gen-kot-sql.ts",
     "check:contracts": "tsx scripts/check-contracts.ts",
     "check:data": "tsx scripts/validate-data.ts",
     "sql:bundle": "bash -c '{ head -19 supabase/SCHEMA_ALL_IN_ONE.sql; for f in supabase/migrations/*.sql; do printf \"\n-- == %s ==\n\n\" \"$(basename $f)\"; cat \"$f\"; done; } > /tmp/b.sql && mv /tmp/b.sql supabase/SCHEMA_ALL_IN_ONE.sql'"
