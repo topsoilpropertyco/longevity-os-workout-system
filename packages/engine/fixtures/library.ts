@@ -16,6 +16,8 @@ import type {
   GymLocation,
   Injury,
   Program,
+  ProgramPhase,
+  ProgramProgress,
   RegionLoadMap,
 } from '../src/types.js';
 
@@ -235,6 +237,11 @@ export const HOME: GymLocation = {
     { equipment: 'wall_space', available: true },
     { equipment: 'outdoor_route', available: true },
     { equipment: 'foam_roller', available: true },
+    // Seth confirmed he owns one. Knees Over Toes leans on it from Zero week 1
+    // — the slant-board calf raise and the ATG/VMO squat are prescriptions
+    // here, not substitutions, and every phase standard measured on a board
+    // is reachable at home.
+    { equipment: 'slant_board', available: true },
   ],
 };
 
@@ -279,6 +286,10 @@ export const PLANET_FITNESS: GymLocation = {
     { equipment: 'yoga_mat', available: true },
     { equipment: 'medicine_ball', available: true },
     { equipment: 'stability_ball', available: true },
+    // The stretching area. Wall sits, couch stretch and the standing-pigeon
+    // hold all need nothing more than a flat wall, and every club has one —
+    // omitting this was sending KOT wall work to a substitution it didn't need.
+    { equipment: 'wall_space', available: true },
     // Explicitly absent — the reason `barbell_free` alternatives exist.
     { equipment: 'barbell', available: false },
     { equipment: 'power_rack', available: false },
@@ -289,6 +300,9 @@ export const PLANET_FITNESS: GymLocation = {
     { equipment: 'sled', available: false },
     { equipment: 'plyo_box', available: false },
     { equipment: 'pull_up_bar', available: false },
+    // His board lives at home and he does not carry it to the club, so the
+    // slant-board work substitutes here rather than silently assuming a wedge.
+    { equipment: 'slant_board', available: false },
   ],
 };
 
@@ -357,51 +371,116 @@ export const BASELINE_INJURIES: Injury[] = [
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
- * A minimal Knees Over Toes scaffold for tests. The real program lives in
- * `programs/kot/program.json` and is reconciled against Seth's spreadsheets.
+ * Knees Over Toes, Phase 1 ZERO — the phase Seth is actually starting on.
+ *
+ * Trimmed to the movements this fixture library can resolve, so the engine's
+ * behaviour is pinned without dragging the full 69-step program into the tests.
+ * The real thing lives in `programs/kot/program.json`, rebuilt from his own
+ * April 2026 checklist by `scripts/ingest-kot.ts`.
+ *
+ * Two deliberate compressions, both noted so nobody reads them as fact:
+ *   - The warm-up is a plain FORWARD walk in Seth's program. The only walking
+ *     record in this fixture set is `backward-walk`, so that is what it points
+ *     at; the real program has no backward locomotion anywhere.
+ *   - The tibialis raise is one movement performed twice in the session
+ *     (positions 2 and 4 of the checklist). The day template in the real file
+ *     references it twice; here it collapses to `sets: 2`.
  */
+const ZERO_PHASE: ProgramPhase = {
+  id: 'zero',
+  name: 'Zero',
+  order: 1,
+  weeks: 12,
+  days_per_week: 3,
+  weekdays: [1, 3, 5],
+  session_min: [10, 20],
+  load_rule: { kind: 'bodyweight_only' },
+  description: '12 weeks, Monday/Wednesday/Friday, 10–20 minutes, bodyweight only. The same session every training day.',
+};
+
+const ZERO_STEP_IDS = [
+  'kot-zero-walk',
+  'kot-zero-tib-raise',
+  'kot-zero-patrick-step',
+  'kot-zero-split-squat',
+  'kot-zero-nordic',
+  'kot-zero-elephant-walk',
+  'kot-zero-couch-stretch',
+];
+
 export const KOT: Program = {
   slug: 'kot',
   name: 'Knees Over Toes',
-  description: 'Ground-up knee resilience. Two full cycles is the target.',
+  description: 'Seth\'s Knees Over Toes. Phase 1 Zero: bodyweight, three days a week, ground up from the ankles.',
   ordering: 'ground_up',
-  days_per_week: [2, 3],
-  target_cycles: 2,
-  source: 'fixture scaffold',
+  days_per_week: [3, 5],
+  target_cycles: 1,
+  source: 'fixture — Phase 1 Zero of programs/kot/program.json',
+  current_phase_id: 'zero',
+  phases: [ZERO_PHASE],
   blocks: [
-    { id: 'backward-locomotion', name: 'Backward locomotion', order: 0 },
+    { id: 'warm-up', name: 'Warm-up', order: 0 },
     { id: 'lower-legs', name: 'Lower legs', order: 1 },
-    { id: 'step-ups', name: 'Step-ups', order: 2 },
-    { id: 'split-squat', name: 'Split squat', order: 3 },
-    { id: 'deep-squat', name: 'Deep squat', order: 4 },
+    { id: 'knee-ability', name: 'Knee ability', order: 2 },
+    { id: 'posterior-chain', name: 'Posterior chain', order: 3 },
+    { id: 'mobility', name: 'Mobility', order: 4 },
   ],
+  days: ZERO_PHASE.weekdays.map((weekday) => ({
+    phase_id: 'zero',
+    weekday,
+    title: 'Zero — same session every day',
+    focus: 'Ankles, knees, then the stretches that keep the range',
+    blocks: [
+      { title: 'Warm-up', step_ids: ['kot-zero-walk'] },
+      { title: 'Lower legs', step_ids: ['kot-zero-tib-raise'] },
+      { title: 'Knee ability', step_ids: ['kot-zero-patrick-step', 'kot-zero-split-squat'] },
+      { title: 'Posterior chain', step_ids: ['kot-zero-nordic'] },
+      { title: 'Mobility', step_ids: ['kot-zero-elephant-walk', 'kot-zero-couch-stretch'] },
+    ],
+  })),
   steps: [
     {
-      id: 'kot-backward-walk', order: 0, block: 'backward-locomotion', name: 'Backward walking',
-      standard_text: '10 minutes backward walking', exercise_slug: 'backward-walk',
-      standard: { duration_min: 10 },
-      substitutions: [{ equipment_missing: 'sled', use_slug: 'backward-walk', note: 'Powered-off treadmill at PF.' }],
+      id: 'kot-zero-walk', order: 0, block: 'warm-up', phase_id: 'zero', name: 'Bodyweight walk (warm-up)',
+      standard_text: '5–10 minutes of easy walking. The fixture uses the top of the range.',
+      exercise_slug: 'backward-walk', standard: { duration_min: 10 },
     },
     {
-      id: 'kot-tib-raise', order: 1, block: 'lower-legs', name: 'Tibialis raise',
-      // The public standard offers two routes: 25 bodyweight reps, OR 25% BW for
-      // 5×5 with a tib bar. Encoding both at once would prescribe 5 × 25 loaded
-      // reps, which is neither.
-      standard_text: '3 × 25 reps bodyweight (tib bar route: 25% BW, 5 × 5)',
-      exercise_slug: 'tibialis-raise', standard: { reps: 25, sets: 3 },
+      id: 'kot-zero-tib-raise', order: 1, block: 'lower-legs', phase_id: 'zero', name: 'Tibialis raise',
+      standard_text: '25 reps, performed twice in the session.',
+      exercise_slug: 'tibialis-raise', standard: { reps: 25, sets: 2 },
+      progressions: ['Closer to the wall is easier.', 'Farther from the wall is harder.', 'One leg at a time.'],
     },
     {
-      id: 'kot-patrick-step', order: 2, block: 'step-ups', name: 'Patrick step',
-      standard_text: 'Patrick step, controlled', exercise_slug: 'patrick-step', standard: { reps: 10, sets: 3 },
+      id: 'kot-zero-patrick-step', order: 2, block: 'knee-ability', phase_id: 'zero', name: 'Patrick step (slant board)',
+      standard_text: '25 reps per side.', exercise_slug: 'patrick-step', standard: { reps: 25 }, per_side: true,
+      substitutions: [{ equipment_missing: 'slant_board', use_slug: 'patrick-step', note: 'Travelling: a stair edge instead of the board.' }],
     },
     {
-      id: 'kot-atg-split-squat', order: 3, block: 'split-squat', name: 'ATG split squat',
-      standard_text: '25% BW per hand', exercise_slug: 'atg-split-squat',
-      standard: { pct_bodyweight: 0.25, per_hand: true, reps: 5, sets: 3 },
+      id: 'kot-zero-split-squat', order: 3, block: 'knee-ability', phase_id: 'zero', name: 'ATG split squat',
+      standard_text: '5 sets of 5 per side, 30 s between sets — 25 reps a side in total.',
+      exercise_slug: 'atg-split-squat', standard: { reps: 5, sets: 5 }, per_side: true, rest_s: 30,
     },
     {
-      id: 'kot-deep-squat', order: 4, block: 'deep-squat', name: 'Deep squat hold',
-      standard_text: 'Accumulate 2 minutes', exercise_slug: 'deep-squat-hold', standard: { hold_s: 120 },
+      id: 'kot-zero-nordic', order: 4, block: 'posterior-chain', phase_id: 'zero', name: 'Nordic curl',
+      standard_text: '5 reps, hands catching the descent.', exercise_slug: 'nordic-curl', standard: { reps: 5 },
+    },
+    {
+      id: 'kot-zero-elephant-walk', order: 5, block: 'mobility', phase_id: 'zero', name: 'Elephant walk',
+      standard_text: '25 reps.', exercise_slug: 'elephant-walk', standard: { reps: 25 },
+    },
+    {
+      id: 'kot-zero-couch-stretch', order: 6, block: 'mobility', phase_id: 'zero', name: 'Couch stretch',
+      standard_text: '60 s per side.', exercise_slug: 'couch-stretch', standard: { hold_s: 60 }, per_side: true,
     },
   ],
+};
+
+/** Cold start: Seth is at Phase 1 Zero, week 1, with nothing met. */
+export const KOT_PROGRESS: ProgramProgress = {
+  program_slug: 'kot',
+  cycle: 1,
+  phase_id: 'zero',
+  week_in_phase: 1,
+  met: {},
+  current_step_ids: ZERO_STEP_IDS,
 };

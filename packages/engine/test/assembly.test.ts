@@ -156,8 +156,9 @@ describe('assembly', () => {
     const result = assemble(input({ type: 'kot', program: KOT, budgetMin: 60 }));
     const program = result.blocks.find((b) => b.kind === 'program');
     const tib = program?.exercises.find((e) => e.exercise.slug === 'tibialis-raise');
-    // The KOT standard is 3 × 25, not the 'tone' goal mode's 3 × 10.
-    expect(tib?.sets).toHaveLength(3);
+    // Phase 1 Zero runs the tibialis raise twice a session at 25 reps. The dose
+    // comes from that standard, not from the 'tone' goal mode's 3 × 10.
+    expect(tib?.sets).toHaveLength(2);
     expect(tib?.sets[0]!.reps).toBe(25);
   });
 
