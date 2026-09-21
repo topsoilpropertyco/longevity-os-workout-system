@@ -489,6 +489,21 @@ export interface ProgramStep {
   per_side?: boolean;
   /** Prescribed rest between sets, in seconds. Absent means "no fixed rest". */
   rest_s?: number;
+  /**
+   * Overrides the phase's `percent_bw_ramp` for THIS STEP ALONE. Absent fields
+   * fall back to the phase's own.
+   *
+   * Dense ramps at 5% of bodyweight a week — "except the split squat, which
+   * adds 2.5%". A per-phase rule cannot say that, and without somewhere to put
+   * it the exception lives only in the phase's prose, where nothing reads it.
+   * The cost of not having this is not cosmetic: at 5% the split squat reaches
+   * 75% of bodyweight by week 12 of Dense instead of the intended ~48%, and it
+   * is the movement the program is named for.
+   *
+   * Percentages are WHOLE NUMBERS here, matching `PhaseLoadRule`, not the
+   * fractions `ProgramStandard.pct_bodyweight` uses.
+   */
+  load_ramp_override?: { start_pct?: number; weekly_increment_pct?: number };
 }
 
 export interface ProgramStandard {

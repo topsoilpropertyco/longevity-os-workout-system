@@ -131,8 +131,13 @@ export function phaseLoadFor(args: {
   phase: ProgramPhase | undefined;
   weekInPhase: number;
   bodyweightLb: number;
+  /**
+   * The step being prescribed, when there is one. Only `load_ramp_override` is
+   * read — a step may ramp at its own rate inside a phase that ramps at another.
+   */
+  step?: Pick<ProgramStep, 'load_ramp_override'> | undefined;
 }): number | null {
-  const { phase, bodyweightLb } = args;
+  const { phase, bodyweightLb, step } = args;
   if (!phase) return null;
   const week = Math.max(1, Math.round(args.weekInPhase));
 
@@ -140,15 +145,17 @@ export function phaseLoadFor(args: {
     case 'bodyweight_only':
       return 0;
     case 'percent_bw_ramp': {
+      // Week 1 is bodyweight in every ramped phase; week 2 is `start_pct`; each
+      // week after adds the increment. Hence `week - 2` and not `week - 1`.
       if (week < 2) return 0;
-      const pct = phase.load_rule.start_pct + (week - 2) * phase.load_rule.weekly_increment_pct;
-      // TODO(kot): the ATG split squat ramps at 2.5% a week, not 5% — the phase
-      // description says so in prose and nothing in the schema carries it, so
-      // every step in DENSE currently gets the same increment. It needs a
-      // per-step override field on `ProgramStep` (a `load_rule_override`, or a
-      // `weekly_increment_pct` of its own) before the exception can be honoured.
-      // Until then the split squat climbs twice as fast as the program intends.
-      return round((pct / 100) * bodyweightLb, 1);
+      // Dense ramps at 5% a week "except the split squat, which adds 2.5%".
+      // The exception is per STEP, so it cannot live on the phase, and at 5%
+      // the split squat would reach 75% of bodyweight by week 12 instead of
+      // the intended ~48% — on the movement the program is named for.
+      const start = step?.load_ramp_override?.start_pct ?? phase.load_rule.start_pct;
+      const perWeek =
+        step?.load_ramp_override?.weekly_increment_pct ?? phase.load_rule.weekly_increment_pct;
+      return round(((start + (week - 2) * perWeek) / 100) * bodyweightLb, 1);
     }
     case 'standards_driven':
       return null;
@@ -349,7 +356,9 @@ export function prescribe(args: {
   // deload and the equipment rounding dispose. A calendar ramp is a plan for an
   // ordinary week — it does not get to push load up on a day the rest of the
   // engine has already decided to back off.
-  const phaseLoad = step ? phaseLoadFor({ phase, weekInPhase: weekInPhase(input.programProgress), bodyweightLb }) : null;
+  const phaseLoad = step
+    ? phaseLoadFor({ phase, weekInPhase: weekInPhase(input.programProgress), bodyweightLb, step })
+    : null;
   // `bodyweight_only` says no external load ANYWHERE in the phase, so on a
   // program day it governs the whole session, not only the program's own steps.
   // Zero is twelve weeks of unloaded knee rehab; bolting a loaded goblet squat
