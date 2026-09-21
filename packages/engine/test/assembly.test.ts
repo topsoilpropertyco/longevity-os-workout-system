@@ -1,5 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import { assemble, candidatePool, estimateMinutes, prescribe, type AssemblyInput } from '../src/assembly.js';
+import {
+  assemble,
+  candidatePool,
+  cooldownBlock,
+  estimateMinutes,
+  prescribe,
+  warmupBlock,
+  type AssemblyInput,
+} from '../src/assembly.js';
 import { buildLedger } from '../src/ledger.js';
 import { neutralReadiness } from '../src/readiness.js';
 import { ASSEMBLY, PLYO_CONTACTS } from '../src/constants.js';
@@ -253,5 +261,69 @@ describe('assembly', () => {
     const deloaded = assemble(input({ budgetMin: 45, deloadVolumeMultiplier: 0.6, deloadLoadMultiplier: 0.875 }));
     const setsOf = (r: typeof normal) => r.blocks.flatMap((b) => b.exercises.flatMap((e) => e.sets)).length;
     expect(setsOf(deloaded)).toBeLessThanOrEqual(setsOf(normal));
+  });
+});
+
+describe('the bookend blocks', () => {
+  // These reserve minutes and prescribe nothing on purpose, so the minutes have
+  // to say what they are for. The focus string used to be computed and dropped.
+  it('names the regions the warm-up is for', () => {
+    const block = warmupBlock(5, ['knees_quads', 'hips_glutes']);
+    expect(block.note).toBeDefined();
+    expect(block.note).toContain('knees quads');
+    expect(block.note).toContain('hips glutes');
+    expect(block.note).not.toContain('_');
+  });
+
+  it('still says something useful when there is no region focus', () => {
+    expect(warmupBlock(5, []).note).toBeTruthy();
+    expect(cooldownBlock(5).note).toBeTruthy();
+  });
+
+  it('gives the cool-down the same treatment', () => {
+    expect(cooldownBlock(5, ['posterior_chain']).note).toContain('posterior chain');
+  });
+
+  it('reserves the minutes it was asked for', () => {
+    expect(warmupBlock(7, []).estimated_min).toBe(7);
+    expect(cooldownBlock(3).estimated_min).toBe(3);
+  });
+});
+
+describe('the why line reads as sentences', () => {
+  // The reported line was:
+  //   "Knees Over Toes — 25 reps, per side 10 lb is the lightest available…"
+  // Two sentences joined by a bare space, so it reads "per side 10 lb". Seth
+  // reads this on a card at 6 a.m.
+  const splitSquat = EXERCISE_BY_ID.get('atg-split-squat')!;
+  const programClause = 'Knees Over Toes — 25 reps, per side';
+
+  it('punctuates between clauses', () => {
+    const p = prescribe({ exercise: splitSquat, input: input(), isPrimary: true, why: programClause });
+    expect(p.why).toContain('lightest available');
+    expect(p.why).not.toContain('per side 10 lb');
+    expect(p.why.startsWith(`${programClause}.`)).toBe(true);
+  });
+
+  it('does not double up punctuation a clause already has', () => {
+    const p = prescribe({
+      exercise: EXERCISE_BY_ID.get('goblet-squat')!,
+      input: input(),
+      isPrimary: true,
+      why: 'Your main lift today — the one worth being fresh for.',
+    });
+    expect(p.why).not.toContain('..');
+  });
+
+  it('ends every clause of a multi-clause why with a stop', () => {
+    const p = prescribe({
+      exercise: splitSquat,
+      input: input({ injuries: [{ ...BASELINE_INJURIES[0]!, current_pain: 4 }] }),
+      isPrimary: true,
+      why: programClause,
+    });
+    const clauses = p.why.split(/(?<=\.) /);
+    expect(clauses.length).toBeGreaterThan(1);
+    for (const clause of clauses) expect(clause.trim().endsWith('.')).toBe(true);
   });
 });

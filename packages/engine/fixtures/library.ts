@@ -16,6 +16,7 @@ import type {
   GymLocation,
   Injury,
   Program,
+  ProgramDay,
   ProgramPhase,
   ProgramProgress,
   RegionLoadMap,
@@ -398,6 +399,126 @@ const ZERO_PHASE: ProgramPhase = {
   description: '12 weeks, Monday/Wednesday/Friday, 10–20 minutes, bodyweight only. The same session every training day.',
 };
 
+/**
+ * The Zero session template, reproduced with the two shapes the real
+ * `programs/kot/program.json` contains and the engine has to survive:
+ *
+ *   - `kot-zero-tib-raise` is listed TWICE in one day. In Knee Ability Zero the
+ *     tibialis raise is done at the top of the session and again a few minutes
+ *     later, alternating with the calf raises. Dropping the second listing
+ *     deletes half the prescribed dose.
+ *   - "Knee ability" appears as a block title TWICE, because the optional body
+ *     squat is tacked on at the very end, after the stretches.
+ */
+const ZERO_DAY = (weekday: number): ProgramDay => ({
+  phase_id: 'zero',
+  weekday,
+  title: 'Zero — same session every day',
+  focus: 'Ankles, knees, then the stretches that keep the range',
+  blocks: [
+    { title: 'Warm-up', step_ids: ['kot-zero-walk'] },
+    { title: 'Lower legs', step_ids: ['kot-zero-tib-raise', 'kot-zero-calf-raise', 'kot-zero-tib-raise'] },
+    { title: 'Knee ability', step_ids: ['kot-zero-patrick-step', 'kot-zero-split-squat'] },
+    { title: 'Posterior chain', step_ids: ['kot-zero-nordic'] },
+    { title: 'Mobility', step_ids: ['kot-zero-elephant-walk', 'kot-zero-couch-stretch'] },
+    { title: 'Knee ability', step_ids: ['kot-zero-body-squat'] },
+  ],
+});
+
+/**
+ * Phase 2 DENSE — five days a week, and the phase where load enters the program
+ * for the first time. Week 1 is still bodyweight; week 2 starts at 25% of
+ * bodyweight and every week after adds 5%.
+ */
+const DENSE_PHASE: ProgramPhase = {
+  id: 'dense',
+  name: 'Dense',
+  order: 2,
+  weeks: 12,
+  days_per_week: 5,
+  weekdays: [1, 2, 3, 4, 5],
+  session_min: [30, 45],
+  load_rule: { kind: 'percent_bw_ramp', start_pct: 25, weekly_increment_pct: 5 },
+  description:
+    '12 weeks, Monday to Friday, 30–45 minutes. Week 1 bodyweight, week 2 at 25% bodyweight, +5% a week after that.',
+};
+
+const DENSE_DAYS: ProgramDay[] = [
+  {
+    phase_id: 'dense', weekday: 1, title: 'Dense — Monday', focus: 'Lower body',
+    blocks: [
+      { title: 'Warm-up', step_ids: ['kot-dense-walk'] },
+      { title: 'Knee ability', step_ids: ['kot-dense-patrick-step'] },
+      { title: 'Posterior chain', step_ids: ['kot-dense-rdl'] },
+      { title: 'Lower legs', step_ids: ['kot-dense-tib-raise'] },
+    ],
+  },
+  {
+    phase_id: 'dense', weekday: 2, title: 'Dense — Tuesday', focus: 'Upper + mobility',
+    blocks: [
+      { title: 'Warm-up', step_ids: ['kot-dense-walk'] },
+      { title: 'Upper body', step_ids: ['kot-dense-row'] },
+      { title: 'Mobility', step_ids: ['kot-dense-couch-stretch'] },
+    ],
+  },
+  {
+    phase_id: 'dense', weekday: 3, title: 'Dense — Wednesday', focus: 'Split squat + hip flexors',
+    blocks: [
+      { title: 'Warm-up', step_ids: ['kot-dense-walk'] },
+      { title: 'Knee ability', step_ids: ['kot-dense-split-squat'] },
+      { title: 'Mobility', step_ids: ['kot-dense-couch-stretch'] },
+    ],
+  },
+  {
+    phase_id: 'dense', weekday: 4, title: 'Dense — Thursday', focus: 'Upper + mobility',
+    blocks: [
+      { title: 'Warm-up', step_ids: ['kot-dense-walk'] },
+      { title: 'Upper body', step_ids: ['kot-dense-row'] },
+      { title: 'Mobility', step_ids: ['kot-dense-couch-stretch'] },
+    ],
+  },
+  {
+    phase_id: 'dense', weekday: 5, title: 'Dense — Friday', focus: 'Squat focus',
+    blocks: [
+      { title: 'Warm-up', step_ids: ['kot-dense-walk'] },
+      { title: 'Knee ability', step_ids: ['kot-dense-patrick-step'] },
+      { title: 'Posterior chain', step_ids: ['kot-dense-nordic'] },
+    ],
+  },
+];
+
+/**
+ * Phase 3 STANDARDS — open-ended, four days a week, load driven by the twelve
+ * benchmarks rather than by the calendar. `kot-standards-rdl` is the 100%-of-
+ * bodyweight hinge: it is the single heaviest thing the program ever asks for,
+ * and it is the prescription that must never reach a Zero-week-1 Monday.
+ */
+const STANDARDS_PHASE: ProgramPhase = {
+  id: 'standards',
+  name: 'Standards',
+  order: 3,
+  weeks: null,
+  days_per_week: 4,
+  weekdays: [1, 2, 4, 5],
+  session_min: [45, 60],
+  description: 'Open-ended. Monday, Tuesday, Thursday, Friday, 45–60 minutes. Runs until every benchmark is met.',
+  load_rule: { kind: 'standards_driven' },
+};
+
+const STANDARDS_DAYS: ProgramDay[] = STANDARDS_PHASE.weekdays.map((weekday) => ({
+  phase_id: 'standards',
+  weekday,
+  title: 'Standards — benchmark work',
+  focus: 'Lower, then upper, then the stretches',
+  blocks: [
+    { title: 'Warm-up', step_ids: ['kot-standards-walk'] },
+    { title: 'Lower legs', step_ids: ['kot-standards-tib-raise'] },
+    { title: 'Knee ability', step_ids: ['kot-standards-split-squat'] },
+    { title: 'Posterior chain', step_ids: ['kot-standards-rdl'] },
+    { title: 'Mobility', step_ids: ['kot-standards-couch-stretch'] },
+  ],
+}));
+
 const ZERO_STEP_IDS = [
   'kot-zero-walk',
   'kot-zero-tib-raise',
@@ -406,6 +527,8 @@ const ZERO_STEP_IDS = [
   'kot-zero-nordic',
   'kot-zero-elephant-walk',
   'kot-zero-couch-stretch',
+  'kot-zero-calf-raise',
+  'kot-zero-body-squat',
 ];
 
 export const KOT: Program = {
@@ -417,27 +540,20 @@ export const KOT: Program = {
   target_cycles: 1,
   source: 'fixture — Phase 1 Zero of programs/kot/program.json',
   current_phase_id: 'zero',
-  phases: [ZERO_PHASE],
+  phases: [ZERO_PHASE, DENSE_PHASE, STANDARDS_PHASE],
   blocks: [
     { id: 'warm-up', name: 'Warm-up', order: 0 },
     { id: 'lower-legs', name: 'Lower legs', order: 1 },
     { id: 'knee-ability', name: 'Knee ability', order: 2 },
     { id: 'posterior-chain', name: 'Posterior chain', order: 3 },
-    { id: 'mobility', name: 'Mobility', order: 4 },
+    { id: 'upper-body', name: 'Upper body', order: 4 },
+    { id: 'mobility', name: 'Mobility', order: 5 },
   ],
-  days: ZERO_PHASE.weekdays.map((weekday) => ({
-    phase_id: 'zero',
-    weekday,
-    title: 'Zero — same session every day',
-    focus: 'Ankles, knees, then the stretches that keep the range',
-    blocks: [
-      { title: 'Warm-up', step_ids: ['kot-zero-walk'] },
-      { title: 'Lower legs', step_ids: ['kot-zero-tib-raise'] },
-      { title: 'Knee ability', step_ids: ['kot-zero-patrick-step', 'kot-zero-split-squat'] },
-      { title: 'Posterior chain', step_ids: ['kot-zero-nordic'] },
-      { title: 'Mobility', step_ids: ['kot-zero-elephant-walk', 'kot-zero-couch-stretch'] },
-    ],
-  })),
+  days: [
+    ...ZERO_PHASE.weekdays.map((weekday) => ZERO_DAY(weekday)),
+    ...DENSE_DAYS,
+    ...STANDARDS_DAYS,
+  ],
   steps: [
     {
       id: 'kot-zero-walk', order: 0, block: 'warm-up', phase_id: 'zero', name: 'Bodyweight walk (warm-up)',
@@ -472,7 +588,97 @@ export const KOT: Program = {
       id: 'kot-zero-couch-stretch', order: 6, block: 'mobility', phase_id: 'zero', name: 'Couch stretch',
       standard_text: '60 s per side.', exercise_slug: 'couch-stretch', standard: { hold_s: 60 }, per_side: true,
     },
+    {
+      id: 'kot-zero-calf-raise', order: 7, block: 'lower-legs', phase_id: 'zero', name: 'Calf raise (slant board)',
+      standard_text: '25 reps.', exercise_slug: 'deep-squat-hold', standard: { reps: 25 },
+    },
+    {
+      id: 'kot-zero-body-squat', order: 8, block: 'knee-ability', phase_id: 'zero', name: 'Body squat (slant board)',
+      standard_text: '5 sets of 5, 30 s between sets. Optional.',
+      exercise_slug: 'goblet-squat', standard: { reps: 5, sets: 5 }, rest_s: 30,
+    },
+
+    // ── Phase 2 DENSE ────────────────────────────────────────────────────────
+    {
+      id: 'kot-dense-walk', order: 20, block: 'warm-up', phase_id: 'dense', name: 'Bodyweight walk (warm-up)',
+      standard_text: '5 minutes of easy walking.', exercise_slug: 'backward-walk', standard: { duration_min: 5 },
+    },
+    {
+      id: 'kot-dense-patrick-step', order: 21, block: 'knee-ability', phase_id: 'dense', name: 'Patrick step',
+      standard_text: '5 sets of 10 per side.', exercise_slug: 'patrick-step',
+      standard: { reps: 10, sets: 5 }, per_side: true, rest_s: 45,
+    },
+    {
+      id: 'kot-dense-split-squat', order: 22, block: 'knee-ability', phase_id: 'dense', name: 'ATG split squat',
+      standard_text: '5 sets of 5 per side, 30 s between sets.', exercise_slug: 'atg-split-squat',
+      standard: { reps: 5, sets: 5 }, per_side: true, rest_s: 30,
+    },
+    {
+      id: 'kot-dense-rdl', order: 23, block: 'posterior-chain', phase_id: 'dense', name: 'Seated good morning',
+      standard_text: '3 sets of 10.', exercise_slug: 'db-rdl', standard: { reps: 10, sets: 3 },
+    },
+    {
+      id: 'kot-dense-tib-raise', order: 24, block: 'lower-legs', phase_id: 'dense', name: 'Tibialis raise',
+      standard_text: '4 sets of 20.', exercise_slug: 'tibialis-raise', standard: { reps: 20, sets: 4 },
+    },
+    {
+      id: 'kot-dense-row', order: 25, block: 'upper-body', phase_id: 'dense', name: 'Dumbbell row',
+      standard_text: '3 sets of 10.', exercise_slug: 'db-row', standard: { reps: 10, sets: 3 },
+    },
+    {
+      id: 'kot-dense-nordic', order: 26, block: 'posterior-chain', phase_id: 'dense', name: 'Nordic curl',
+      standard_text: '3 sets of 5.', exercise_slug: 'nordic-curl', standard: { reps: 5, sets: 3 },
+    },
+    {
+      id: 'kot-dense-couch-stretch', order: 27, block: 'mobility', phase_id: 'dense', name: 'Couch stretch',
+      standard_text: '60 s per side.', exercise_slug: 'couch-stretch', standard: { hold_s: 60 }, per_side: true,
+    },
+
+    // ── Phase 3 STANDARDS ────────────────────────────────────────────────────
+    {
+      id: 'kot-standards-walk', order: 40, block: 'warm-up', phase_id: 'standards', name: 'Bodyweight walk (warm-up)',
+      standard_text: '0.25 miles.', exercise_slug: 'backward-walk', standard: { duration_min: 5 },
+    },
+    {
+      id: 'kot-standards-tib-raise', order: 41, block: 'lower-legs', phase_id: 'standards', name: 'Tibialis raise',
+      standard_text: '3 sets of 20.', exercise_slug: 'tibialis-raise', standard: { reps: 20, sets: 3 },
+    },
+    {
+      id: 'kot-standards-split-squat', order: 42, block: 'knee-ability', phase_id: 'standards', name: 'ATG split squat',
+      standard_text: 'BENCHMARK: 25% BW per hand, 5 reps per side, 5 sets.',
+      exercise_slug: 'atg-split-squat',
+      standard: { pct_bodyweight: 0.25, per_hand: true, reps: 5, sets: 5 }, per_side: true, rest_s: 30,
+    },
+    {
+      id: 'kot-standards-rdl', order: 43, block: 'posterior-chain', phase_id: 'standards', name: 'ATG deadlift',
+      standard_text: 'BENCHMARK: 100% BW, 10 reps, 5 sets.',
+      exercise_slug: 'db-rdl', standard: { pct_bodyweight: 1, reps: 10, sets: 5 },
+    },
+    {
+      id: 'kot-standards-couch-stretch', order: 44, block: 'mobility', phase_id: 'standards', name: 'Couch stretch',
+      standard_text: '90 s per side.', exercise_slug: 'couch-stretch', standard: { hold_s: 90 }, per_side: true,
+    },
   ],
+};
+
+/** Phase 2 DENSE, week 5 — the phase rule has ramped load to 40% of bodyweight. */
+export const KOT_PROGRESS_DENSE_WEEK_5: ProgramProgress = {
+  program_slug: 'kot',
+  cycle: 1,
+  phase_id: 'dense',
+  week_in_phase: 5,
+  met: {},
+  current_step_ids: [],
+};
+
+/** Phase 3 STANDARDS — load comes from the benchmarks, not from the calendar. */
+export const KOT_PROGRESS_STANDARDS: ProgramProgress = {
+  program_slug: 'kot',
+  cycle: 1,
+  phase_id: 'standards',
+  week_in_phase: 1,
+  met: {},
+  current_step_ids: [],
 };
 
 /** Cold start: Seth is at Phase 1 Zero, week 1, with nothing met. */

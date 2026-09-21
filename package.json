@@ -14,7 +14,7 @@
   "scripts": {
     "dev": "npm run dev --workspace=@longevity/web",
     "build": "npm run build --workspace=@longevity/engine && npm run build --workspace=@longevity/web",
-    "test": "npm run test --workspace=@longevity/engine",
+    "test": "npm run test --workspaces --if-present",
     "test:watch": "npm run test:watch --workspace=@longevity/engine",
     "typecheck": "npm run typecheck --workspaces --if-present",
     "lint": "npm run lint --workspaces --if-present",
@@ -24,6 +24,7 @@
     "check": "npm run check:contracts && npm run typecheck && npm run test && npm run check:data && npm run check:kot-sql",
     "check:kot-sql": "tsx scripts/gen-kot-sql.ts --check",
     "sql:kot": "tsx scripts/gen-kot-sql.ts",
+    "seed": "tsx scripts/seed-supabase.ts",
     "check:contracts": "tsx scripts/check-contracts.ts",
     "check:data": "tsx scripts/validate-data.ts",
     "sql:bundle": "bash -c '{ head -19 supabase/SCHEMA_ALL_IN_ONE.sql; for f in supabase/migrations/*.sql; do printf \"\n-- == %s ==\n\n\" \"$(basename $f)\"; cat \"$f\"; done; } > /tmp/b.sql && mv /tmp/b.sql supabase/SCHEMA_ALL_IN_ONE.sql'"

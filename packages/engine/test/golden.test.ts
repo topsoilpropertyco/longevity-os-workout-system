@@ -97,7 +97,7 @@ describe('the worked example in docs/ENGINE.md', () => {
     expect(result.today.type).not.toBe('recovery');
   });
 
-  // ── every factual claim docs/ENGINE.md §10 makes about this input ──────────
+  // ── every factual claim docs/ENGINE.md §11 makes about this input ──────────
 
   it('blocks exactly the four regions the doc lists', () => {
     const blocked = Object.values(result.ledger).filter((e) => !e.available).map((e) => e.region).sort();
@@ -109,7 +109,12 @@ describe('the worked example in docs/ENGINE.md', () => {
 
   it('chooses the VO2 session, and says why KOT was not available', () => {
     expect(result.today.type).toBe('vo2');
-    expect(result.today.notes.join(' ')).toMatch(/Not kot today: Lower body is still recovering/);
+    // Tuesday is not a Zero training day at all, so the schedule answers before
+    // the ledger gets a turn. The four blocked regions are still in the notes
+    // immediately above this line — both facts are true, this is the first one.
+    expect(result.today.notes.join(' ')).toMatch(
+      /Not kot today: Zero trains Mon, Wed and Fri — today is not one of them/,
+    );
   });
 
   it('falls back to 8 × 2 min at 164–177 bpm, because 4 × 4 does not fit 30 minutes', () => {
@@ -132,8 +137,15 @@ describe('the worked example in docs/ENGINE.md', () => {
 
   it('projects the week the doc prints', () => {
     expect(result.week.map((d) => d.session.type)).toEqual([
-      'vo2', 'power', 'zone2', 'kot', 'mobility', 'zone2', 'strength',
+      'vo2', 'kot', 'zone2', 'kot', 'mobility', 'zone2', 'kot',
     ]);
+  });
+
+  it('puts every projected program day on a weekday the phase actually trains', () => {
+    const zero = DOCS_WORKED_EXAMPLE.program!.phases!.find((p) => p.id === 'zero')!;
+    for (const day of result.week) {
+      if (day.session.type === 'kot') expect(zero.weekdays).toContain(day.day_index);
+    }
   });
 
   it('reports the weekly dose the doc quotes', () => {

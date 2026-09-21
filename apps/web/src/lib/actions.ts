@@ -2,13 +2,33 @@
 
 import { revalidatePath } from 'next/cache';
 import { cookies } from 'next/headers';
+import { redirect } from 'next/navigation';
 import { COOKIE_MAX_AGE, PREF_COOKIE } from './prefs';
+import { requireUserId, signedInUserId } from './auth';
 import { serverSupabase } from './supabase/server';
-import { DEMO_USER, loadPlanInput, todayIso } from './plan-input';
+import { loadPlanInput, todayIso } from './plan-input';
 import { applySwap, rebalanceWeek, plan as enginePlan, describeRebalance } from './engine-bridge';
 import type { GoalMode, Rpe, SessionType, Slider1to5 } from './engine-bridge';
 
 export type ActionResult = { ok: boolean; message?: string };
+
+/**
+ * Somewhere to write, and the id to write it under.
+ *
+ * Returns null in the two cases where there is nothing to mirror into: no
+ * Supabase configured (the demo path — cookies alone carry the preference), and
+ * a session that has expired between the page render and the tap. Every write
+ * below goes through here, so `user_id` is always the athlete RLS will accept
+ * and never a placeholder that would be rejected as a malformed uuid.
+ */
+async function writable(): Promise<{ db: Db; userId: string } | null> {
+  const db = await serverSupabase();
+  if (!db) return null;
+  const userId = await signedInUserId();
+  return userId ? { db, userId } : null;
+}
+
+type Db = NonNullable<Awaited<ReturnType<typeof serverSupabase>>>;
 
 async function setCookie(name: string, value: string) {
   const store = await cookies();
@@ -23,10 +43,10 @@ async function setCookie(name: string, value: string) {
 /** Minutes available today (15/20/30/45/60/90). Sticky. */
 export async function setBudget(minutes: number): Promise<ActionResult> {
   await setCookie(PREF_COOKIE.budget, String(minutes));
-  const supabase = await serverSupabase();
-  if (supabase) {
+  const w = await writable();
+  if (w) {
     // TODO(db): `goal_settings` carries the sticky budget in the real schema.
-    await supabase.from('goal_settings').upsert({ user_id: DEMO_USER, last_budget_min: minutes }).select();
+    await w.db.from('goal_settings').upsert({ user_id: w.userId, last_budget_min: minutes }).select();
   }
   revalidatePath('/');
   revalidatePath('/week');
@@ -36,9 +56,9 @@ export async function setBudget(minutes: number): Promise<ActionResult> {
 /** Where he is training. Sticky = last used (PRD §8.1). */
 export async function setLocation(locationId: string): Promise<ActionResult> {
   await setCookie(PREF_COOKIE.location, locationId);
-  const supabase = await serverSupabase();
-  if (supabase) {
-    await supabase.from('goal_settings').upsert({ user_id: DEMO_USER, last_location_id: locationId }).select();
+  const w = await writable();
+  if (w) {
+    await w.db.from('goal_settings').upsert({ user_id: w.userId, last_location_id: locationId }).select();
   }
   revalidatePath('/');
   revalidatePath('/week');
@@ -53,18 +73,18 @@ export async function setSelfReport(
 ): Promise<ActionResult> {
   const date = todayIso();
   await setCookie(PREF_COOKIE.self, JSON.stringify({ date, soreness, energy, stress }));
-  const supabase = await serverSupabase();
-  if (supabase) {
-    await supabase.from('self_reports').upsert({ user_id: DEMO_USER, date, soreness, energy, stress });
+  const w = await writable();
+  if (w) {
+    await w.db.from('self_reports').upsert({ user_id: w.userId, date, soreness, energy, stress });
   }
   revalidatePath('/');
   return { ok: true };
 }
 
 export async function setGoalMode(mode: GoalMode): Promise<ActionResult> {
-  const supabase = await serverSupabase();
-  if (supabase) {
-    await supabase.from('goal_settings').upsert({ user_id: DEMO_USER, mode });
+  const w = await writable();
+  if (w) {
+    await w.db.from('goal_settings').upsert({ user_id: w.userId, mode });
   }
   revalidatePath('/');
   revalidatePath('/settings');
@@ -83,10 +103,10 @@ export type LoggedSetPayload = {
 
 /** One logged set. Fire-and-forget from the runtime — the UI already moved on. */
 export async function logSet(payload: LoggedSetPayload): Promise<ActionResult> {
-  const supabase = await serverSupabase();
-  if (!supabase) return { ok: true, message: 'Logged locally (no database configured).' };
-  const { error } = await supabase.from('sets').upsert({
-    user_id: DEMO_USER,
+  const w = await writable();
+  if (!w) return { ok: true, message: 'Logged locally (no database configured).' };
+  const { error } = await w.db.from('sets').upsert({
+    user_id: w.userId,
     session_id: payload.sessionId,
     exercise_id: payload.exerciseId,
     set_index: payload.setIndex,
@@ -109,11 +129,11 @@ export type FinishSessionPayload = {
 };
 
 export async function finishSession(payload: FinishSessionPayload): Promise<ActionResult> {
-  const supabase = await serverSupabase();
-  if (supabase) {
-    await supabase.from('sessions').upsert({
+  const w = await writable();
+  if (w) {
+    await w.db.from('sessions').upsert({
       id: payload.sessionId,
-      user_id: DEMO_USER,
+      user_id: w.userId,
       date: payload.date,
       type: payload.type,
       location_id: payload.locationId,
@@ -135,13 +155,13 @@ export async function swapExercise(
   exerciseId: string,
   replacementId: string,
 ): Promise<ActionResult> {
-  const input = await loadPlanInput(DEMO_USER, sessionDate);
+  const input = await loadPlanInput(await requireUserId(), sessionDate);
   const result = enginePlan(input);
   const updated = applySwap(result.today, exerciseId, replacementId, input);
-  const supabase = await serverSupabase();
-  if (supabase) {
-    await supabase.from('session_exercises').upsert({
-      user_id: DEMO_USER,
+  const w = await writable();
+  if (w) {
+    await w.db.from('session_exercises').upsert({
+      user_id: w.userId,
       date: sessionDate,
       exercise_id: replacementId,
       swapped_from: exerciseId,
@@ -154,7 +174,7 @@ export async function swapExercise(
 /** "Do this today" from the week carousel. Returns the one-line diff first. */
 export async function previewPullForward(date: string): Promise<{ diff: string }> {
   const today = todayIso();
-  const input = await loadPlanInput(DEMO_USER, today);
+  const input = await loadPlanInput(await requireUserId(), today);
   const before = enginePlan(input);
   const after = rebalanceWeek(before, date, input);
   return { diff: describeRebalance(before, after) };
@@ -162,13 +182,13 @@ export async function previewPullForward(date: string): Promise<{ diff: string }
 
 export async function commitPullForward(date: string): Promise<ActionResult> {
   const today = todayIso();
-  const input = await loadPlanInput(DEMO_USER, today);
+  const input = await loadPlanInput(await requireUserId(), today);
   const before = enginePlan(input);
   const after = rebalanceWeek(before, date, input);
-  const supabase = await serverSupabase();
-  if (supabase) {
-    await supabase.from('plans').upsert({
-      user_id: DEMO_USER,
+  const w = await writable();
+  if (w) {
+    await w.db.from('plans').upsert({
+      user_id: w.userId,
       date: today,
       signature: after.signature,
       payload: after as unknown as Record<string, unknown>,
@@ -196,10 +216,10 @@ export async function logCardioManual(form: {
 }): Promise<ActionResult> {
   const anything = Object.values(form).some((v) => v !== undefined && v !== '' && v !== null);
   if (!anything) return { ok: false, message: 'Nothing to log yet.' };
-  const supabase = await serverSupabase();
-  if (supabase) {
-    await supabase.from('cardio_logs').insert({
-      user_id: DEMO_USER,
+  const w = await writable();
+  if (w) {
+    await w.db.from('cardio_logs').insert({
+      user_id: w.userId,
       date: todayIso(),
       modality: form.modality ?? 'other',
       duration_min: form.durationMin ?? null,
@@ -216,25 +236,42 @@ export async function logCardioManual(form: {
 }
 
 export async function resolveInjury(injuryId: string): Promise<ActionResult> {
-  const supabase = await serverSupabase();
-  if (supabase) {
-    await supabase.from('injuries').update({ resolved_on: todayIso() }).eq('id', injuryId);
+  const w = await writable();
+  if (w) {
+    // No user_id filter needed: the RLS policy already restricts the update to
+    // his own rows, and adding one here would only hide a policy bug.
+    await w.db.from('injuries').update({ resolved_on: todayIso() }).eq('id', injuryId);
   }
   revalidatePath('/injuries');
   return { ok: true, message: 'Resolved. It stays in the register, closed.' };
 }
 
 export async function updateInjuryPain(injuryId: string, pain: number): Promise<ActionResult> {
-  const supabase = await serverSupabase();
-  if (supabase) {
-    await supabase.from('injury_checkins').insert({
-      user_id: DEMO_USER,
+  const w = await writable();
+  if (w) {
+    await w.db.from('injury_checkins').insert({
+      user_id: w.userId,
       injury_id: injuryId,
       date: todayIso(),
       pain,
     });
-    await supabase.from('injuries').update({ current_pain: pain }).eq('id', injuryId);
+    await w.db.from('injuries').update({ current_pain: pain }).eq('id', injuryId);
   }
   revalidatePath('/injuries');
   return { ok: true };
+}
+
+/**
+ * Sign out, from the form in /settings.
+ *
+ * Clearing the cookies is the whole job — `signOut()` revokes the refresh token
+ * on the auth server too, so a stolen phone cannot be renewed back into a
+ * session. Cookie writes only stick inside a server action or a route handler,
+ * which is why this is not a plain link.
+ */
+export async function signOut(): Promise<void> {
+  const supabase = await serverSupabase();
+  if (supabase) await supabase.auth.signOut();
+  revalidatePath('/', 'layout');
+  redirect('/sign-in');
 }

@@ -684,6 +684,14 @@ export interface PrescribedSet {
   duration_s?: number;
   /** For distance work. */
   distance_mi?: number;
+  /**
+   * True when this set is performed on both sides. `reps` and `duration_s` are
+   * the TOTAL across both, matching the total-load convention used for
+   * dumbbell pairs (PRD §8.2) — so the ledger, the tonnage and the time
+   * estimate all see the real work without knowing anything about sides. The
+   * runtime halves it again to show "25 each side" on the card.
+   */
+  per_side?: boolean;
 }
 
 export interface PredictionBand {
@@ -732,6 +740,12 @@ export interface SessionBlock {
   exercises: PrescribedExercise[];
   cardio?: CardioPrescription;
   estimated_min: number;
+  /**
+   * One line of guidance for a block that reserves minutes without prescribing
+   * movements — the warm-up and cool-down bookends. Without it the block is an
+   * unexplained ten minutes on the card.
+   */
+  note?: string;
 }
 
 export interface PrescribedSession {

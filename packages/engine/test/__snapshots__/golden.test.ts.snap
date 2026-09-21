@@ -108,7 +108,7 @@ exports[`golden plans > cold_start is unchanged 1`] = `
 exports[`golden plans > fifteen_min_home is unchanged 1`] = `
 {
   "blocked_regions": [],
-  "signature": "bfd90b1d",
+  "signature": "1585ee29",
   "today": {
     "blocks": [
       {
@@ -122,23 +122,53 @@ exports[`golden plans > fifteen_min_home is unchanged 1`] = `
         "cardio": undefined,
         "exercises": [
           {
-            "id": "backward-walk",
+            "id": "mcgill-curl-up",
             "load_lb": 0,
             "reps": 0,
             "rpe": undefined,
             "sets": 1,
           },
           {
-            "id": "tibialis-raise",
+            "id": "bird-dog",
             "load_lb": 0,
-            "reps": 25,
-            "rpe": 8,
-            "sets": 2,
+            "reps": 0,
+            "rpe": undefined,
+            "sets": 1,
           },
         ],
-        "kind": "program",
-        "minutes": 8.92,
-        "title": "Knees Over Toes — ground up",
+        "kind": "strength",
+        "minutes": 3,
+        "title": "Core",
+      },
+      {
+        "cardio": undefined,
+        "exercises": [
+          {
+            "id": "side-plank",
+            "load_lb": 0,
+            "reps": 0,
+            "rpe": undefined,
+            "sets": 1,
+          },
+        ],
+        "kind": "mobility",
+        "minutes": 1.5,
+        "title": "McGill Big 3",
+      },
+      {
+        "cardio": undefined,
+        "exercises": [
+          {
+            "id": "couch-stretch",
+            "load_lb": 0,
+            "reps": 0,
+            "rpe": undefined,
+            "sets": 1,
+          },
+        ],
+        "kind": "mobility",
+        "minutes": 3,
+        "title": "Mobility",
       },
       {
         "cardio": undefined,
@@ -150,27 +180,27 @@ exports[`golden plans > fifteen_min_home is unchanged 1`] = `
     ],
     "date": "2026-09-22",
     "deload": false,
-    "estimated_min": 13.9,
+    "estimated_min": 12.5,
     "readiness": {
       "band": "as_planned",
       "score": 78.7,
       "source": "blend",
     },
-    "title": "Knees Over Toes",
-    "type": "kot",
-    "why": "Knees Over Toes. Readiness 79 — run it as written. 0/3 KOT sessions done this week.",
+    "title": "Mobility",
+    "type": "mobility",
+    "why": "Mobility. Readiness 79 — run it as written. 0 of 2 mobility sessions this week.",
   },
   "warnings": [],
   "week": [
     {
       "date": "2026-09-22",
-      "minutes": 13.9,
-      "type": "kot",
+      "minutes": 12.5,
+      "type": "mobility",
     },
     {
       "date": "2026-09-23",
-      "minutes": 15,
-      "type": "zone2",
+      "minutes": 13.9,
+      "type": "kot",
     },
     {
       "date": "2026-09-24",
@@ -179,13 +209,13 @@ exports[`golden plans > fifteen_min_home is unchanged 1`] = `
     },
     {
       "date": "2026-09-25",
-      "minutes": 14.5,
-      "type": "strength",
+      "minutes": 13.9,
+      "type": "kot",
     },
     {
       "date": "2026-09-26",
-      "minutes": 13.9,
-      "type": "kot",
+      "minutes": 15,
+      "type": "zone2",
     },
     {
       "date": "2026-09-27",
@@ -194,8 +224,8 @@ exports[`golden plans > fifteen_min_home is unchanged 1`] = `
     },
     {
       "date": "2026-09-28",
-      "minutes": 13,
-      "type": "mobility",
+      "minutes": 13.9,
+      "type": "kot",
     },
   ],
   "weekly": {
@@ -220,7 +250,7 @@ exports[`golden plans > fifteen_min_home is unchanged 1`] = `
 exports[`golden plans > high_readiness is unchanged 1`] = `
 {
   "blocked_regions": [],
-  "signature": "87555510",
+  "signature": "b6f8e813",
   "today": {
     "blocks": [
       {
@@ -229,63 +259,6 @@ exports[`golden plans > high_readiness is unchanged 1`] = `
         "kind": "warmup",
         "minutes": 5,
         "title": "Warm-up",
-      },
-      {
-        "cardio": undefined,
-        "exercises": [
-          {
-            "id": "backward-walk",
-            "load_lb": 0,
-            "reps": 0,
-            "rpe": undefined,
-            "sets": 1,
-          },
-          {
-            "id": "tibialis-raise",
-            "load_lb": 0,
-            "reps": 25,
-            "rpe": 8,
-            "sets": 2,
-          },
-          {
-            "id": "patrick-step",
-            "load_lb": 0,
-            "reps": 25,
-            "rpe": 8,
-            "sets": 4,
-          },
-          {
-            "id": "atg-split-squat",
-            "load_lb": 75,
-            "reps": 5,
-            "rpe": 8,
-            "sets": 5,
-          },
-          {
-            "id": "nordic-curl",
-            "load_lb": 0,
-            "reps": 5,
-            "rpe": 8,
-            "sets": 4,
-          },
-          {
-            "id": "elephant-walk",
-            "load_lb": 0,
-            "reps": 0,
-            "rpe": undefined,
-            "sets": 1,
-          },
-          {
-            "id": "couch-stretch",
-            "load_lb": 0,
-            "reps": 0,
-            "rpe": undefined,
-            "sets": 1,
-          },
-        ],
-        "kind": "program",
-        "minutes": 36.31,
-        "title": "Knees Over Toes — ground up",
       },
       {
         "cardio": undefined,
@@ -326,6 +299,43 @@ exports[`golden plans > high_readiness is unchanged 1`] = `
       },
       {
         "cardio": undefined,
+        "exercises": [
+          {
+            "id": "couch-stretch",
+            "load_lb": 0,
+            "reps": 0,
+            "rpe": undefined,
+            "sets": 1,
+          },
+          {
+            "id": "deep-squat-hold",
+            "load_lb": 0,
+            "reps": 0,
+            "rpe": undefined,
+            "sets": 1,
+          },
+        ],
+        "kind": "mobility",
+        "minutes": 4.5,
+        "title": "Mobility",
+      },
+      {
+        "cardio": {
+          "bpm": [
+            158,
+            177,
+          ],
+          "minutes": 28,
+          "modality": "run",
+          "structure": "intervals",
+        },
+        "exercises": [],
+        "kind": "conditioning",
+        "minutes": 28,
+        "title": "4 × 4 min",
+      },
+      {
+        "cardio": undefined,
         "exercises": [],
         "kind": "cooldown",
         "minutes": 5,
@@ -334,27 +344,27 @@ exports[`golden plans > high_readiness is unchanged 1`] = `
     ],
     "date": "2026-09-22",
     "deload": false,
-    "estimated_min": 50.8,
+    "estimated_min": 47,
     "readiness": {
       "band": "push",
       "score": 94.4,
       "source": "blend",
     },
-    "title": "Knees Over Toes",
-    "type": "kot",
-    "why": "Knees Over Toes. Readiness 94 — green light, take the extra set. 0/3 KOT sessions done this week.",
+    "title": "VO2 intervals",
+    "type": "vo2",
+    "why": "VO2 day. Readiness 94 — green light, take the extra set. The single highest-leverage session for lifespan.",
   },
   "warnings": [],
   "week": [
     {
       "date": "2026-09-22",
-      "minutes": 50.8,
-      "type": "kot",
+      "minutes": 47,
+      "type": "vo2",
     },
     {
       "date": "2026-09-23",
-      "minutes": 46,
-      "type": "vo2",
+      "minutes": 52.4,
+      "type": "kot",
     },
     {
       "date": "2026-09-24",
@@ -363,23 +373,23 @@ exports[`golden plans > high_readiness is unchanged 1`] = `
     },
     {
       "date": "2026-09-25",
-      "minutes": 46,
-      "type": "mobility",
+      "minutes": 52.4,
+      "type": "kot",
     },
     {
       "date": "2026-09-26",
-      "minutes": 55,
-      "type": "strength",
-    },
-    {
-      "date": "2026-09-27",
-      "minutes": 46,
+      "minutes": 47,
       "type": "mobility",
     },
     {
+      "date": "2026-09-27",
+      "minutes": 53.4,
+      "type": "power",
+    },
+    {
       "date": "2026-09-28",
-      "minutes": 55,
-      "type": "strength",
+      "minutes": 47,
+      "type": "mobility",
     },
   ],
   "weekly": {
@@ -404,7 +414,7 @@ exports[`golden plans > high_readiness is unchanged 1`] = `
 exports[`golden plans > injury_flare is unchanged 1`] = `
 {
   "blocked_regions": [],
-  "signature": "f367e22e",
+  "signature": "0711178f",
   "today": {
     "blocks": [
       {
@@ -413,63 +423,6 @@ exports[`golden plans > injury_flare is unchanged 1`] = `
         "kind": "warmup",
         "minutes": 5,
         "title": "Warm-up",
-      },
-      {
-        "cardio": undefined,
-        "exercises": [
-          {
-            "id": "backward-walk",
-            "load_lb": 0,
-            "reps": 0,
-            "rpe": undefined,
-            "sets": 1,
-          },
-          {
-            "id": "tibialis-raise",
-            "load_lb": 0,
-            "reps": 25,
-            "rpe": 8,
-            "sets": 2,
-          },
-          {
-            "id": "patrick-step",
-            "load_lb": 0,
-            "reps": 25,
-            "rpe": 8,
-            "sets": 3,
-          },
-          {
-            "id": "atg-split-squat",
-            "load_lb": 75,
-            "reps": 5,
-            "rpe": 8,
-            "sets": 5,
-          },
-          {
-            "id": "nordic-curl",
-            "load_lb": 0,
-            "reps": 5,
-            "rpe": 8,
-            "sets": 3,
-          },
-          {
-            "id": "elephant-walk",
-            "load_lb": 0,
-            "reps": 0,
-            "rpe": undefined,
-            "sets": 1,
-          },
-          {
-            "id": "couch-stretch",
-            "load_lb": 0,
-            "reps": 0,
-            "rpe": undefined,
-            "sets": 1,
-          },
-        ],
-        "kind": "program",
-        "minutes": 32.57,
-        "title": "Knees Over Toes — ground up",
       },
       {
         "cardio": undefined,
@@ -510,6 +463,43 @@ exports[`golden plans > injury_flare is unchanged 1`] = `
       },
       {
         "cardio": undefined,
+        "exercises": [
+          {
+            "id": "couch-stretch",
+            "load_lb": 0,
+            "reps": 0,
+            "rpe": undefined,
+            "sets": 1,
+          },
+          {
+            "id": "deep-squat-hold",
+            "load_lb": 0,
+            "reps": 0,
+            "rpe": undefined,
+            "sets": 1,
+          },
+        ],
+        "kind": "mobility",
+        "minutes": 4.5,
+        "title": "Mobility",
+      },
+      {
+        "cardio": {
+          "bpm": [
+            158,
+            177,
+          ],
+          "minutes": 28,
+          "modality": "run",
+          "structure": "intervals",
+        },
+        "exercises": [],
+        "kind": "conditioning",
+        "minutes": 28,
+        "title": "4 × 4 min",
+      },
+      {
+        "cardio": undefined,
         "exercises": [],
         "kind": "cooldown",
         "minutes": 5,
@@ -518,27 +508,27 @@ exports[`golden plans > injury_flare is unchanged 1`] = `
     ],
     "date": "2026-09-22",
     "deload": false,
-    "estimated_min": 47.1,
+    "estimated_min": 47,
     "readiness": {
       "band": "as_planned",
       "score": 77.9,
       "source": "blend",
     },
-    "title": "Knees Over Toes",
-    "type": "kot",
-    "why": "Knees Over Toes. Readiness 78 — run it as written. 0/3 KOT sessions done this week.",
+    "title": "VO2 intervals",
+    "type": "vo2",
+    "why": "VO2 day. Readiness 78 — run it as written. The single highest-leverage session for lifespan.",
   },
   "warnings": [],
   "week": [
     {
       "date": "2026-09-22",
-      "minutes": 47.1,
-      "type": "kot",
+      "minutes": 47,
+      "type": "vo2",
     },
     {
       "date": "2026-09-23",
-      "minutes": 46,
-      "type": "vo2",
+      "minutes": 52.4,
+      "type": "kot",
     },
     {
       "date": "2026-09-24",
@@ -547,23 +537,23 @@ exports[`golden plans > injury_flare is unchanged 1`] = `
     },
     {
       "date": "2026-09-25",
-      "minutes": 46,
-      "type": "mobility",
+      "minutes": 52.4,
+      "type": "kot",
     },
     {
       "date": "2026-09-26",
-      "minutes": 55,
-      "type": "strength",
-    },
-    {
-      "date": "2026-09-27",
-      "minutes": 46,
+      "minutes": 47,
       "type": "mobility",
     },
     {
+      "date": "2026-09-27",
+      "minutes": 48.7,
+      "type": "power",
+    },
+    {
       "date": "2026-09-28",
-      "minutes": 55,
-      "type": "strength",
+      "minutes": 52.4,
+      "type": "kot",
     },
   ],
   "weekly": {
@@ -653,7 +643,7 @@ exports[`golden plans > low_readiness is unchanged 1`] = `
           },
         ],
         "kind": "mobility",
-        "minutes": 6.5,
+        "minutes": 7.5,
         "title": "Recovery",
       },
       {
@@ -674,7 +664,7 @@ exports[`golden plans > low_readiness is unchanged 1`] = `
     ],
     "date": "2026-09-22",
     "deload": true,
-    "estimated_min": 41,
+    "estimated_min": 42,
     "readiness": {
       "band": "recovery",
       "score": 44.8,
@@ -688,12 +678,12 @@ exports[`golden plans > low_readiness is unchanged 1`] = `
   "week": [
     {
       "date": "2026-09-22",
-      "minutes": 41,
+      "minutes": 42,
       "type": "recovery",
     },
     {
       "date": "2026-09-23",
-      "minutes": 55,
+      "minutes": 48.3,
       "type": "kot",
     },
     {
@@ -703,22 +693,22 @@ exports[`golden plans > low_readiness is unchanged 1`] = `
     },
     {
       "date": "2026-09-25",
-      "minutes": 55,
-      "type": "strength",
+      "minutes": 48.3,
+      "type": "kot",
     },
     {
       "date": "2026-09-26",
-      "minutes": 46,
+      "minutes": 47,
       "type": "vo2",
     },
     {
       "date": "2026-09-27",
-      "minutes": 55,
-      "type": "strength",
+      "minutes": 53.4,
+      "type": "power",
     },
     {
       "date": "2026-09-28",
-      "minutes": 46,
+      "minutes": 47,
       "type": "mobility",
     },
   ],
@@ -744,7 +734,7 @@ exports[`golden plans > low_readiness is unchanged 1`] = `
 exports[`golden plans > ninety_min_pf is unchanged 1`] = `
 {
   "blocked_regions": [],
-  "signature": "53b88b66",
+  "signature": "78232910",
   "today": {
     "blocks": [
       {
@@ -753,78 +743,6 @@ exports[`golden plans > ninety_min_pf is unchanged 1`] = `
         "kind": "warmup",
         "minutes": 5,
         "title": "Warm-up",
-      },
-      {
-        "cardio": undefined,
-        "exercises": [
-          {
-            "id": "backward-walk",
-            "load_lb": 0,
-            "reps": 0,
-            "rpe": undefined,
-            "sets": 1,
-          },
-          {
-            "id": "tibialis-raise",
-            "load_lb": 0,
-            "reps": 25,
-            "rpe": 9,
-            "sets": 2,
-          },
-          {
-            "id": "patrick-step",
-            "load_lb": 0,
-            "reps": 25,
-            "rpe": 9,
-            "sets": 4,
-          },
-          {
-            "id": "atg-split-squat",
-            "load_lb": 80,
-            "reps": 5,
-            "rpe": 9,
-            "sets": 5,
-          },
-          {
-            "id": "nordic-curl",
-            "load_lb": 0,
-            "reps": 5,
-            "rpe": 9,
-            "sets": 4,
-          },
-          {
-            "id": "elephant-walk",
-            "load_lb": 0,
-            "reps": 0,
-            "rpe": undefined,
-            "sets": 1,
-          },
-          {
-            "id": "couch-stretch",
-            "load_lb": 0,
-            "reps": 0,
-            "rpe": undefined,
-            "sets": 1,
-          },
-        ],
-        "kind": "program",
-        "minutes": 51.88,
-        "title": "Knees Over Toes — ground up",
-      },
-      {
-        "cardio": undefined,
-        "exercises": [
-          {
-            "id": "leg-press",
-            "load_lb": 20,
-            "reps": 6,
-            "rpe": 8,
-            "sets": 3,
-          },
-        ],
-        "kind": "strength",
-        "minutes": 6.05,
-        "title": "Upper body — pairs with the knee work",
       },
       {
         "cardio": undefined,
@@ -859,6 +777,13 @@ exports[`golden plans > ninety_min_pf is unchanged 1`] = `
         "cardio": undefined,
         "exercises": [
           {
+            "id": "couch-stretch",
+            "load_lb": 0,
+            "reps": 0,
+            "rpe": undefined,
+            "sets": 1,
+          },
+          {
             "id": "deep-squat-hold",
             "load_lb": 0,
             "reps": 0,
@@ -867,8 +792,23 @@ exports[`golden plans > ninety_min_pf is unchanged 1`] = `
           },
         ],
         "kind": "mobility",
-        "minutes": 1.5,
+        "minutes": 4.5,
         "title": "Mobility",
+      },
+      {
+        "cardio": {
+          "bpm": [
+            158,
+            177,
+          ],
+          "minutes": 28,
+          "modality": "run",
+          "structure": "intervals",
+        },
+        "exercises": [],
+        "kind": "conditioning",
+        "minutes": 28,
+        "title": "4 × 4 min",
       },
       {
         "cardio": undefined,
@@ -880,51 +820,51 @@ exports[`golden plans > ninety_min_pf is unchanged 1`] = `
     ],
     "date": "2026-09-22",
     "deload": false,
-    "estimated_min": 73.9,
+    "estimated_min": 47,
     "readiness": {
       "band": "as_planned",
       "score": 82.9,
       "source": "blend",
     },
-    "title": "Knees Over Toes",
-    "type": "kot",
-    "why": "Knees Over Toes. Readiness 83 — run it as written. 0/3 KOT sessions done this week.",
+    "title": "VO2 intervals",
+    "type": "vo2",
+    "why": "VO2 day. Readiness 83 — run it as written. The single highest-leverage session for lifespan.",
   },
   "warnings": [],
   "week": [
     {
       "date": "2026-09-22",
-      "minutes": 73.9,
-      "type": "kot",
-    },
-    {
-      "date": "2026-09-23",
-      "minutes": 46,
+      "minutes": 47,
       "type": "vo2",
     },
     {
+      "date": "2026-09-23",
+      "minutes": 71,
+      "type": "kot",
+    },
+    {
       "date": "2026-09-24",
-      "minutes": 72.5,
+      "minutes": 74,
       "type": "zone2",
     },
     {
       "date": "2026-09-25",
-      "minutes": 44.1,
-      "type": "strength",
+      "minutes": 71,
+      "type": "kot",
     },
     {
       "date": "2026-09-26",
-      "minutes": 21,
+      "minutes": 22,
       "type": "mobility",
     },
     {
       "date": "2026-09-27",
-      "minutes": 44.1,
-      "type": "strength",
+      "minutes": 34.4,
+      "type": "power",
     },
     {
       "date": "2026-09-28",
-      "minutes": 21,
+      "minutes": 22,
       "type": "mobility",
     },
   ],
@@ -1009,8 +949,8 @@ exports[`the worked example in docs/ENGINE.md > is unchanged 1`] = `
     },
     {
       "date": "2026-09-23",
-      "minutes": 27.4,
-      "type": "power",
+      "minutes": 38,
+      "type": "kot",
     },
     {
       "date": "2026-09-24",
@@ -1019,7 +959,7 @@ exports[`the worked example in docs/ENGINE.md > is unchanged 1`] = `
     },
     {
       "date": "2026-09-25",
-      "minutes": 38.4,
+      "minutes": 38,
       "type": "kot",
     },
     {
@@ -1034,8 +974,8 @@ exports[`the worked example in docs/ENGINE.md > is unchanged 1`] = `
     },
     {
       "date": "2026-09-28",
-      "minutes": 29.9,
-      "type": "strength",
+      "minutes": 38,
+      "type": "kot",
     },
   ],
   "weekly": {
