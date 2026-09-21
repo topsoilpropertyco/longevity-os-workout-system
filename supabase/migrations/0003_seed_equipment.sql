@@ -91,7 +91,15 @@ insert into public.equipment_catalog (user_id, slug, display_name, category, not
   (null, 'plyo_box',                'Plyo box',                   'accessory',   'Box jumps STEP DOWN, always. Benches substitute for step-ups at PF.', 810),
   (null, 'jump_rope',               'Jump rope',                  'accessory',   'Cheap plyo contacts — count them against the 40–100/session ceiling.', 820),
   (null, 'rings',                   'Gymnastic rings',            'accessory',   'CrossFit box or a home bar.', 830),
-  (null, 'chalk',                   'Chalk',                      'accessory',   'Banned at Planet Fitness. Grip-limited pulls need straps or a different lift there.', 840)
+  (null, 'chalk',                   'Chalk',                      'accessory',   'Banned at Planet Fitness. Grip-limited pulls need straps or a different lift there.', 840),
+  -- Named by the source exercise corpora. The ingest reports vocabulary it
+  -- cannot map rather than coercing it into a near neighbour, and these five
+  -- are what that report asked for.
+  (null, 'ab_wheel',                'Ab wheel',                   'accessory',   'Wheel roller. Anti-extension work; brutal and cheap.', 850),
+  (null, 'battle_rope',             'Battle rope',                'accessory',   'Conditioning. Some CrossFit boxes; never Planet Fitness.', 860),
+  (null, 'sledgehammer',            'Sledgehammer',               'accessory',   'Tire striking. Box equipment.', 870),
+  (null, 'tire',                    'Tire',                       'accessory',   'Flipping and striking. Box equipment.', 880),
+  (null, 'arm_ergometer',           'Upper body ergometer',       'cardio',      'Arm bike. Genuinely useful Zone 2 on a day the lower body is recovering.', 890)
 on conflict (slug) where user_id is null do update set
   display_name = excluded.display_name,
   category     = excluded.category,
