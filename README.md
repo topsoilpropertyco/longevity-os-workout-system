@@ -99,30 +99,71 @@ Every dependency is on a free tier, and the architecture is shaped by those tier
 
 ## Build status
 
-Snapshot from the first build session, taken while several parts were still being written in parallel. **`npm run check` is the source of truth** — run it.
+Written at the end of the first build session, against what is actually on disk.
+**`npm run check` is the source of truth** — it runs the contract check, the
+typecheck across all five workspaces, the engine tests and the data validation,
+and it is green.
 
-**What works**
-- The contract and the evidence base: `docs/PRD.md`, `docs/RESEARCH_FOUNDATION.md`, `CLAUDE.md`. Stable, and read-only.
-- **The exercise library is ingested.** `npm run ingest:exercises` merges 876 free-exercise-db rows with 1,324 Gym Visual rows into a **1,908-exercise library, 69.4% of it with an animated GIF**, 30.5% with static images, 3 records with no media at all. The full breakdown, including the 37 fuzzy joins that want a human eye, is in `data/reports/media-coverage.md`.
-- **The engine has a pipeline, not just types.** `packages/engine/src/` holds readiness, ledger, exclusions, template, progression, deload, assembly, swaps, cardio, weekly dose and why-copy, with unit tests beside them and fixture days in `packages/engine/fixtures/`.
-- **The schema exists.** `supabase/migrations/0001_init.sql` through `0005_cron.sql`: tables, RLS policies, the equipment catalog, the location presets, and the cron jobs.
-- **The integrations are written**: Oura (client, schema, normalize), Strava (client, webhook, zones-from-HR-stream, normalize), Telegram (client, keyboards, router), and the LLM layer (provider, jobs, prompts, tools, fallback copy) over result-typed HTTP plumbing that never throws into the request path.
-- **The KOT scaffold is normalized** to `programs/kot/program.json` — 26 steps — with a reconciliation report at `data/reports/kot-reconciliation.md` listing exactly where the public scaffold and Seth's sheet disagree.
-- The web app renders a today card with the component set behind it: readiness ring, why line, sliders, minutes picker, location chip, clocks, rest timer, swap difficulty chips, sheets, toasts, skeletons.
-- Documentation, ten ADRs, model routing and the three subagents — this pass.
+### What works, and was verified
 
-**What is scaffolded**
-- `apps/web/`: one route. The week carousel, session runtime, swap carousel, dashboard, settings, locations, programs and injuries screens are specified in `docs/DESIGN.md` and not yet built. No API route handlers yet — no Telegram webhook, no Strava webhook, no cron endpoints.
-- `worker/`: the directory shape. The launchd job, the poll loop and the keep-alive remain.
-- `packages/engine/`: golden-file tests on full session assembly, and the five named fixture days as a complete set (PRD §9).
-- Auth, the PWA manifest and service worker, and the Vercel deploy.
-- Nothing has been run against a real Supabase project, a real Oura token, or a real iPhone.
+- **The rules engine.** `packages/engine/` — readiness, the regional load ledger
+  and ACWR, pairing exclusions, the weekly template, progression and prediction
+  bands, autoregulated deloads, session assembly within a time budget, swaps,
+  cardio prescription, and deterministic why-copy. Pure, no I/O, deterministic.
+  **332 tests, 96% statement coverage**, over seven fixture days — the five PRD
+  §9 requires, plus cold start and the example `docs/ENGINE.md` is generated
+  from. Golden snapshots catch silent changes in judgement.
+- **The schema.** Seven migrations, 30 tables, RLS from the first one. Applied
+  **twice in order against a real Postgres 16** with the Supabase auth objects
+  stubbed: no errors, fully idempotent, every table has RLS, and neither browser
+  role can execute the job-claim function. CI repeats that on every push.
+- **The exercise library.** 876 public-domain rows merged with 1,324 Gym Visual
+  rows into **1,908 exercises, 69.4% with an animated GIF**; byte-identical on
+  rerun. The 37 fuzzy joins that want a human eye are listed in
+  `data/reports/media-coverage.md`, along with the 11 Knees Over Toes movements
+  that have no public media and ship as text and cues.
+- **The PWA.** Eight screens and seven API routes, all rendering real engine
+  output. Verified headless at iPhone width in both colour schemes: **zero
+  `100vh` rules and zero horizontal page overflow on every route**, safe-area
+  insets throughout, ≥44 px targets, the primary action in the thumb zone.
+- **The integrations.** Oura v2, Strava (including zone minutes integrated from
+  a real HR stream), Telegram, and the LM Studio → Gemini → templates ladder,
+  wired into the app rather than stubbed. Every client returns a typed result;
+  none can throw into a request path.
+- **The Mac mini worker**, its launchd job, and the two Postgres objects it needs
+  (`claim_llm_job`, `worker_heartbeat`), both exercised against a live database.
+- **The KOT scaffold**, 26 steps with machine-checkable %BW standards and
+  substitutions for every equipment gap. Clearly marked as the PUBLIC scaffold,
+  pending Seth's own sheets.
+- Documentation, ten ADRs, model routing, three subagents, and CI.
 
-**What needs Seth** (full detail in [`docs/SETUP.md`](docs/SETUP.md))
+### What is NOT proven
+
+Everything above was verified against fixtures, a throwaway Postgres, and a
+headless browser. None of it has met the real world:
+
+- **No real credentials have ever been used.** No Oura token, no Strava OAuth
+  round-trip, no BotFather bot, no Gemini key. The clients match the documented
+  API shapes; they have not spoken to the APIs.
+- **No Supabase project exists yet.** The migrations have never run against a
+  hosted instance, and nothing has been deployed to Vercel.
+- **Nothing has been opened on an actual iPhone.** CLAUDE.md is explicit that a
+  screen is not done until it has been, and none of them have.
+- **The Mac mini worker has never run.** LM Studio's port and model ids are
+  unconfirmed (PRD §12).
+- Gemini's free-tier limits and exact model id are carried as ⚠️ placeholders —
+  verify them on the day, because a retired model id 404s and silently kills the
+  fallback.
+- `programs/kot/program.json` is the public scaffold, not Seth's program.
+- Auth is single-user magic link by design and is not built.
+
+### What needs Seth (full detail in [`docs/SETUP.md`](docs/SETUP.md))
+
 1. Oura personal access token — **check for an existing one first** (PRD §12).
 2. Strava developer app: client ID, client secret, redirect URI.
 3. Telegram bot token from BotFather, plus his chat ID.
-4. KOT spreadsheets → `docs/programs/kot/raw/`. The reconciliation report already names the gaps his sheet would close.
+4. KOT spreadsheets → `docs/programs/kot/raw/`. `npm run ingest:kot` will then
+   report exactly where his sheet and the scaffold disagree.
 5. Old-app CSV exports → `docs/imports/raw/`.
 6. Wyze scale screenshot and current weight.
 7. LM Studio port confirmation and the installed model names (text + vision).
