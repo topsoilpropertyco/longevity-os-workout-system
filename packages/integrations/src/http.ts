@@ -18,6 +18,18 @@ export type IntegrationErrorKind =
   | 'network'
   | 'timeout'
   | 'auth'
+  /**
+   * The credential is not merely wrong, it is unrecoverable without a human.
+   *
+   * This is deliberately NOT `auth`. An `auth` failure might be a typo'd key or
+   * a clock skew and is worth surfacing as "check your config"; a
+   * `needs_reauth` means the grant itself is gone — an OAuth `invalid_grant`,
+   * or a refresh token that was already spent (Oura rotates them and each one
+   * works exactly once). RETRYING MAKES IT WORSE: every attempt burns another
+   * token and widens the gap. The only fix is a human opening a browser and
+   * re-authorising, so callers should stop, say so, and wait.
+   */
+  | 'needs_reauth'
   | 'rate_limited'
   | 'not_found'
   | 'server'

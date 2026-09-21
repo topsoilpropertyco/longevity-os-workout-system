@@ -1,9 +1,14 @@
 /**
- * Oura API v2 client (RESEARCH_FOUNDATION §3).
+ * Oura API v2 client (RESEARCH_FOUNDATION §3, as corrected 2026-09-21).
  *
- * Auth: a Personal Access Token as a bearer. PATs do not expire (they are
- * revocable), so there is no refresh dance — single user, one secret.
- * Base: https://api.ouraring.com/v2/usercollection/
+ * Auth: an OAuth2 bearer token, resolved per request through `getAccessToken`
+ * so a rotation mid-session is picked up without rebuilding the client. Oura
+ * RETIRED PERSONAL ACCESS TOKENS IN DECEMBER 2025 — the `{ token }` form below
+ * still works for a grandfathered PAT, but no new one can be issued. See
+ * `oauth.ts` and `tokens.ts`.
+ *
+ * Base: https://api.ouraring.com/v2/usercollection/ — unchanged by the OAuth
+ * migration. Only the handshake moved hosts.
  *
  * Two parameter families, and mixing them up is the classic Oura mistake:
  *   - DAILY documents take `start_date` / `end_date` (YYYY-MM-DD).
@@ -19,7 +24,9 @@
  */
 
 import {
+  type IntegrationErrorKind,
   type IntegrationResult,
+  errMessage,
   requestJson,
   succeed,
   fail,
@@ -50,9 +57,8 @@ export type OuraDailyEndpoint = (typeof OURA_DAILY_ENDPOINTS)[number];
 export const OURA_TIMESERIES_ENDPOINTS = ['heartrate'] as const;
 export type OuraTimeseriesEndpoint = (typeof OURA_TIMESERIES_ENDPOINTS)[number];
 
-export interface OuraClientOptions {
-  /** Personal Access Token from cloud.ouraring.com/personal-access-tokens. */
-  token: string;
+/** Options shared by both auth styles. */
+export interface OuraClientCommonOptions {
   /** Route to /v2/sandbox/usercollection/ instead of the live collection. */
   sandbox?: boolean;
   /** Override the base entirely (tests, proxies). Wins over `sandbox`. */
@@ -64,6 +70,34 @@ export interface OuraClientOptions {
   /** Injectable fetch for tests. */
   fetchImpl?: typeof fetch;
 }
+
+/**
+ * Legacy static bearer: a Personal Access Token.
+ *
+ * ⚠️ Oura retired PATs in December 2025 and NEW ONES CANNOT BE CREATED. This
+ * form is kept only so an existing, grandfathered token keeps working — and for
+ * the tests, which pass a literal string. Anything new goes through
+ * `getAccessToken`.
+ */
+export interface OuraPatOptions extends OuraClientCommonOptions {
+  token: string;
+  getAccessToken?: undefined;
+}
+
+/**
+ * OAuth2: the bearer is resolved per request, so a token rotated by
+ * `tokens.ts` halfway through a sync is picked up on the very next call.
+ *
+ * The callback may reject. If it does, the rejection is turned into an
+ * `IntegrationResult` failure — a rejection carrying `kind: 'needs_reauth'`
+ * (what `accessTokenGetter` throws) is preserved as such.
+ */
+export interface OuraOAuthClientOptions extends OuraClientCommonOptions {
+  getAccessToken: () => Promise<string>;
+  token?: undefined;
+}
+
+export type OuraClientOptions = OuraPatOptions | OuraOAuthClientOptions;
 
 /** A single page of an Oura v2 list endpoint. */
 export interface OuraPage<T> {
@@ -99,13 +133,16 @@ const MAX_PAGES = 50;
  */
 export class OuraClient {
   private readonly base: string;
-  private readonly token: string;
+  private readonly getToken: () => Promise<string>;
   private readonly timeoutMs: number;
   private readonly retries: number;
   private readonly fetchImpl: typeof fetch | undefined;
 
   constructor(opts: OuraClientOptions) {
-    this.token = opts.token;
+    // A static PAT becomes a trivial getter, so there is exactly one code path
+    // below and the per-request resolution is not conditional.
+    const staticToken = opts.token;
+    this.getToken = opts.getAccessToken ?? (async (): Promise<string> => staticToken ?? '');
     this.base = normalizeBase(opts.baseUrl ?? (opts.sandbox ? OURA_SANDBOX_BASE : OURA_BASE));
     this.timeoutMs = opts.timeoutMs ?? 15_000;
     this.retries = opts.retries ?? 2;
@@ -124,18 +161,64 @@ export class OuraClient {
 
   // ── low level ──────────────────────────────────────────────────────────────
 
+  /**
+   * One authenticated GET. Resolves the bearer first (so a rotation lands
+   * immediately), and translates a 401 into `needs_reauth`.
+   *
+   * A 401 from a DATA endpoint after `tokens.ts` believed the token was fresh
+   * means the grant is gone — revoked in the Oura app, or the refresh token was
+   * spent elsewhere. Retrying cannot help; a human must re-authorise. 403 is
+   * left as `auth`, because that is a scope problem, and the fix is different:
+   * re-request the right `extapi:` scope, not a new grant.
+   */
+  private async authedJson<T>(
+    url: string,
+    query?: Record<string, string | number | undefined>,
+  ): Promise<IntegrationResult<T>> {
+    let bearer: string;
+    try {
+      bearer = await this.getToken();
+    } catch (e) {
+      const kind = (e as { kind?: IntegrationErrorKind } | null)?.kind;
+      return fail(
+        kind === 'needs_reauth' ? 'needs_reauth' : 'auth',
+        `could not resolve an Oura access token: ${errMessage(e)}`,
+        { detail: e },
+      );
+    }
+    if (!bearer) {
+      return fail('needs_reauth', 'Oura access token is empty — connect Oura before syncing.');
+    }
+
+    const res = await requestJson<T>(url, {
+      headers: { authorization: `Bearer ${bearer}` },
+      ...(query ? { query } : {}),
+      timeoutMs: this.timeoutMs,
+      retries: this.retries,
+      ...(this.fetchImpl ? { fetchImpl: this.fetchImpl } : {}),
+    });
+
+    if (!res.ok && res.error.status === 401) {
+      return {
+        ok: false,
+        error: {
+          ...res.error,
+          kind: 'needs_reauth',
+          message:
+            `${res.error.message} — Oura rejected the bearer token. The grant is gone; ` +
+            're-authorise in a browser (Settings → Connect Oura, or `npx tsx scripts/oura-auth.ts`).',
+        },
+      };
+    }
+    return res;
+  }
+
   /** One page of any endpoint. Prefer the typed helpers below. */
   async getPage<T = OuraRecord>(
     endpoint: string,
     query: Record<string, string | number | undefined>,
   ): Promise<IntegrationResult<OuraPage<T>>> {
-    const res = await requestJson<OuraPage<T>>(`${this.base}${endpoint}`, {
-      headers: { authorization: `Bearer ${this.token}` },
-      query,
-      timeoutMs: this.timeoutMs,
-      retries: this.retries,
-      ...(this.fetchImpl ? { fetchImpl: this.fetchImpl } : {}),
-    });
+    const res = await this.authedJson<OuraPage<T>>(`${this.base}${endpoint}`, query);
     if (!res.ok) return res;
     const page = res.value as OuraPage<T> | undefined;
     if (!page || !Array.isArray(page.data)) {
@@ -240,12 +323,7 @@ export class OuraClient {
 
   /** Age, weight (kg), height (m), biological sex. Not a list endpoint. */
   async personalInfo(): Promise<IntegrationResult<OuraRecord>> {
-    const res = await requestJson<OuraRecord>(`${this.base}personal_info`, {
-      headers: { authorization: `Bearer ${this.token}` },
-      timeoutMs: this.timeoutMs,
-      retries: this.retries,
-      ...(this.fetchImpl ? { fetchImpl: this.fetchImpl } : {}),
-    });
+    const res = await this.authedJson<OuraRecord>(`${this.base}personal_info`);
     if (!res.ok) return res;
     if (!res.value || typeof res.value !== 'object') {
       return fail('schema', 'Oura personal_info returned a non-object');
