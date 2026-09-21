@@ -2684,7 +2684,7 @@ alter table public.programs
 comment on column public.programs.phases is
   'ProgramPhase[]: [{"id":"zero","name":"ZERO","order":1,"weeks":12,"days_per_week":3,"weekdays":[1,3,5],"session_min":[10,20],"load_rule":{"kind":"bodyweight_only"},"description":"..."}]. Empty for a flat program.';
 comment on column public.programs.days is
-  'ProgramDay[]: one per (phase, weekday). [{"phase_id":"zero","weekday":1,"title":"ZERO — Monday","focus":"Same Workout","blocks":[{"title":"Warm-Up","step_ids":["zero-bodyweight-walk-warm-up"]}],"demo_url":"..."}]. Weekday is ISO: 1 = Monday.';
+  'ProgramDay[]: one per (phase, weekday). [{"phase_id":"zero","weekday":1,"title":"ZERO — Monday","focus":"Same Workout","blocks":[{"title":"Warm-Up","step_ids":["zero-bodyweight-walk-warm-up"]}],"demo_url":"..."}]. Weekday follows the engine and JS Date.getDay(): 0 = Sunday … 6 = Saturday, so 1 = Monday. It matches ISO for Monday–Friday and differs only for Sunday, which no phase currently trains — do not let that coincidence turn into an assumption.';
 comment on column public.programs.current_phase_id is
   'Default phase id for a cold start — the phase a brand-new athlete begins in. Per-athlete position lives in program_progress.phase_id.';
 
