@@ -2,7 +2,7 @@
   "name": "@longevity/db",
   "version": "0.1.0",
   "private": true,
-  "description": "Supabase schema contract (Database types) for the Longevity OS Workout System.",
+  "description": "Supabase schema contract (Database types) and row -> domain mappers for the Longevity OS Workout System.",
   "type": "module",
   "main": "src/index.ts",
   "types": "src/index.ts",
@@ -22,5 +22,8 @@
   "scripts": {
     "typecheck": "tsc --noEmit",
     "gen": "npx supabase gen types typescript --local > src/types.ts"
+  },
+  "dependencies": {
+    "@longevity/engine": "*"
   }
 }

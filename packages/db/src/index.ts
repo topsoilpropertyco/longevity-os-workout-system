@@ -1,8 +1,8 @@
 /**
  * @longevity/db — the Supabase schema contract for the Longevity OS.
  *
- * This package is TYPES ONLY. It deliberately carries no runtime dependency on
- * @supabase/supabase-js: the web app and the Mac mini worker each create their
+ * The bulk of this package is TYPES. It deliberately carries no runtime
+ * dependency on @supabase/supabase-js: the web app and the Mac mini worker each create their
  * own client and parameterise it with `Database` from here, so there is exactly
  * one description of the schema and no second copy of the SDK.
  *
@@ -74,3 +74,15 @@ export type LocationPresetSlug = (typeof LOCATION_PRESETS)[number];
  * in 0001_init.sql — change both together.
  */
 export const LLM_JOB_DEADLINE_S = 60;
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Row → domain mappers
+// ─────────────────────────────────────────────────────────────────────────────
+// The one exception to "types only": pure, total functions that turn rows of
+// this schema into the engine's domain objects. They belong here because this
+// package IS the seam between the two, and because putting them anywhere else
+// meant either the app could not share them with a script, or a script could
+// not test them against a real database.
+
+export { toProgram, toProgramProgress, toPhases, toDays } from './program.js';
+export type { ProgramRowish, ProgramStepRowish, ProgramProgressRowish } from './program.js';
