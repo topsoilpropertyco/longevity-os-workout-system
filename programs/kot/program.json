@@ -1,5 +1,5 @@
 {
-  "_note": "Built from SETH’S OWN material: the \"ATG Knees Over Toes Workout Checklist\" prepared for him in April 2026, plus his ATG_Workouts and YouTube-links spreadsheets and the Knee Ability Zero book. This REPLACES the earlier public scaffold, which was inferred from public descriptions of the method and had the structure wrong (two flat buckets, 26 steps, no weekday templates). Regenerate with `npx tsx scripts/ingest-kot.ts`; do not hand-edit. STILL UNCERTAIN: (1) \"25 DB\" on the split squat is 25 lb per hand or 25 lb total, unstated; (2) Neck Brace Exercises carries no reps, sets or duration in any source; (3) the Hip Flexor Tri-Set is \"alternate to failure\" on the checklist but \"pick one\" on the sheet; (4) KOT Calf Raise and Body Squat read \"as prescribed\" — their numbers come from the book, not from Seth; (5) backward walking and the sled appear nowhere in Seth’s files, though they are the public method’s signature; (6) several movements resolve to a stand-in exercise because the library has no record of the real one. All of it is itemised in data/reports/kot-reconciliation.md.",
+  "_note": "Built from SETH’S OWN material: the \"ATG Knees Over Toes Workout Checklist\" prepared for him in April 2026, plus his ATG_Workouts and YouTube-links spreadsheets and the Knee Ability Zero book. This REPLACES the earlier public scaffold, which was inferred from public descriptions of the method and had the structure wrong (two flat buckets, 26 steps, no weekday templates). Regenerate with `npx tsx scripts/ingest-kot.ts`; do not hand-edit. FROM SETH DIRECTLY, not from any file (2026-09-22): backward walking in Zero and the backward sled drag in Dense are in on his word — no sheet of his carries either, and their numbers come from docs/RESEARCH_FOUNDATION.md §7; \"25 DB\" on the split squat means 25 lb per hand, recorded as 50 lb total; Neck Brace Exercises is removed because he does not do it. STILL UNCERTAIN: (1) the Hip Flexor Tri-Set is \"alternate to failure\" on the checklist but \"pick one\" on the sheet; (2) KOT Calf Raise and Body Squat read \"as prescribed\" — their numbers come from the book, not from Seth; (3) whether the backward work continues into Standards, which has none; (4) several movements resolve to a stand-in exercise because the library has no record of the real one. All of it is itemised in data/reports/kot-reconciliation.md.",
   "attribution": "Knees Over Toes / ATG is Ben Patrick’s method. This file records the structure and numbers of Seth’s own copy of the program so his training app can schedule it. No ATG coaching text or imagery is reproduced. Not affiliated with, endorsed by, or licensed from ATG.",
   "blocks": [
     {
@@ -51,7 +51,8 @@
       "blocks": [
         {
           "step_ids": [
-            "zero-bodyweight-walk-warm-up"
+            "zero-bodyweight-walk-warm-up",
+            "zero-backward-walking"
           ],
           "title": "Warm-Up"
         },
@@ -87,8 +88,7 @@
           "step_ids": [
             "zero-elephant-walk",
             "zero-couch-stretch",
-            "zero-standing-pigeon",
-            "zero-neck-brace-exercises"
+            "zero-standing-pigeon"
           ],
           "title": "Mobility & Cool-Down"
         },
@@ -109,7 +109,8 @@
       "blocks": [
         {
           "step_ids": [
-            "zero-bodyweight-walk-warm-up"
+            "zero-bodyweight-walk-warm-up",
+            "zero-backward-walking"
           ],
           "title": "Warm-Up"
         },
@@ -145,8 +146,7 @@
           "step_ids": [
             "zero-elephant-walk",
             "zero-couch-stretch",
-            "zero-standing-pigeon",
-            "zero-neck-brace-exercises"
+            "zero-standing-pigeon"
           ],
           "title": "Mobility & Cool-Down"
         },
@@ -167,7 +167,8 @@
       "blocks": [
         {
           "step_ids": [
-            "zero-bodyweight-walk-warm-up"
+            "zero-bodyweight-walk-warm-up",
+            "zero-backward-walking"
           ],
           "title": "Warm-Up"
         },
@@ -203,8 +204,7 @@
           "step_ids": [
             "zero-elephant-walk",
             "zero-couch-stretch",
-            "zero-standing-pigeon",
-            "zero-neck-brace-exercises"
+            "zero-standing-pigeon"
           ],
           "title": "Mobility & Cool-Down"
         },
@@ -225,7 +225,8 @@
       "blocks": [
         {
           "step_ids": [
-            "dense-bodyweight-walk-warm-up"
+            "dense-bodyweight-walk-warm-up",
+            "dense-backward-sled-drag"
           ],
           "title": "Warm-Up"
         },
@@ -258,7 +259,8 @@
       "blocks": [
         {
           "step_ids": [
-            "dense-bodyweight-walk-warm-up"
+            "dense-bodyweight-walk-warm-up",
+            "dense-backward-sled-drag"
           ],
           "title": "Warm-Up"
         },
@@ -300,7 +302,8 @@
       "blocks": [
         {
           "step_ids": [
-            "dense-bodyweight-walk-warm-up"
+            "dense-bodyweight-walk-warm-up",
+            "dense-backward-sled-drag"
           ],
           "title": "Warm-Up"
         },
@@ -333,7 +336,8 @@
       "blocks": [
         {
           "step_ids": [
-            "dense-bodyweight-walk-warm-up"
+            "dense-bodyweight-walk-warm-up",
+            "dense-backward-sled-drag"
           ],
           "title": "Warm-Up"
         },
@@ -364,7 +368,8 @@
       "blocks": [
         {
           "step_ids": [
-            "dense-bodyweight-walk-warm-up"
+            "dense-bodyweight-walk-warm-up",
+            "dense-backward-sled-drag"
           ],
           "title": "Warm-Up"
         },
@@ -716,11 +721,36 @@
       ]
     },
     {
+      "block": "warm_up",
+      "exercise_slug": "backward-walk-outdoors",
+      "id": "zero-backward-walking",
+      "name": "Backward Walking",
+      "order": 2,
+      "phase_id": "zero",
+      "progressions": [
+        "Flat ground, hands free, glancing over alternating shoulders.",
+        "A shallow incline — a ramp or a gentle hill.",
+        "Weight vest, or a backpack.",
+        "Backward sled drag, wherever there is a sled."
+      ],
+      "standard": {
+        "duration_min": 10
+      },
+      "standard_text": "10 min — The method’s knee entry point, and the one movement of Seth’s that runs in every session.",
+      "substitutions": [
+        {
+          "equipment_missing": "outdoor_route",
+          "note": "Planet Fitness or bad weather: the same walk on a treadmill with the belt POWERED OFF, driving the belt by foot.",
+          "use_slug": "backward-treadmill-walk"
+        }
+      ]
+    },
+    {
       "block": "lower_legs",
       "exercise_slug": "tibialis-raise",
       "id": "zero-tibialis-raise",
       "name": "Tibialis Raise",
-      "order": 2,
+      "order": 3,
       "phase_id": "zero",
       "progressions": [
         "Stand closer to the wall — less load, easier.",
@@ -750,7 +780,7 @@
       "exercise_slug": "fhl-calf-raise",
       "id": "zero-calf-raise-slant-board",
       "name": "Calf Raise (Slant Board)",
-      "order": 3,
+      "order": 4,
       "phase_id": "zero",
       "progressions": [
         "Both feet, full range: heels below the platform at the bottom.",
@@ -774,7 +804,7 @@
       "exercise_slug": "seated-calf-raise",
       "id": "zero-kot-calf-raise",
       "name": "KOT Calf Raise",
-      "order": 4,
+      "order": 5,
       "phase_id": "zero",
       "progressions": [
         "Small knee bend, both feet.",
@@ -792,7 +822,7 @@
       "exercise_slug": "patrick-step",
       "id": "zero-patrick-step-slant-board",
       "name": "Patrick Step (Slant Board)",
-      "order": 5,
+      "order": 6,
       "per_side": true,
       "phase_id": "zero",
       "progressions": [
@@ -818,8 +848,11 @@
       "block": "knee_ability",
       "exercise_slug": "atg-split-squat",
       "id": "zero-atg-split-squat",
+      "load_ramp_override": {
+        "weekly_increment_pct": 2.5
+      },
       "name": "ATG Split Squat",
-      "order": 6,
+      "order": 7,
       "per_side": true,
       "phase_id": "zero",
       "progressions": [
@@ -846,7 +879,7 @@
       "exercise_slug": "nordic-hamstring-curl",
       "id": "zero-nordic-curl",
       "name": "Nordic Curl",
-      "order": 7,
+      "order": 8,
       "phase_id": "zero",
       "progressions": [
         "Lower a short way, hands catch early.",
@@ -876,7 +909,7 @@
       "exercise_slug": "l-sit",
       "id": "zero-l-sit",
       "name": "L-Sit",
-      "order": 8,
+      "order": 9,
       "phase_id": "zero",
       "progressions": [
         "Level 1 — alternate lifting one leg at a time, seated, for the full time.",
@@ -893,7 +926,7 @@
       "exercise_slug": "elephant-walk",
       "id": "zero-elephant-walk",
       "name": "Elephant Walk",
-      "order": 9,
+      "order": 10,
       "phase_id": "zero",
       "progressions": [
         "Hands well forward, on fingertips or a box, knees bent.",
@@ -910,7 +943,7 @@
       "exercise_slug": "couch-stretch",
       "id": "zero-couch-stretch",
       "name": "Couch Stretch",
-      "order": 10,
+      "order": 11,
       "per_side": true,
       "phase_id": "zero",
       "progressions": [
@@ -929,7 +962,7 @@
       "exercise_slug": "seated-piriformis-stretch",
       "id": "zero-standing-pigeon",
       "name": "Standing Pigeon",
-      "order": 11,
+      "order": 12,
       "per_side": true,
       "phase_id": "zero",
       "standard": {
@@ -937,20 +970,6 @@
         "sets": 2
       },
       "standard_text": "2 sets, 90 s hold, per side — The checklist says only \"hold each side\". The 2 x 90 s comes from the Knee Ability Zero recap, where the same slot is a seated piriformis stretch."
-    },
-    {
-      "block": "mobility_cooldown",
-      "exercise_slug": "isometric-neck-exercise-front-and-back",
-      "id": "zero-neck-brace-exercises",
-      "name": "Neck Brace Exercises",
-      "order": 12,
-      "phase_id": "zero",
-      "progressions": [
-        "Manual resistance, front and back.",
-        "Manual resistance, both sides.",
-        "Band or harness resistance through all four directions."
-      ],
-      "standard_text": "no sets, reps or duration given in the source — The checklist says \"as prescribed\" and gives no reps — the one step in Zero with no numbers anywhere in the sources."
     },
     {
       "block": "knee_ability",
@@ -998,11 +1017,41 @@
       ]
     },
     {
+      "block": "warm_up",
+      "exercise_slug": "backward-sled-drag",
+      "id": "dense-backward-sled-drag",
+      "name": "Backward Sled Drag",
+      "order": 15,
+      "phase_id": "dense",
+      "progressions": [
+        "Backward walking, unloaded, on flat ground.",
+        "Sled at roughly 50% of bodyweight for 10 minutes.",
+        "More load, same 10 minutes."
+      ],
+      "standard": {
+        "duration_min": 10,
+        "pct_bodyweight": 0.5
+      },
+      "standard_text": "10 min, 50% bodyweight — Neither of Seth’s gyms owns a sled, so this resolves to backward walking most weeks; the load is what it becomes when one is available.",
+      "substitutions": [
+        {
+          "equipment_missing": "sled",
+          "note": "No sled at Planet Fitness: backward walking on a treadmill with the belt POWERED OFF.",
+          "use_slug": "backward-treadmill-walk"
+        },
+        {
+          "equipment_missing": "sled",
+          "note": "No sled and no treadmill at home: backward walking outdoors, unloaded.",
+          "use_slug": "backward-walk-outdoors"
+        }
+      ]
+    },
+    {
       "block": "knee_ability",
       "exercise_slug": "patrick-step",
       "id": "dense-patrick-step",
       "name": "Patrick Step",
-      "order": 15,
+      "order": 16,
       "per_side": true,
       "phase_id": "dense",
       "progressions": [
@@ -1029,7 +1078,7 @@
       "exercise_slug": "seated-good-morning",
       "id": "dense-seated-good-morning",
       "name": "Seated Good Morning",
-      "order": 16,
+      "order": 17,
       "phase_id": "dense",
       "progressions": [
         "Bodyweight hinge, hands behind the head.",
@@ -1060,7 +1109,7 @@
       "exercise_slug": "tibialis-raise",
       "id": "dense-tibialis-raise",
       "name": "Tibialis Raise",
-      "order": 17,
+      "order": 18,
       "phase_id": "dense",
       "progressions": [
         "Stand closer to the wall — less load, easier.",
@@ -1091,7 +1140,7 @@
       "exercise_slug": "chin-up",
       "id": "dense-chin-up",
       "name": "Chin-Up",
-      "order": 18,
+      "order": 19,
       "phase_id": "dense",
       "progressions": [
         "Band- or machine-assisted.",
@@ -1120,7 +1169,7 @@
       "exercise_slug": "chest-dip",
       "id": "dense-dips",
       "name": "Dips",
-      "order": 19,
+      "order": 20,
       "phase_id": "dense",
       "progressions": [
         "Bench dips.",
@@ -1145,7 +1194,7 @@
       "exercise_slug": "smith-machine-bicep-curl",
       "id": "dense-smith-machine-curl",
       "name": "Smith Machine Curl",
-      "order": 20,
+      "order": 21,
       "phase_id": "dense",
       "standard": {
         "duration_min": 5
@@ -1165,7 +1214,7 @@
       "exercise_slug": "barbell-lying-triceps-extension-skull-crusher",
       "id": "dense-french-press",
       "name": "French Press",
-      "order": 21,
+      "order": 22,
       "phase_id": "dense",
       "standard": {
         "duration_min": 5
@@ -1184,7 +1233,7 @@
       "exercise_slug": "jefferson-curl",
       "id": "dense-jefferson-curl-slant-board",
       "name": "Jefferson Curl (Slant Board)",
-      "order": 22,
+      "order": 23,
       "phase_id": "dense",
       "progressions": [
         "Unloaded roll-down.",
@@ -1209,7 +1258,7 @@
       "exercise_slug": "fhl-calf-raise",
       "id": "dense-slant-board-calf-raise-loaded",
       "name": "Slant Board Calf Raise (Loaded)",
-      "order": 23,
+      "order": 24,
       "phase_id": "dense",
       "progressions": [
         "Bodyweight both feet.",
@@ -1233,7 +1282,7 @@
       "exercise_slug": "posterior-tibialis-stretch",
       "id": "dense-tibialis-stretch",
       "name": "Tibialis Stretch",
-      "order": 24,
+      "order": 25,
       "phase_id": "dense",
       "standard": {
         "hold_s": 60
@@ -1248,7 +1297,7 @@
         "weekly_increment_pct": 2.5
       },
       "name": "ATG Split Squat",
-      "order": 25,
+      "order": 26,
       "per_side": true,
       "phase_id": "dense",
       "progressions": [
@@ -1277,7 +1326,7 @@
       "exercise_slug": "l-sit",
       "id": "dense-hip-flexor-tri-set",
       "name": "Hip Flexor Tri-Set",
-      "order": 26,
+      "order": 27,
       "phase_id": "dense",
       "progressions": [
         "Dumbbell foot raise, no breaks.",
@@ -1294,7 +1343,7 @@
       "exercise_slug": "single-leg-calf-raise",
       "id": "dense-single-leg-calf-raise",
       "name": "Single-Leg Calf Raise",
-      "order": 27,
+      "order": 28,
       "per_side": true,
       "phase_id": "dense",
       "progressions": [
@@ -1319,7 +1368,7 @@
       "exercise_slug": "bent-arm-dumbbell-pullover",
       "id": "dense-bench-pullover",
       "name": "Bench Pullover",
-      "order": 28,
+      "order": 29,
       "phase_id": "dense",
       "progressions": [
         "Along the bench.",
@@ -1337,7 +1386,7 @@
       "exercise_slug": "dumbbell-shoulder-press",
       "id": "dense-atg-shoulder-press",
       "name": "ATG Shoulder Press",
-      "order": 29,
+      "order": 30,
       "phase_id": "dense",
       "standard": {
         "duration_min": 5,
@@ -1350,7 +1399,7 @@
       "exercise_slug": "external-rotation",
       "id": "dense-shoulder-external-rotation",
       "name": "Shoulder External Rotation",
-      "order": 30,
+      "order": 31,
       "per_side": true,
       "phase_id": "dense",
       "standard": {
@@ -1370,7 +1419,7 @@
       "exercise_slug": "couch-stretch",
       "id": "dense-couch-stretch",
       "name": "Couch Stretch",
-      "order": 31,
+      "order": 32,
       "per_side": true,
       "phase_id": "dense",
       "progressions": [
@@ -1389,7 +1438,7 @@
       "exercise_slug": "seated-piriformis-stretch",
       "id": "dense-piriformis-stretch",
       "name": "Piriformis Stretch",
-      "order": 32,
+      "order": 33,
       "per_side": true,
       "phase_id": "dense",
       "standard": {
@@ -1402,7 +1451,7 @@
       "exercise_slug": "butterfly-yoga-pose",
       "id": "dense-butterfly-stretch",
       "name": "Butterfly Stretch",
-      "order": 33,
+      "order": 34,
       "phase_id": "dense",
       "standard": {
         "hold_s": 60
@@ -1414,7 +1463,7 @@
       "exercise_slug": "sissy-squat",
       "id": "dense-vmo-squat",
       "name": "VMO Squat",
-      "order": 34,
+      "order": 35,
       "phase_id": "dense",
       "progressions": [
         "Bodyweight, heels elevated (weeks 1–2).",
@@ -1441,7 +1490,7 @@
       "exercise_slug": "sissy-squat",
       "id": "dense-kot-squat-eccentric",
       "name": "KOT Squat (Eccentric)",
-      "order": 35,
+      "order": 36,
       "phase_id": "dense",
       "progressions": [
         "Lower to a high surface and stand back up.",
@@ -1459,7 +1508,7 @@
       "exercise_slug": "nordic-hamstring-curl",
       "id": "dense-nordic-curl-eccentric",
       "name": "Nordic Curl (Eccentric)",
-      "order": 36,
+      "order": 37,
       "phase_id": "dense",
       "progressions": [
         "Lowering only, hands catch.",
@@ -1489,7 +1538,7 @@
       "exercise_slug": "ql-extension",
       "id": "dense-ql-extension",
       "name": "QL Extension",
-      "order": 37,
+      "order": 38,
       "per_side": true,
       "phase_id": "dense",
       "progressions": [
@@ -1515,7 +1564,7 @@
       "exercise_slug": "foot-smr",
       "id": "standards-plantar-fascia-stretch",
       "name": "Plantar Fascia Stretch",
-      "order": 38,
+      "order": 39,
       "phase_id": "standards",
       "standard": {
         "duration_min": 2
@@ -1527,7 +1576,7 @@
       "exercise_slug": "posterior-tibialis-stretch",
       "id": "standards-tibialis-stretch",
       "name": "Tibialis Stretch",
-      "order": 39,
+      "order": 40,
       "phase_id": "standards",
       "standard": {
         "duration_min": 2
@@ -1539,7 +1588,7 @@
       "exercise_slug": "zone-2-steady",
       "id": "standards-bodyweight-walk",
       "name": "Bodyweight Walk",
-      "order": 40,
+      "order": 41,
       "phase_id": "standards",
       "standard": {
         "distance_mi": 0.25
@@ -1558,7 +1607,7 @@
       "exercise_slug": "leg-up-hamstring-stretch",
       "id": "standards-single-leg-elevated-pike",
       "name": "Single-Leg Elevated Pike",
-      "order": 41,
+      "order": 42,
       "per_side": true,
       "phase_id": "standards",
       "standard": {
@@ -1572,7 +1621,7 @@
       "exercise_slug": "poliquin-step",
       "id": "standards-poliquin-step-up",
       "name": "Poliquin Step-Up",
-      "order": 42,
+      "order": 43,
       "per_side": true,
       "phase_id": "standards",
       "progressions": [
@@ -1604,7 +1653,7 @@
       "exercise_slug": "jefferson-curl",
       "id": "standards-jefferson-curl",
       "name": "Jefferson Curl",
-      "order": 43,
+      "order": 44,
       "phase_id": "standards",
       "progressions": [
         "Unloaded roll-down off a box.",
@@ -1635,7 +1684,7 @@
       "exercise_slug": "hanging-leg-raise",
       "id": "standards-hanging-leg-raise",
       "name": "Hanging Leg Raise",
-      "order": 44,
+      "order": 45,
       "phase_id": "standards",
       "progressions": [
         "Bent-knee raise.",
@@ -1660,7 +1709,7 @@
       "exercise_slug": "tibialis-raise",
       "id": "standards-tibialis-raise",
       "name": "Tibialis Raise",
-      "order": 45,
+      "order": 46,
       "phase_id": "standards",
       "progressions": [
         "Stand closer to the wall — less load, easier.",
@@ -1691,7 +1740,7 @@
       "exercise_slug": "incline-dumbbell-press",
       "id": "standards-incline-dumbbell-press",
       "name": "Incline Dumbbell Press",
-      "order": 46,
+      "order": 47,
       "phase_id": "standards",
       "standard": {
         "reps": 10,
@@ -1704,7 +1753,7 @@
       "exercise_slug": "face-pull",
       "id": "standards-trx-face-pull",
       "name": "TRX Face Pull",
-      "order": 47,
+      "order": 48,
       "phase_id": "standards",
       "standard": {
         "reps": 10,
@@ -1724,7 +1773,7 @@
       "exercise_slug": "seated-piriformis-stretch",
       "id": "standards-pigeon",
       "name": "Pigeon",
-      "order": 48,
+      "order": 49,
       "per_side": true,
       "phase_id": "standards",
       "standard": {
@@ -1737,7 +1786,7 @@
       "exercise_slug": "couch-stretch",
       "id": "standards-couch-stretch",
       "name": "Couch Stretch",
-      "order": 49,
+      "order": 50,
       "per_side": true,
       "phase_id": "standards",
       "progressions": [
@@ -1756,7 +1805,7 @@
       "exercise_slug": "standing-calves-calf-stretch",
       "id": "standards-calf-stretch",
       "name": "Calf Stretch",
-      "order": 50,
+      "order": 51,
       "phase_id": "standards",
       "standard": {
         "hold_s": 60
@@ -1768,7 +1817,7 @@
       "exercise_slug": "kneeling-hip-flexor",
       "id": "standards-relaxed-lunge",
       "name": "Relaxed Lunge",
-      "order": 51,
+      "order": 52,
       "per_side": true,
       "phase_id": "standards",
       "standard": {
@@ -1781,8 +1830,11 @@
       "block": "knee_ability",
       "exercise_slug": "atg-split-squat",
       "id": "standards-atg-split-squat",
+      "load_ramp_override": {
+        "weekly_increment_pct": 2.5
+      },
       "name": "ATG Split Squat",
-      "order": 52,
+      "order": 53,
       "per_side": true,
       "phase_id": "standards",
       "progressions": [
@@ -1812,7 +1864,7 @@
       "exercise_slug": "seated-good-morning",
       "id": "standards-seated-good-morning",
       "name": "Seated Good Morning",
-      "order": 53,
+      "order": 54,
       "phase_id": "standards",
       "progressions": [
         "Bodyweight hinge, hands behind the head.",
@@ -1843,7 +1895,7 @@
       "exercise_slug": "hanging-oblique-knee-raise",
       "id": "standards-garhammer-raise",
       "name": "Garhammer Raise",
-      "order": 54,
+      "order": 55,
       "phase_id": "standards",
       "progressions": [
         "Level 1 — knees to 90°, short pull.",
@@ -1867,7 +1919,7 @@
       "exercise_slug": "single-leg-calf-raise",
       "id": "standards-single-leg-calf-raise",
       "name": "Single-Leg Calf Raise",
-      "order": 55,
+      "order": 56,
       "per_side": true,
       "phase_id": "standards",
       "progressions": [
@@ -1894,7 +1946,7 @@
       "exercise_slug": "chest-dip",
       "id": "standards-atg-dips",
       "name": "ATG Dips",
-      "order": 56,
+      "order": 57,
       "phase_id": "standards",
       "progressions": [
         "Partial depth.",
@@ -1919,7 +1971,7 @@
       "exercise_slug": "external-rotation",
       "id": "standards-shoulder-external-rotation",
       "name": "Shoulder External Rotation",
-      "order": 57,
+      "order": 58,
       "per_side": true,
       "phase_id": "standards",
       "standard": {
@@ -1940,7 +1992,7 @@
       "exercise_slug": "butterfly-yoga-pose",
       "id": "standards-butterfly-stretch",
       "name": "Butterfly Stretch",
-      "order": 58,
+      "order": 59,
       "phase_id": "standards",
       "standard": {
         "duration_min": 2
@@ -1952,7 +2004,7 @@
       "exercise_slug": "the-straddle",
       "id": "standards-seated-pancake",
       "name": "Seated Pancake",
-      "order": 59,
+      "order": 60,
       "phase_id": "standards",
       "standard": {
         "duration_min": 2
@@ -1964,7 +2016,7 @@
       "exercise_slug": "atg-squat",
       "id": "standards-atg-squat",
       "name": "ATG Squat",
-      "order": 60,
+      "order": 61,
       "phase_id": "standards",
       "progressions": [
         "Bodyweight to full depth.",
@@ -1983,7 +2035,7 @@
       "exercise_slug": "nordic-hamstring-curl",
       "id": "standards-nordic-curl",
       "name": "Nordic Curl",
-      "order": 61,
+      "order": 62,
       "phase_id": "standards",
       "progressions": [
         "Lower a short way, hands catch early.",
@@ -2014,7 +2066,7 @@
       "exercise_slug": "leg-pull-in",
       "id": "standards-low-cable-pull-in",
       "name": "Low Cable Pull-In",
-      "order": 62,
+      "order": 63,
       "per_side": true,
       "phase_id": "standards",
       "progressions": [
@@ -2041,7 +2093,7 @@
       "exercise_slug": "dumbbell-shoulder-press",
       "id": "standards-atg-shoulder-press",
       "name": "ATG Shoulder Press",
-      "order": 63,
+      "order": 64,
       "phase_id": "standards",
       "standard": {
         "reps": 10,
@@ -2054,7 +2106,7 @@
       "exercise_slug": "chin-up",
       "id": "standards-chin-up",
       "name": "Chin-Up",
-      "order": 64,
+      "order": 65,
       "phase_id": "standards",
       "progressions": [
         "Band- or machine-assisted.",
@@ -2084,7 +2136,7 @@
       "exercise_slug": "barbell-deadlift",
       "id": "standards-atg-deadlift",
       "name": "ATG Deadlift",
-      "order": 65,
+      "order": 66,
       "phase_id": "standards",
       "progressions": [
         "Partial range from blocks.",
@@ -2116,7 +2168,7 @@
       "exercise_slug": "sissy-squat",
       "id": "standards-sissy-squat",
       "name": "Sissy Squat",
-      "order": 66,
+      "order": 67,
       "phase_id": "standards",
       "progressions": [
         "One-arm assisted.",
@@ -2134,7 +2186,7 @@
       "exercise_slug": "l-sit",
       "id": "standards-l-sit",
       "name": "L-Sit",
-      "order": 67,
+      "order": 68,
       "phase_id": "standards",
       "progressions": [
         "Level 1 — alternate lifting one leg at a time, seated, for the full time.",
@@ -2152,7 +2204,7 @@
       "exercise_slug": "bent-arm-dumbbell-pullover",
       "id": "standards-bench-pullover",
       "name": "Bench Pullover",
-      "order": 68,
+      "order": 69,
       "phase_id": "standards",
       "progressions": [
         "Along the bench.",
@@ -2171,7 +2223,7 @@
       "exercise_slug": "dumbbell-shrug",
       "id": "standards-trap-raise",
       "name": "Trap Raise",
-      "order": 69,
+      "order": 70,
       "phase_id": "standards",
       "standard": {
         "reps": 10,

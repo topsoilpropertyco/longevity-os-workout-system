@@ -56,8 +56,8 @@
     {
       "as_of": "2026-04",
       "exercise_slug": "atg-split-squat",
-      "load_lb": 25,
-      "note": "Sheet reads \"25 DB\" — 25 lb dumbbells. Whether that is 25 lb per hand (50 lb total, the engine convention) or 25 lb total is not stated.",
+      "load_lb": 50,
+      "note": "Sheet reads \"25 DB\". Seth confirmed (2026-09-22) that is 25 lb in each hand, so the total-load convention records 50.",
       "reps": 10,
       "sets": 4,
       "sheet_name": "Split Squat",
