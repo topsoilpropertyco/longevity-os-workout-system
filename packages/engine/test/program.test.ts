@@ -344,3 +344,70 @@ describe('per-side volume and prescribed rest', () => {
     expect(patrick.estimated_min).toBeGreaterThan(3);
   });
 });
+
+describe('the program\'s own number beats the movement\'s default shape', () => {
+  // `elephant-walk` is `force: static, pattern: mobility`, so the engine reaches
+  // for its 30-second default hold — and Zero's 25 reps, the dose the checklist
+  // actually prints, are thrown away. A standard that names a count IS the dose.
+  it('keeps the reps a static mobility movement was given', () => {
+    const result = assemble(input({ budgetMin: 90 }));
+    const elephant = result.blocks
+      .flatMap((b) => b.exercises)
+      .find((e) => e.program_step_id === 'kot-zero-elephant-walk');
+    expect(elephant?.sets[0]?.reps).toBe(25);
+    expect(elephant?.sets[0]?.duration_s).toBeUndefined();
+  });
+
+  it('charges the budget for the reps, not for half a minute', () => {
+    const result = assemble(input({ budgetMin: 90 }));
+    const elephant = result.blocks
+      .flatMap((b) => b.exercises)
+      .find((e) => e.program_step_id === 'kot-zero-elephant-walk');
+    // 60 s setup + 25 × 3.5 s = 147 s ≈ 2.45 min, not the 1.5 min a 30 s hold costs.
+    expect(elephant?.estimated_min ?? 0).toBeGreaterThan(2);
+  });
+
+  it('still gives a hold to a static movement the program gave no count', () => {
+    // The default is not being deleted, only outvoted. `kot-zero-couch-stretch`
+    // states a hold and keeps it.
+    const result = assemble(input({ budgetMin: 90 }));
+    const couch = result.blocks
+      .flatMap((b) => b.exercises)
+      .find((e) => e.program_step_id === 'kot-zero-couch-stretch');
+    expect(couch?.sets[0]?.duration_s).toBe(120);
+    expect(couch?.sets[0]?.reps).toBe(0);
+  });
+});
+
+describe('a distance standard is prescribed as a distance', () => {
+  // `ProgramStandard.distance_mi` was read by nothing at all: Standards' quarter
+  // mile bodyweight walk came out as the goal mode's "10 reps", and the minutes
+  // it takes were never charged to the budget.
+  const standardsMonday = { today: MONDAY, programProgress: KOT_PROGRESS_STANDARDS, budgetMin: 90 };
+
+  it('prescribes the distance rather than a rep count', () => {
+    const result = assemble(input(standardsMonday));
+    const walk = result.blocks
+      .flatMap((b) => b.exercises)
+      .find((e) => e.program_step_id === 'kot-standards-walk');
+    expect(walk?.sets[0]?.distance_mi).toBe(0.25);
+    expect(walk?.sets[0]?.reps).toBe(0);
+  });
+
+  it('gives it no RPE target — "walk a quarter mile at RPE 8" is not an instruction', () => {
+    const result = assemble(input(standardsMonday));
+    const walk = result.blocks
+      .flatMap((b) => b.exercises)
+      .find((e) => e.program_step_id === 'kot-standards-walk');
+    expect(walk?.sets[0]?.rpe_target).toBeUndefined();
+  });
+
+  it('estimates the minutes the distance takes instead of guessing', () => {
+    const result = assemble(input(standardsMonday));
+    const walk = result.blocks
+      .flatMap((b) => b.exercises)
+      .find((e) => e.program_step_id === 'kot-standards-walk');
+    // A quarter mile at an easy 20 min/mi is 5 minutes, plus a minute of setup.
+    expect(walk?.estimated_min ?? 0).toBeCloseTo(6, 1);
+  });
+});

@@ -11,7 +11,7 @@ import {
 import { buildLedger } from '../src/ledger.js';
 import { neutralReadiness } from '../src/readiness.js';
 import { ASSEMBLY, PLYO_CONTACTS } from '../src/constants.js';
-import type { Exercise, Injury, PrescribedSet } from '../src/types.js';
+import type { Exercise, Injury, PrescribedSet, ProgramStep } from '../src/types.js';
 import { BASELINE_INJURIES, EXERCISES, EXERCISE_BY_ID, HOME, KOT, PLANET_FITNESS } from '../fixtures/library.js';
 
 const TODAY = '2026-09-22';
@@ -325,5 +325,41 @@ describe('the why line reads as sentences', () => {
     const clauses = p.why.split(/(?<=\.) /);
     expect(clauses.length).toBeGreaterThan(1);
     for (const clause of clauses) expect(clause.trim().endsWith('.')).toBe(true);
+  });
+});
+
+describe('timed, distance and repped work are costed differently', () => {
+  it('charges a distance set at a walking pace rather than at zero', () => {
+    const quarterMile: PrescribedSet[] = [
+      { set_index: 0, reps: 0, load_lb: 0, rest_s: 30, distance_mi: 0.25 },
+    ];
+    // 60 s setup + 0.25 mi × 20 min/mi = 6 min. Costing it at `reps × 3.5 s`
+    // budgets a quarter-mile walk at one minute of setup and nothing else.
+    expect(estimateMinutes(quarterMile)).toBeCloseTo(6, 1);
+  });
+
+  it('prescribes a distance standard as a distance, not as the goal mode\'s reps', () => {
+    // The real shape: `standards-bodyweight-walk` is a quarter mile on
+    // `zone-2-steady`, whose pattern is `cardio_steady` — so nothing in the
+    // movement says "clock" and the goal band answered with "10 reps".
+    const steadyWalk: Exercise = {
+      ...EXERCISE_BY_ID.get('backward-walk')!,
+      id: 'steady-walk', slug: 'steady-walk', pattern: 'cardio_steady',
+    };
+    const step: ProgramStep = {
+      id: 'kot-standards-walk-test', order: 0, block: 'warm-up', name: 'Bodyweight Walk',
+      standard_text: '0.25 mile', exercise_slug: 'steady-walk', standard: { distance_mi: 0.25 },
+    };
+    const p = prescribe({ exercise: steadyWalk, input: input(), isPrimary: true, why: '', step });
+    expect(p.sets).toHaveLength(1);
+    expect(p.sets[0]?.distance_mi).toBe(0.25);
+    expect(p.sets[0]?.reps).toBe(0);
+    expect(p.estimated_min).toBeCloseTo(6, 1);
+  });
+
+  it('still defaults a static hold with no stated dose to 30 seconds', () => {
+    const couch = EXERCISE_BY_ID.get('couch-stretch')!;
+    const p = prescribe({ exercise: couch, input: input(), isPrimary: false, why: '' });
+    expect(p.sets[0]?.duration_s).toBe(30);
   });
 });
