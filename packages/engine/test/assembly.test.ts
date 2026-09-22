@@ -7,6 +7,7 @@ import {
   prescribe,
   warmupBlock,
   type AssemblyInput,
+  setupSeconds,
 } from '../src/assembly.js';
 import { buildLedger } from '../src/ledger.js';
 import { neutralReadiness } from '../src/readiness.js';
@@ -333,9 +334,14 @@ describe('timed, distance and repped work are costed differently', () => {
     const quarterMile: PrescribedSet[] = [
       { set_index: 0, reps: 0, load_lb: 0, rest_s: 30, distance_mi: 0.25 },
     ];
-    // 60 s setup + 0.25 mi × 20 min/mi = 6 min. Costing it at `reps × 3.5 s`
-    // budgets a quarter-mile walk at one minute of setup and nothing else.
-    expect(estimateMinutes(quarterMile)).toBeCloseTo(6, 1);
+    // 0.25 mi × 20 min/mi = 5 minutes of walking, plus whatever setup the
+    // movement's load style costs. Asserted against the walking itself rather
+    // than a single number, so the day the setup table changes this test says
+    // what it means instead of what it used to add up to. Costing it at
+    // `reps × 3.5 s` budgets a quarter-mile walk at setup and nothing else.
+    const walked = 0.25 * ASSEMBLY.minutes_per_mile_walk;
+    expect(estimateMinutes(quarterMile, 'none')).toBeCloseTo(walked + setupSeconds('none') / 60, 2);
+    expect(estimateMinutes(quarterMile, 'none')).toBeGreaterThan(walked);
   });
 
   it('prescribes a distance standard as a distance, not as the goal mode\'s reps', () => {
@@ -354,7 +360,10 @@ describe('timed, distance and repped work are costed differently', () => {
     expect(p.sets).toHaveLength(1);
     expect(p.sets[0]?.distance_mi).toBe(0.25);
     expect(p.sets[0]?.reps).toBe(0);
-    expect(p.estimated_min).toBeCloseTo(6, 1);
+    // Five minutes of walking plus setup — asserted as the walking, not as a
+    // total that a setup-table change would silently invalidate.
+    expect(p.estimated_min).toBeGreaterThanOrEqual(0.25 * ASSEMBLY.minutes_per_mile_walk);
+    expect(p.estimated_min).toBeLessThan(0.25 * ASSEMBLY.minutes_per_mile_walk + 2);
   });
 
   it('still defaults a static hold with no stated dose to 30 seconds', () => {

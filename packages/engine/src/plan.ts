@@ -396,9 +396,18 @@ function planDay(args: DayPlanArgs): { session: PrescribedSession; ledger: Ledge
   if (cardioBlock) blocks.push(cardioBlock);
 
   // ── Bookends ───────────────────────────────────────────────────────────────
+  // Only where the session does not already have its own. A program's weekday
+  // template can open with a walk and close with held stretches — Knees Over
+  // Toes Zero does both — and adding five generic minutes either side of that
+  // is a warm-up before a warm-up. It turned a session the program says takes
+  // ten to twenty minutes into one that read as fifty-three.
   if (decision.type !== 'recovery') {
-    blocks.unshift(warmupBlock(warmupMin, decision.targetRegions));
-    blocks.push(cooldownBlock(cooldownMin, decision.targetRegions));
+    if (!assembled.suppliesOwnBookends.warmup) {
+      blocks.unshift(warmupBlock(warmupMin, decision.targetRegions));
+    }
+    if (!assembled.suppliesOwnBookends.cooldown) {
+      blocks.push(cooldownBlock(cooldownMin, decision.targetRegions));
+    }
   }
 
   const estimated_min = round(blocks.reduce((a, b) => a + b.estimated_min, 0), 1);
