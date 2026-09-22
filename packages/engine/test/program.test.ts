@@ -402,6 +402,23 @@ describe('a distance standard is prescribed as a distance', () => {
     expect(walk?.sets[0]?.rpe_target).toBeUndefined();
   });
 
+  it('shortens the walk on a short day rather than dropping what comes after it', () => {
+    // The same rule the ten-minute backward walk already follows: a shortened
+    // walk is still the program, a missing tibialis raise is not. Without it
+    // the newly honest six minutes eat the bottom of the session.
+    // 20 minutes for a five-step benchmark session: the walk's honest six
+    // minutes are more than its share of the clock.
+    const result = assemble(input({ ...standardsMonday, budgetMin: 20 }));
+    const walk = result.blocks
+      .flatMap((b) => b.exercises)
+      .find((e) => e.program_step_id === 'kot-standards-walk');
+    expect(walk?.sets[0]?.distance_mi ?? 1).toBeLessThan(0.25);
+    // Three minutes is the floor for timed work and it is the floor here too:
+    // below a quarter of a mile at 20 min/mi, a walk stops being the dose.
+    expect(walk?.sets[0]?.distance_mi ?? 0).toBeGreaterThanOrEqual(0.15);
+    expect(stepIds(result)).toContain('kot-standards-tib-raise');
+  });
+
   it('estimates the minutes the distance takes instead of guessing', () => {
     const result = assemble(input(standardsMonday));
     const walk = result.blocks

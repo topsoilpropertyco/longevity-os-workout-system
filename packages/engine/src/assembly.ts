@@ -337,6 +337,7 @@ export function prescribe(args: {
   // swallow the 25 and prescribe a stretch instead of the dose the checklist
   // prints. A standard that states a count — reps, or a distance — IS the dose
   // (ENGINE.md §8); the default only fills a silence.
+  //
   // `repOverride` is the caller prescribing this movement as an engine-chosen
   // accessory rather than as the program step it happens to share a slug with
   // — the mobility block's 2 × 8, say. The program's count is not what gets
@@ -447,6 +448,18 @@ export function prescribe(args: {
     : rawHold;
   const cappedHoldSeconds = Math.min(rawHold, capSeconds);
 
+  // The same cap, in miles. A distance is time on the ground like any other, so
+  // on a day the program does not fit it is rationed exactly as a hold is:
+  // Standards' quarter-mile warm-up walk is six honest minutes, and spending
+  // all six on a thirty-minute day pushes the tibialis raise — the movement the
+  // phase is built on — off the bottom of the session. A shortened walk is
+  // still the program; a missing tibialis raise is not. The three-minute floor
+  // inside `capSeconds` carries over, so the walk never shrinks to a gesture.
+  const cappedDistanceMi =
+    statedDistanceMi !== undefined && args.timeCapMin
+      ? Math.min(statedDistanceMi, round(capSeconds / 60 / ASSEMBLY.minutes_per_mile_walk, 2))
+      : statedDistanceMi;
+
   // A step that states its own rest states it for a reason — the 30 seconds
   // between ATG split-squat sets is part of the protocol, not a default.
   const restS = step?.rest_s ?? (isUnrepped ? 30 : base.rest_s);
@@ -460,7 +473,7 @@ export function prescribe(args: {
     ...(isTimed ? { duration_s: cappedHoldSeconds } : {}),
     // The distance is per SET and never doubled for a per-side step: nobody
     // walks a quarter mile on each leg.
-    ...(statedDistanceMi !== undefined ? { distance_mi: statedDistanceMi } : {}),
+    ...(cappedDistanceMi !== undefined ? { distance_mi: cappedDistanceMi } : {}),
     ...(perSide ? { per_side: true } : {}),
     // The database's non-negative-load CHECK is waived only for assisted work,
     // so the flag has to travel with the prescription rather than be inferred later.
