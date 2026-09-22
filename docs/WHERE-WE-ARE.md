@@ -25,6 +25,39 @@ needs it reads it from there; none of them need it typed again.
 
 ---
 
+## ⚠️ Blocked on one thing, and it is not code
+
+`SUPABASE_SERVICE_ROLE_KEY` in `.env.local` on the Mac mini is **447
+characters**. A real service-role JWT is around 220 — the hidden paste that
+wrote it landed twice, or picked up strays. A malformed header value makes
+undici refuse to send the request at all, which surfaces as
+`TypeError: fetch failed` and nothing more useful.
+
+This is why the seed has never completed and why the Oura token push fails.
+Nothing is wrong with the code; both scripts stop before writing and leave
+the local token file untouched, which is what they are built to do.
+
+**The fix, next time Seth is at the Mac.** Copy the key with Supabase's copy
+BUTTON — dragging across the revealed text is how strays get in — then, in
+`~/Desktop/longevity-os-workout-system`:
+
+```bash
+grep -v '^SUPABASE_SERVICE_ROLE_KEY=' .env.local > .env.tmp && mv .env.tmp .env.local \
+  && printf 'SUPABASE_SERVICE_ROLE_KEY=' >> .env.local && read -rs key \
+  && printf '%s\n' "$key" >> .env.local && unset key \
+  && awk -F= '{print $1, "len=" length($0)-length($1)-1}' .env.local
+```
+
+It waits silently; paste once, press Return. Every other value is already
+correct — `OURA_TOKEN_KEY len=64` and `LONGEVITY_USER_ID len=36` both check
+out. Then `npm run seed`, then `npx tsx scripts/oura-push-tokens.ts`.
+
+Worth doing at the same time: `npm install -g @anthropic-ai/claude-code`,
+then run `claude` inside that folder. A local session can run these itself
+instead of trading screenshots.
+
+---
+
 ## Outstanding — in order
 
 ### 1. Seed the exercise library (may already be done)

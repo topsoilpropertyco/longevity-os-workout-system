@@ -24,11 +24,40 @@ export function todayIso(): string {
  * that is allowed not to be a uuid is `DEMO_USER_ID`, and it only ever reaches
  * here when Supabase is unconfigured and every query below is skipped.
  */
+/**
+ * Where the numbers on the screen actually came from.
+ *
+ * The fixture fallback is deliberate — the today card must render on a cold
+ * clone with no database at all (CLAUDE.md invariant 2). But an athlete who has
+ * SIGNED IN and is shown fixture readiness, fixture sessions and a fixture
+ * training history has been handed someone else's health data wearing his name,
+ * with nothing on the screen saying so. That is the one case the fallback must
+ * not be silent about, so the screens are told which it is.
+ *
+ * `demo` means no Supabase in the environment. `live` means the database
+ * answered and had his rows. `empty` is the dangerous middle: signed in,
+ * database reachable, nothing seeded yet.
+ */
+export type PlanSource = 'demo' | 'live' | 'empty';
+
+export interface PlanProvenance {
+  source: PlanSource;
+  /** What the database had nothing for, in the order it matters to him. */
+  missing: ('locations' | 'program' | 'oura' | 'history')[];
+}
+
+export interface LoadedPlanInput {
+  input: PlanInput;
+  provenance: PlanProvenance;
+}
+
+const DEMO_PROVENANCE: PlanProvenance = { source: 'demo', missing: [] };
+
 export async function loadPlanInput(
   userId: string,
   date: string,
   overrides: Partial<PlanInput> = {},
-): Promise<PlanInput> {
+): Promise<LoadedPlanInput> {
   const prefs = await readPrefs(date);
   const base = demoPlanInput(date, {
     budget_min: prefs.budgetMin,
@@ -38,7 +67,7 @@ export async function loadPlanInput(
   });
 
   const supabase = await serverSupabase();
-  if (!supabase) return base;
+  if (!supabase) return { input: base, provenance: DEMO_PROVENANCE };
 
   try {
     // TODO(db): swap these ad-hoc selects for the typed query helpers in
@@ -65,7 +94,18 @@ export async function loadPlanInput(
 
     const dbLocations = rows(locations) as unknown as GymLocation[];
 
-    return {
+    const missing: PlanProvenance['missing'] = [];
+    if (!dbLocations.length) missing.push('locations');
+    if (!program.program) missing.push('program');
+    if (!rows(oura).length) missing.push('oura');
+    if (!rows(sessions).length) missing.push('history');
+
+    // Locations and the program are the two that mean "nothing has been seeded".
+    // No Oura rows is an ordinary Monday before the sync has run, and no history
+    // is simply true on day one — neither of those makes the screen a fiction.
+    const unseeded = missing.includes('locations') && missing.includes('program');
+
+    const input: PlanInput = {
       ...base,
       ...(dbLocations.length
         ? { location: pickLocation(dbLocations, prefs.locationId), all_locations: dbLocations }
@@ -79,9 +119,13 @@ export async function loadPlanInput(
       ...program,
       ...overrides,
     };
+
+    return { input, provenance: { source: unseeded ? 'empty' : 'live', missing } };
   } catch {
-    // Never block the today card on a database hiccup.
-    return base;
+    // Never block the today card on a database hiccup. Reporting `empty` rather
+    // than `live` is the honest call: we do not know what his rows say, so the
+    // screen must not claim they are what it is showing.
+    return { input: base, provenance: { source: 'empty', missing: ['locations', 'program', 'oura', 'history'] } };
   }
 }
 

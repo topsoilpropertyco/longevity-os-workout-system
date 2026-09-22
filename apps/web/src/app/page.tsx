@@ -1,5 +1,6 @@
 import { Suspense } from 'react';
 import Link from 'next/link';
+import ProvenanceBanner from '@/components/ProvenanceBanner';
 import SessionCard from '@/components/SessionCard';
 import TodayControls from '@/components/TodayControls';
 import { TodayCardSkeleton } from '@/components/Skeleton';
@@ -10,13 +11,15 @@ import { longDate, minutes } from '@/lib/format';
 export const dynamic = 'force-dynamic';
 
 async function Today() {
-  const { input, result, today } = await getPlanBundle();
+  const { input, result, today, provenance } = await getPlanBundle();
   const session = result.today;
   const ouraPresent = Boolean(input.oura_today?.readiness_score);
   const tomorrow = result.week[1]?.session;
 
   return (
     <>
+      <ProvenanceBanner provenance={provenance} />
+
       <SessionCard session={session} locationName={input.location.name} showStart={false} />
 
       {/* Primary action lives in the thumb zone, not in the flow of the page. */}
