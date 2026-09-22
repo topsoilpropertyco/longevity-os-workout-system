@@ -630,12 +630,17 @@ function renderBlock(block: SessionBlock): void {
   for (const exercise of block.exercises) renderExercise(exercise);
   if (block.cardio) renderCardio(block.cardio);
 
-  // The engine currently returns warm-up and cool-down as time allowances with
-  // no movements in them. Printing the heading anyway is deliberate: without it
-  // ten of the session's minutes are unaccounted for on screen and the total at
-  // the top looks wrong.
+  // The engine returns warm-up and cool-down as time allowances with no
+  // movements in them — deliberately, because it owns every prescription and a
+  // vetted five-minute warm-up list is five minutes spent reading. Printing the
+  // heading anyway is also deliberate: without it ten of the session's minutes
+  // are unaccounted for on screen and the total at the top looks wrong.
+  //
+  // What the block DOES carry is `note`, the focus line — "Ease into today's
+  // work: knees quads, hips glutes." Showing the placeholder instead threw away
+  // the one sentence that tells him what those minutes are for.
   if (block.exercises.length === 0 && !block.cardio) {
-    out(`    ${dim('Your own — the engine reserves the time but does not prescribe it yet.')}`);
+    out(`    ${dim(block.note ?? 'Your own — the engine reserves the time but does not prescribe it yet.')}`);
   }
   out();
 }

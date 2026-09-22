@@ -2,6 +2,7 @@
   "_note": "The cold-start progress record. Seth is starting Knees Over Toes from the very beginning: Phase 1 Zero, week 1, with nothing met. Seed a new athlete with this, then let logged sessions move it.",
   "current_step_ids": [
     "zero-bodyweight-walk-warm-up",
+    "zero-backward-walking",
     "zero-tibialis-raise",
     "zero-calf-raise-slant-board",
     "zero-kot-calf-raise",
@@ -12,7 +13,6 @@
     "zero-elephant-walk",
     "zero-couch-stretch",
     "zero-standing-pigeon",
-    "zero-neck-brace-exercises",
     "zero-body-squat-slant-board"
   ],
   "cycle": 1,

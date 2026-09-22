@@ -382,7 +382,9 @@ export const BASELINE_INJURIES: Injury[] = [
  * Two deliberate compressions, both noted so nobody reads them as fact:
  *   - The warm-up is a plain FORWARD walk in Seth's program. The only walking
  *     record in this fixture set is `backward-walk`, so that is what it points
- *     at; the real program has no backward locomotion anywhere.
+ *     at. The real program has backward walking too — ten minutes of it, second
+ *     in the session, confirmed by Seth in September 2026 — but as its own step
+ *     after the forward walk, not as the warm-up this fixture conflates it with.
  *   - The tibialis raise is one movement performed twice in the session
  *     (positions 2 and 4 of the checklist). The day template in the real file
  *     references it twice; here it collapses to `sets: 2`.
@@ -636,8 +638,12 @@ export const KOT: Program = {
 
     // ── Phase 3 STANDARDS ────────────────────────────────────────────────────
     {
+      // A DISTANCE standard, exactly as `standards-bodyweight-walk` carries it
+      // in programs/kot/program.json. It used to be written here as five
+      // minutes because `ProgramStandard.distance_mi` was read by nothing —
+      // the fixture had been bent to fit the bug rather than the program.
       id: 'kot-standards-walk', order: 40, block: 'warm-up', phase_id: 'standards', name: 'Bodyweight walk (warm-up)',
-      standard_text: '0.25 miles.', exercise_slug: 'backward-walk', standard: { duration_min: 5 },
+      standard_text: '0.25 miles.', exercise_slug: 'backward-walk', standard: { distance_mi: 0.25 },
     },
     {
       id: 'kot-standards-tib-raise', order: 41, block: 'lower-legs', phase_id: 'standards', name: 'Tibialis raise',

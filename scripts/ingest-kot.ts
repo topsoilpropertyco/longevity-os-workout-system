@@ -462,6 +462,64 @@ const STEP_SPECS: Record<string, StepSpec> = {
       { equipment_missing: 'outdoor_route', use_slug: 'walking-treadmill', note: 'Planet Fitness or bad weather: treadmill at an easy pace.' },
     ],
   },
+
+  // ── Backward locomotion ────────────────────────────────────────────────────
+  // Neither of these is on any sheet of Seth's; both are here because he said
+  // so out loud (2026-09-22). `SETH_CONFIRMED_ROWS` is what schedules them —
+  // there is no source row for the loop below to match. Every number comes from
+  // RESEARCH §7, which is the only written prescription either movement has.
+  'backward walk': {
+    name: 'Backward Walking',
+    slug: 'backward-walk-outdoors',
+    block: 'warm_up',
+    equipment: ['outdoor_route'],
+    progressions: [
+      'Flat ground, hands free, glancing over alternating shoulders.',
+      'A shallow incline — a ramp or a gentle hill.',
+      'Weight vest, or a backpack.',
+      'Backward sled drag, wherever there is a sled.',
+    ],
+    substitutions: [
+      // The belt stays OFF and he drives it himself. A powered belt running
+      // backwards under him is a different — and worse — exercise, so the note
+      // has to say which one this is. RESEARCH §2.
+      {
+        equipment_missing: 'outdoor_route',
+        use_slug: 'backward-treadmill-walk',
+        note: 'Planet Fitness or bad weather: the same walk on a treadmill with the belt POWERED OFF, driving the belt by foot.',
+      },
+    ],
+    note: 'The method’s knee entry point, and the one movement of Seth’s that runs in every session.',
+  },
+  'backward sled drag': {
+    name: 'Backward Sled Drag',
+    slug: 'backward-sled-drag',
+    block: 'warm_up',
+    equipment: ['sled'],
+    progressions: [
+      'Backward walking, unloaded, on flat ground.',
+      'Sled at roughly 50% of bodyweight for 10 minutes.',
+      'More load, same 10 minutes.',
+    ],
+    substitutions: [
+      // Ordered by which gym has what: the club has treadmills and no sled, the
+      // house has neither but opens onto a street. Both land on backward
+      // walking, which is the point — the sled is the version he gets when a
+      // sled happens to be there.
+      {
+        equipment_missing: 'sled',
+        use_slug: 'backward-treadmill-walk',
+        note: 'No sled at Planet Fitness: backward walking on a treadmill with the belt POWERED OFF.',
+      },
+      {
+        equipment_missing: 'sled',
+        use_slug: 'backward-walk-outdoors',
+        note: 'No sled and no treadmill at home: backward walking outdoors, unloaded.',
+      },
+    ],
+    note: 'Neither of Seth’s gyms owns a sled, so this resolves to backward walking most weeks; the load is what it becomes when one is available.',
+  },
+
   'plantar fascia stretch': {
     name: 'Plantar Fascia Stretch',
     slug: 'foot-smr',
@@ -996,15 +1054,34 @@ const STEP_SPECS: Record<string, StepSpec> = {
     block: 'mobility_cooldown',
     equipment: ['bodyweight', 'yoga_mat'],
   },
-  'neck brace exercises': {
-    name: 'Neck Brace Exercises',
-    slug: 'isometric-neck-exercise-front-and-back',
-    block: 'mobility_cooldown',
-    equipment: ['resistance_bands'],
-    progressions: ['Manual resistance, front and back.', 'Manual resistance, both sides.', 'Band or harness resistance through all four directions.'],
-    library_gap: 'No banded/harness neck protocol. `isometric-neck-exercise-front-and-back` covers two of the four directions, isometrically and unloaded.',
-    note: 'The checklist says "as prescribed" and gives no reps — the one step in Zero with no numbers anywhere in the sources.',
-  },
+};
+
+/**
+ * Movements Seth does that no file of his records, keyed by phase. Seth was
+ * asked about backward locomotion — the one gap the reconciliation report kept
+ * pointing at — and answered on 2026-09-22 that he does it, backward on the
+ * treadmill every session, and the sled when there is a sled. So it is in the
+ * program, on his word, exactly the way the spreadsheet-only Dense warm-up walk
+ * below it is in the program on the spreadsheet's word.
+ *
+ * The prescriptions are RESEARCH §7's: ten minutes of backward walking in Zero,
+ * and the sled at roughly 50% of bodyweight in Dense. Nothing here is invented.
+ * Standards is deliberately absent — see the reconciliation report, section 4.
+ */
+const SETH_CONFIRMED_ROWS: Record<string, RawRow[]> = {
+  zero: [{ name: 'Backward Walk', prescription: '10 min' }],
+  dense: [{ name: 'Backward Sled Drag', prescription: '10 min · 50% BW' }],
+};
+
+/**
+ * Source rows that are deliberately NOT built, with the reason. They have to be
+ * named here rather than simply deleted from `STEP_SPECS`: an unmapped row goes
+ * into `unknownNames`, which fails the ingest and prints "add it to STEP_SPECS"
+ * — the opposite of what was decided.
+ */
+const DROPPED_ROWS: Record<string, string> = {
+  'neck brace exercises':
+    'Seth asked for it out (2026-09-22). It was the only one of the 69 steps with no sets, reps or duration in any source, which is very likely why he does not do it.',
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -1068,7 +1145,6 @@ const PUBLIC_SCAFFOLD_STEPS: string[] = [
 /** Equipment the program needs that the canonical `Equipment` union cannot name. */
 const UNNAMEABLE_EQUIPMENT: { thing: string; where: string }[] = [
   { thing: 'weight vest', where: 'the calf-raise and KOT-calf-raise progressions in Knee Ability Zero' },
-  { thing: 'neck harness', where: 'Zero — Neck Brace Exercises' },
   { thing: '3–4 inch step (a specific box height, not a generic plyo box)', where: 'the Poliquin Step-Up benchmark' },
 ];
 
@@ -1382,6 +1458,8 @@ interface BuildResult {
   days: ProgramDay[];
   warnings: BuildWarning[];
   unknownNames: string[];
+  /** Rows `DROPPED_ROWS` deliberately left out, so the report can say why. */
+  droppedRows: { name: string; reason: string }[];
   benchmarkRows: { name: string; criteria: string; step_id: string | null; standard: ProgramStandard }[];
 }
 
@@ -1401,6 +1479,7 @@ function buildProgramShape(ex: Extracted): BuildResult {
   const phases = checklist.phases.map((p) => buildPhase(p, ramp));
   const warnings: BuildWarning[] = [];
   const unknownNames: string[] = [];
+  const droppedRows: { name: string; reason: string }[] = [];
   const steps: BuiltStep[] = [];
   const days: ProgramDay[] = [];
   const byPhaseKey = new Map<string, BuiltStep>(); // `${phase}::${key}` → step
@@ -1440,9 +1519,24 @@ function buildProgramShape(ex: Extracted): BuildResult {
         }
       }
 
+      // Backward locomotion goes in behind the opening walk. Ground-up ordering
+      // (RESEARCH §7) puts it before everything that loads the knee from above,
+      // but ten minutes of walking backwards is work, not a warm-up, so the
+      // easy forward walk still comes first. No walk on this day → position 0.
+      const confirmed = SETH_CONFIRMED_ROWS[rawPhase.key];
+      if (confirmed) {
+        const afterWalk = rows.findIndex((r) => norm(r.name).startsWith('bw walk')) + 1;
+        rows.splice(afterWalk, 0, ...confirmed);
+      }
+
       const orderedStepIds: string[] = [];
       for (const row of rows) {
         const key = norm(row.name);
+        const reason = DROPPED_ROWS[key];
+        if (reason) {
+          if (!droppedRows.some((d) => d.name === row.name)) droppedRows.push({ name: row.name, reason });
+          continue;
+        }
         const spec = STEP_SPECS[key];
         if (!spec) {
           if (!unknownNames.includes(row.name)) unknownNames.push(row.name);
@@ -1554,7 +1648,7 @@ function buildProgramShape(ex: Extracted): BuildResult {
     return pa - pb || a.weekday - b.weekday;
   });
 
-  return { phases, steps, days, warnings, unknownNames, benchmarkRows };
+  return { phases, steps, days, warnings, unknownNames, droppedRows, benchmarkRows };
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -1648,11 +1742,21 @@ interface BaselineRow {
   note?: string;
 }
 
-/** `Full Body` names → library slugs. Written here; the sheet has no ids. */
-const BASELINE_SLUGS: Record<string, { slug: string; note?: string }> = {
+/**
+ * `Full Body` names → library slugs. Written here; the sheet has no ids.
+ *
+ * `per_hand` doubles the sheet's number on the way in. The sheet writes what he
+ * picks up off the rack; the engine stores total load everywhere (PRD §8.2),
+ * and the two are the same number only for a single-implement lift.
+ */
+const BASELINE_SLUGS: Record<string, { slug: string; per_hand?: boolean; note?: string }> = {
   deadlift: { slug: 'barbell-deadlift' },
   'pat step': { slug: 'patrick-step' },
-  'split squat': { slug: 'atg-split-squat', note: 'Sheet reads "25 DB" — 25 lb dumbbells. Whether that is 25 lb per hand (50 lb total, the engine convention) or 25 lb total is not stated.' },
+  'split squat': {
+    slug: 'atg-split-squat',
+    per_hand: true,
+    note: 'Sheet reads "25 DB". Seth confirmed (2026-09-22) that is 25 lb in each hand, so the total-load convention records 50.',
+  },
   'vmo squat': { slug: 'sissy-squat' },
   'dumbbell bench': { slug: 'dumbbell-bench-press' },
   bench: { slug: 'barbell-bench-press-medium-grip' },
@@ -1699,7 +1803,7 @@ function buildBaseline(ex: Extracted): { rows: BaselineRow[]; dense: BaselineRow
       rows.push({
         exercise_slug: mapping.slug,
         raw_name: name,
-        load_lb: Number(num[1]),
+        load_lb: mapping.per_hand ? Number(num[1]) * 2 : Number(num[1]),
         sets: setsReps.sets,
         reps: setsReps.reps,
         source: 'ATG_Workouts.xlsx — "Full Body" sheet',
@@ -1921,10 +2025,10 @@ function buildReport(args: {
   }
   out.push(
     '',
-    'The biggest of these is worth calling out: **backward walking and the backward sled drag are the',
-    'first two steps of the public scaffold and appear nowhere in Seth’s material.** His warm-up is a',
-    'plain forward walk. Either his coach dropped backward locomotion, or the scaffold over-weighted a',
-    'publicly famous piece of the method. His sheet wins, but this is worth asking him about.',
+    'Backward walking and the backward sled drag used to head this list: they are the first two steps of',
+    'the public scaffold and they appear nowhere in Seth’s material. He was asked, and on **2026-09-22**',
+    'he confirmed he does both — backward on the treadmill every session, and the sled whenever there is',
+    'one. They are back in the program on his word rather than on a document; see section 4.',
   );
 
   out.push('', h(3, '2b. Movements the real program has that the scaffold never had'));
@@ -2015,7 +2119,31 @@ function buildReport(args: {
     '   The flat-ground versions are recorded as substitutions for travel and for Planet Fitness.',
     '2. **He is starting at the beginning.** `current_phase_id` is `zero` and',
     '   `programs/kot/progress-default.json` sets `week_in_phase: 1` with no standards met.',
+    '',
+    'The next three came from **Seth directly, on 2026-09-22** — not from any source document. Every',
+    'other line in this program can be traced to a file in `docs/programs/kot/raw/`; these three cannot,',
+    'and that is the whole reason they are written down here.',
+    '',
+    '3. **Backward locomotion is in.** He counts backwards on the treadmill while he walks, and he wants',
+    '   the sled included even though he "often won\u2019t get it". So `SETH_CONFIRMED_ROWS` in',
+    '   `scripts/ingest-kot.ts` injects **Backward Walking** into every Zero session and the **Backward',
+    '   Sled Drag** into every Dense session, behind the opening walk, where the ground-up order puts',
+    '   them. Numbers are RESEARCH §7\u2019s — 10 minutes in Zero, roughly 50% of bodyweight on the sled in',
+    '   Dense — because no sheet of his carries any. Neither gym has a sled and only Planet Fitness has a',
+    '   treadmill, so the sled step substitutes: powered-off treadmill belt at the club, backward walking',
+    '   outdoors at home. The step never disappears; only the implement does.',
+    '4. **"25 DB" on the split squat is 25 per hand.** 50 lb total, which is what',
+    '   `programs/kot/seth-baseline.json` now records. The engine\u2019s convention is total load',
+    '   everywhere (PRD §8.2), so the sheet\u2019s number is doubled on the way in rather than carried',
+    '   through as written.',
+    '5. **Neck Brace Exercises is out.** He does not do it. It is gone from `STEP_SPECS`, from the Zero',
+    '   weekday templates and from the program; `DROPPED_ROWS` keeps the source row from being reported',
+    '   as an unmapped movement someone should go and map.',
   );
+  if (build.droppedRows.length) {
+    out.push('', 'Source rows deliberately not built:', '');
+    for (const d of build.droppedRows) out.push(`- **${d.name}** — ${d.reason}`);
+  }
 
   // 5 ── demo links
   out.push('', h(2, '5. Demo links'));
@@ -2084,9 +2212,11 @@ function buildReport(args: {
     'genuinely stands in for other equipment is treated as present (a fixed-dumbbell rack satisfies',
     '`adjustable_dumbbell`, an adjustable bench satisfies `bench_flat`), so every row below is a real gap.',
     '',
-    'Seth **has a slant board** — it appears below anyway because the Home fixture does not list one.',
-    'That fixture is wrong and should be corrected. So is the missing `wall_space` at Planet Fitness:',
-    'the club has walls.',
+    'A row here is not automatically a problem. `sled` is missing everywhere and always will be — Seth',
+    'owns no sled and neither gym has one — which is why the Backward Sled Drag ships with two',
+    'substitutions rather than a shrug: the powered-off treadmill belt at Planet Fitness, backward',
+    'walking outdoors at home. The step runs at both. What a row here means is that the movement is',
+    'reached by its fallback, not by the implement the program names.',
     '',
     '| Equipment | Missing at | Steps that need it |',
     '| --- | --- | --- |',
@@ -2109,9 +2239,9 @@ function buildReport(args: {
     '2. **No free-hanging bar at Planet Fitness.** Hanging Leg Raise (toes to bar) and Garhammer Raise',
     '   are both benchmarks and both need one. Home has a pull-up bar, so Standards-phase hanging work',
     '   has to be scheduled at home.',
-    '3. **No 3–4 inch box and no slant board in either fixture.** The Poliquin Step-Up benchmark names a',
-    '   box height; the Zero phase uses a board on four of its thirteen steps. Seth owns a board — the',
-    '   fixture needs updating. A 3–4 inch box is a stair or a pair of plates, but nothing records that.',
+    '3. **No 3–4 inch box anywhere.** The Poliquin Step-Up benchmark names a box height. In practice that',
+    '   is a stair or a pair of plates, but nothing in the equipment model records it, so the step has no',
+    '   way to say whether the height is right.',
   );
 
   // 8 ── baseline
@@ -2140,18 +2270,20 @@ function buildReport(args: {
   out.push('', h(2, '9. Still uncertain'));
   out.push(
     '',
-    '1. **"25 DB" on the split squat.** 25 lb per hand (50 total) or 25 total? The engine stores total',
-    '   load, so this matters. Recorded as 25 with the ambiguity flagged.',
-    '2. **Neck Brace Exercises** has no reps, sets or duration anywhere in any source. It is the only',
-    '   step in the program with no numbers at all.',
-    '3. **The Hip Flexor Tri-Set contradicts itself:** the checklist says alternate the three drills to',
+    '1. **The Hip Flexor Tri-Set contradicts itself:** the checklist says alternate the three drills to',
     '   failure for five minutes; the spreadsheet says pick one of the three per five minutes.',
-    '4. **KOT Calf Raise and Body Squat both read "as prescribed"** on the checklist. Their numbers come',
+    '2. **KOT Calf Raise and Body Squat both read "as prescribed"** on the checklist. Their numbers come',
     '   from the Knee Ability Zero recap, not from Seth’s own sheet.',
-    '5. **Standards has no Wednesday** and the phase header says four days, but the spreadsheet lays out',
+    '3. **Standards has no Wednesday** and the phase header says four days, but the spreadsheet lays out',
     '   an empty Wednesday column. Read as a rest day.',
-    '6. **Backward locomotion is absent** from every one of Seth’s files. See section 2a.',
-    '7. **Phase 2 and 3 exercise guides are image-only PDFs** — one page each, no extractable text. The',
+    '4. **Backward locomotion in Standards.** Seth said he does it; he did not say through which phases.',
+    '   It is in Zero and Dense, which is where the public method puts it and which is what the old',
+    '   scaffold had. Standards has none. If he means "every session, forever", Standards needs a row in',
+    '   `SETH_CONFIRMED_ROWS` too — one question, and the answer is a two-line change.',
+    '5. **The sled\u2019s dose is borrowed.** RESEARCH §7 gives the sled a load (~50% bodyweight) and no',
+    '   duration, so the ten minutes on it are Zero\u2019s backward-walk duration carried across. Nothing',
+    '   written prescribes ten minutes of sled.',
+    '6. **Phase 2 and 3 exercise guides are image-only PDFs** — one page each, no extractable text. The',
     '   HTML guide covers the same ground and was the readable source for the progressions.',
   );
 
@@ -2231,13 +2363,15 @@ function main(): void {
       'This REPLACES the earlier public scaffold, which was inferred from public descriptions of the',
       'method and had the structure wrong (two flat buckets, 26 steps, no weekday templates).',
       'Regenerate with `npx tsx scripts/ingest-kot.ts`; do not hand-edit.',
-      'STILL UNCERTAIN: (1) "25 DB" on the split squat is 25 lb per hand or 25 lb total, unstated;',
-      '(2) Neck Brace Exercises carries no reps, sets or duration in any source;',
-      '(3) the Hip Flexor Tri-Set is "alternate to failure" on the checklist but "pick one" on the sheet;',
-      '(4) KOT Calf Raise and Body Squat read "as prescribed" — their numbers come from the book, not from Seth;',
-      '(5) backward walking and the sled appear nowhere in Seth’s files, though they are the public method’s',
-      'signature; (6) several movements resolve to a stand-in exercise because the library has no record of',
-      'the real one. All of it is itemised in data/reports/kot-reconciliation.md.',
+      'FROM SETH DIRECTLY, not from any file (2026-09-22): backward walking in Zero and the backward sled',
+      'drag in Dense are in on his word — no sheet of his carries either, and their numbers come from',
+      'docs/RESEARCH_FOUNDATION.md §7; "25 DB" on the split squat means 25 lb per hand, recorded as 50 lb',
+      'total; Neck Brace Exercises is removed because he does not do it.',
+      'STILL UNCERTAIN: (1) the Hip Flexor Tri-Set is "alternate to failure" on the checklist but "pick',
+      'one" on the sheet; (2) KOT Calf Raise and Body Squat read "as prescribed" — their numbers come from',
+      'the book, not from Seth; (3) whether the backward work continues into Standards, which has none;',
+      '(4) several movements resolve to a stand-in exercise because the library has no record of the real',
+      'one. All of it is itemised in data/reports/kot-reconciliation.md.',
     ].join(' '),
     slug: 'kot',
     name: 'Knees Over Toes',

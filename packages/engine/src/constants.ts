@@ -354,6 +354,20 @@ export const ASSEMBLY = {
   setup_s_per_exercise: 60,
   /** Seconds per working rep, averaged across tempos. */
   seconds_per_rep: 3.5,
+  /**
+   * Minutes per mile for a prescribed DISTANCE, so the budget is charged what
+   * the walk actually costs instead of nothing at all.
+   *
+   * 20 min/mi is 3 mph — an easy walk, which is the only kind of distance the
+   * program prescribes: Knees Over Toes' one distance standard is the
+   * bodyweight walk, "easy pace, not a training stimulus". It lands Standards'
+   * quarter mile on the same five minutes Zero and Dense state in words for the
+   * same warm-up, which is the cross-check that this number is right.
+   *
+   * A RUN with a distance standard would need a pace per modality; cardio
+   * pacing lives in `cardio.ts` (`prescribeWalkRun`) and would own that.
+   */
+  minutes_per_mile_walk: 20,
   /** Agonist/antagonist supersets are used at or below this budget. RESEARCH §6.3 */
   superset_budget_threshold_min: 30,
   /** A superset saves roughly this share of the pair's combined rest. */

@@ -4,8 +4,17 @@ import { plan as enginePlan } from './engine-bridge';
 import type { PlanInput, PlanResult } from './engine-bridge';
 import { requireUserId } from './auth';
 import { loadPlanInput, todayIso } from './plan-input';
+import type { PlanProvenance } from './plan-input';
 
-export type PlanBundle = { input: PlanInput; result: PlanResult; today: string };
+export type { PlanProvenance, PlanSource } from './plan-input';
+
+export type PlanBundle = {
+  input: PlanInput;
+  result: PlanResult;
+  today: string;
+  /** Whether these numbers are his, or the cold-clone fixtures standing in. */
+  provenance: PlanProvenance;
+};
 
 /**
  * Re-plan on every open (CLAUDE.md invariant 4). The plan is a derived view over
@@ -31,6 +40,6 @@ export async function getPlanBundle(overrides: Partial<PlanInput> = {}): Promise
  */
 export async function planFor(userId: string, overrides: Partial<PlanInput> = {}): Promise<PlanBundle> {
   const today = todayIso();
-  const input = await loadPlanInput(userId, today, overrides);
-  return { input, result: enginePlan(input), today };
+  const { input, provenance } = await loadPlanInput(userId, today, overrides);
+  return { input, result: enginePlan(input), today, provenance };
 }

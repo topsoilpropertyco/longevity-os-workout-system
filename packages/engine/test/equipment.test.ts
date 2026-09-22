@@ -1,9 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import {
+  EQUIPMENT_SUBSUMPTION,
   achievableLoad, availableEquipment, barWeightFor, describeLocation,
   isBarbellFreeLocation, isPerformableAt, loadCapability, resolveEquipment,
 } from '../src/equipment.js';
-import type { Exercise } from '../src/types.js';
+import type { Equipment, Exercise, GymLocation } from '../src/types.js';
 import { BODYWEIGHT_ONLY, EXERCISE_BY_ID, HOME, PLANET_FITNESS } from '../fixtures/library.js';
 
 const barbellSquat = EXERCISE_BY_ID.get('barbell-back-squat') as Exercise;
@@ -111,5 +112,92 @@ describe('descriptions', () => {
   it('summarises a location for the chip', () => {
     expect(describeLocation(HOME)).toMatch(/dumbbells to 52.5 lb/);
     expect(describeLocation(PLANET_FITNESS)).toMatch(/Smith \(20 lb bar\)/);
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Equipment subsumption
+//
+// The authored library names the equipment a movement NEEDS; a location names
+// what it HAS. Without a table saying which of the second satisfies the first,
+// `seated-good-morning` (bench_flat, dumbbell, smith_machine) is unreachable at
+// Home, which owns an adjustable bench and a pair of adjustable dumbbells —
+// and two steps of the program vanish from the session with only a note.
+// ─────────────────────────────────────────────────────────────────────────────
+
+/** A location with exactly one thing in it, for testing one edge of the table. */
+function only(...equipment: Equipment[]): GymLocation {
+  return {
+    ...HOME,
+    id: 'loc-test',
+    name: 'test',
+    equipment: equipment.map((e) => ({ equipment: e, available: true })),
+  };
+}
+
+function needs(...equipment: Equipment[]): Exercise {
+  return { ...splitSquat, id: 'test-ex', slug: 'test-ex', equipment };
+}
+
+describe('equipment subsumption', () => {
+  it('lets an adjustable bench stand in for a flat bench', () => {
+    expect(isPerformableAt(needs('bench_flat'), only('bench_adjustable'))).toBe(true);
+  });
+
+  it('does NOT let a flat bench stand in for an adjustable one', () => {
+    // An incline press on a flat bench is a different exercise.
+    expect(isPerformableAt(needs('bench_adjustable'), only('bench_flat'))).toBe(false);
+  });
+
+  it('treats adjustable dumbbells and dumbbells as the same pair of dumbbells', () => {
+    expect(isPerformableAt(needs('dumbbell'), only('adjustable_dumbbell'))).toBe(true);
+    expect(isPerformableAt(needs('adjustable_dumbbell'), only('dumbbell'))).toBe(true);
+  });
+
+  it('reaches the real seated good morning at home', () => {
+    // The shape of `seated-good-morning` in data/curated-exercises.json, which
+    // is a Dense step and a Standards benchmark.
+    const seatedGoodMorning = needs('bench_flat', 'dumbbell', 'smith_machine');
+    expect(isPerformableAt(seatedGoodMorning, HOME)).toBe(true);
+    expect(isPerformableAt(seatedGoodMorning, PLANET_FITNESS)).toBe(true);
+    expect(isPerformableAt(seatedGoodMorning, BODYWEIGHT_ONLY)).toBe(false);
+  });
+
+  it('prices the substitute off the equipment the room actually owns', () => {
+    // The trap: matching `dumbbell` at Home and then pricing it as a dumbbell
+    // rack gives 5–75 lb in 5 lb steps. Home has a Bowflex: 5–52.5 per hand in
+    // 2.5 lb steps. A load he cannot physically select is worse than no load.
+    const dbOnly = { ...needs('dumbbell'), load_style: 'total_dumbbell_pair' as const };
+    expect(resolveEquipment(dbOnly, HOME)).toBe('adjustable_dumbbell');
+    const cap = loadCapability(dbOnly, HOME);
+    expect(cap.max_lb).toBe(105);
+    expect(cap.increment_lb).toBe(5);
+  });
+
+  it('lets a functional trainer stand in for a cable machine, but not the reverse', () => {
+    expect(isPerformableAt(needs('cable_machine'), only('functional_trainer'))).toBe(true);
+    expect(isPerformableAt(needs('functional_trainer'), only('cable_machine'))).toBe(false);
+  });
+
+  it('never invents a barbell', () => {
+    // RESEARCH §2: Planet Fitness has no barbell, and that is the whole reason
+    // `barbell_free` alternatives exist. A Smith bar is not a barbell, a trap
+    // bar is not a barbell, and a rack is not a bar.
+    expect(isPerformableAt(needs('barbell'), only('smith_machine'))).toBe(false);
+    expect(isPerformableAt(needs('barbell'), only('trap_bar'))).toBe(false);
+    expect(isPerformableAt(needs('barbell'), only('power_rack'))).toBe(false);
+    expect(isPerformableAt(needs('barbell'), PLANET_FITNESS)).toBe(false);
+    expect(isBarbellFreeLocation(PLANET_FITNESS)).toBe(true);
+  });
+
+  it('keeps every claim in the table one the athlete could actually make', () => {
+    // Guard against a future entry that would put him under a bar that is not
+    // there: nothing may claim to satisfy a free barbell, a rack, or a Smith.
+    for (const [owned, satisfied] of Object.entries(EQUIPMENT_SUBSUMPTION)) {
+      for (const requirement of satisfied) {
+        expect(requirement).not.toBe(owned);
+        expect(['barbell', 'power_rack', 'smith_machine', 'trap_bar']).not.toContain(requirement);
+      }
+    }
   });
 });

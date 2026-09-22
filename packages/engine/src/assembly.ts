@@ -208,10 +208,15 @@ export interface AssemblyResult {
  * silently overruns by nine.
  */
 export function estimateMinutes(sets: PrescribedSet[]): number {
-  const work = sets.reduce(
-    (a, s) => a + (s.duration_s ?? s.reps * ASSEMBLY.seconds_per_rep),
-    0,
-  );
+  const work = sets.reduce((a, s) => {
+    if (s.duration_s !== undefined) return a + s.duration_s;
+    // A distance costs the time it takes to cover it. Without this a
+    // quarter-mile walk is budgeted at its (zero) rep count — a minute of setup
+    // and nothing else — and the session overruns by the five minutes he spends
+    // walking.
+    if (s.distance_mi !== undefined) return a + s.distance_mi * ASSEMBLY.minutes_per_mile_walk * 60;
+    return a + s.reps * ASSEMBLY.seconds_per_rep;
+  }, 0);
   const rest = sets.slice(0, -1).reduce((a, s) => a + s.rest_s, 0);
   return round((ASSEMBLY.setup_s_per_exercise + work + rest) / 60, 2);
 }
@@ -326,10 +331,23 @@ export function prescribe(args: {
       exercise.pattern === 'anti_rotation' ||
       exercise.pattern === 'anti_lateral_flexion');
 
+  // The program's own number beats the movement's default shape. Zero's
+  // elephant walk is 25 reps on a movement the library records as
+  // `force: static, pattern: mobility`, so the default 30-second hold used to
+  // swallow the 25 and prescribe a stretch instead of the dose the checklist
+  // prints. A standard that states a count — reps, or a distance — IS the dose
+  // (ENGINE.md §8); the default only fills a silence.
+  // `repOverride` is the caller prescribing this movement as an engine-chosen
+  // accessory rather than as the program step it happens to share a slug with
+  // — the mobility block's 2 × 8, say. The program's count is not what gets
+  // prescribed there, so it does not get to cancel the hold either: a deep
+  // squat hold picked as a cool-down stays a hold.
+  const programStatesCount =
+    (std?.reps !== undefined && args.repOverride === undefined) || std?.distance_mi !== undefined;
   const statedHold =
     std?.hold_s ??
     (std?.duration_min ? std.duration_min * 60 : undefined) ??
-    (isStaticHold ? DEFAULT_HOLD_S : undefined);
+    (isStaticHold && !programStatesCount ? DEFAULT_HOLD_S : undefined);
   // `hold_s` on a per-side step is per side: a 60-second couch stretch is two
   // minutes on the clock. `duration_min` is already a whole-session figure, so
   // it is left alone.
@@ -338,7 +356,18 @@ export function prescribe(args: {
       ? statedHold * 2
       : statedHold;
 
-  const isTimed = holdSeconds !== undefined || exercise.pattern === 'gait';
+  // A distance standard is measured in miles, not in reps and not on a clock.
+  // `ProgramStandard.distance_mi` used to be read by nothing, so Standards'
+  // quarter-mile bodyweight walk came out as the goal mode's "10 reps". An
+  // explicit hold or duration still wins — that is the program stating a clock
+  // — and so does nothing else: `gait` defaults a movement to timed, and the
+  // stated distance outranks that default the same way a rep count does.
+  const statedDistanceMi = std?.distance_mi;
+  const isDistance = statedDistanceMi !== undefined && holdSeconds === undefined;
+
+  const isTimed = holdSeconds !== undefined || (exercise.pattern === 'gait' && !isDistance);
+  /** Neither reps nor load: the set is measured on a clock or on the ground. */
+  const isUnrepped = isTimed || isDistance;
   const rawPrediction = predictionBand({
     exerciseId: exercise.id,
     reps,
@@ -403,11 +432,11 @@ export function prescribe(args: {
   // Timed and mobility work does not get an RPE target: "hold this stretch at
   // RPE 8" is not an instruction anyone can follow.
   const rpe =
-    isTimed || exercise.pattern === 'mobility'
+    isUnrepped || exercise.pattern === 'mobility'
       ? undefined
       : (Math.min(base.rpe, readiness.rpe_cap ?? 10) as PrescribedSet['rpe_target']);
 
-  const timedSetCount = isTimed ? (std?.sets ?? 1) : setCount;
+  const timedSetCount = isUnrepped ? (std?.sets ?? 1) : setCount;
 
   // Apply the time cap, with a floor: below three minutes backward walking stops
   // being the rehab dose and becomes a gesture, so we drop the movement instead
@@ -420,16 +449,18 @@ export function prescribe(args: {
 
   // A step that states its own rest states it for a reason — the 30 seconds
   // between ATG split-squat sets is part of the protocol, not a default.
-  const restS = step?.rest_s ?? (isTimed ? 30 : base.rest_s);
+  const restS = step?.rest_s ?? (isUnrepped ? 30 : base.rest_s);
 
   const sets: PrescribedSet[] = Array.from({ length: timedSetCount }, (_, i) => ({
     set_index: i,
-    reps: isTimed ? 0 : reps,
+    reps: isUnrepped ? 0 : reps,
     load_lb: exercise.load_style === 'none' ? 0 : load_lb,
     rpe_target: rpe,
     rest_s: restS,
     ...(isTimed ? { duration_s: cappedHoldSeconds } : {}),
-    ...(std?.distance_mi ? { distance_mi: std.distance_mi } : {}),
+    // The distance is per SET and never doubled for a per-side step: nobody
+    // walks a quarter mile on each leg.
+    ...(statedDistanceMi !== undefined ? { distance_mi: statedDistanceMi } : {}),
     ...(perSide ? { per_side: true } : {}),
     // The database's non-negative-load CHECK is waived only for assisted work,
     // so the flag has to travel with the prescription rather than be inferred later.

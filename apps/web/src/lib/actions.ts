@@ -155,7 +155,7 @@ export async function swapExercise(
   exerciseId: string,
   replacementId: string,
 ): Promise<ActionResult> {
-  const input = await loadPlanInput(await requireUserId(), sessionDate);
+  const { input } = await loadPlanInput(await requireUserId(), sessionDate);
   const result = enginePlan(input);
   const updated = applySwap(result.today, exerciseId, replacementId, input);
   const w = await writable();
@@ -174,7 +174,7 @@ export async function swapExercise(
 /** "Do this today" from the week carousel. Returns the one-line diff first. */
 export async function previewPullForward(date: string): Promise<{ diff: string }> {
   const today = todayIso();
-  const input = await loadPlanInput(await requireUserId(), today);
+  const { input } = await loadPlanInput(await requireUserId(), today);
   const before = enginePlan(input);
   const after = rebalanceWeek(before, date, input);
   return { diff: describeRebalance(before, after) };
@@ -182,7 +182,7 @@ export async function previewPullForward(date: string): Promise<{ diff: string }
 
 export async function commitPullForward(date: string): Promise<ActionResult> {
   const today = todayIso();
-  const input = await loadPlanInput(await requireUserId(), today);
+  const { input } = await loadPlanInput(await requireUserId(), today);
   const before = enginePlan(input);
   const after = rebalanceWeek(before, date, input);
   const w = await writable();
