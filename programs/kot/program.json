@@ -801,7 +801,7 @@
     },
     {
       "block": "lower_legs",
-      "exercise_slug": "seated-calf-raise",
+      "exercise_slug": "kot-seated-calf-raise",
       "id": "zero-kot-calf-raise",
       "name": "KOT Calf Raise",
       "order": 5,
@@ -815,7 +815,14 @@
       "standard": {
         "reps": 25
       },
-      "standard_text": "25 reps — The checklist says \"as prescribed\"; the reps come from the Knee Ability Zero recap."
+      "standard_text": "25 reps — The checklist says \"as prescribed\"; the reps come from the Knee Ability Zero recap.",
+      "substitutions": [
+        {
+          "equipment_missing": "bench_flat",
+          "note": "Nowhere to sit: the standing big-toe calf raise trains the same tissue, with the knee straight.",
+          "use_slug": "fhl-calf-raise"
+        }
+      ]
     },
     {
       "block": "knee_ability",
@@ -1763,8 +1770,13 @@
       "substitutions": [
         {
           "equipment_missing": "suspension_trainer",
-          "note": "Neither location has a TRX: Planet Fitness has the cable face pull; at home use a band anchored at head height.",
+          "note": "No TRX at Planet Fitness: the cable tower does the same job at the same height.",
           "use_slug": "face-pull"
+        },
+        {
+          "equipment_missing": "cable_machine",
+          "note": "No TRX and no cable at home: a band pulled apart at eye height hits the same rear delts and lower traps.",
+          "use_slug": "band-pull-apart"
         }
       ]
     },

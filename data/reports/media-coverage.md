@@ -11,7 +11,7 @@ Do not hand-edit — fix the mapping tables in `scripts/lib/vocab.ts` and re-run
 | With an animated GIF (© Gym visual) | 1324 | 69.4% |
 | Static images only (free-exercise-db) | 581 | 30.5% |
 | No media at all | 3 | 0.2% |
-| Curated records (hand-authored, no media by definition) | 43 | — |
+| Curated records (hand-authored, no media by definition) | 44 | — |
 
 ### Join
 

@@ -5,6 +5,7 @@
  */
 import { describe, expect, it } from 'vitest';
 import { plan, rebalanceWeek } from '../src/plan.js';
+import { effectiveEquipment } from '../src/equipment.js';
 import { orderingViolations } from '../src/exclusions.js';
 import { ASSEMBLY, WEEKLY } from '../src/constants.js';
 import {
@@ -36,10 +37,12 @@ describe('every fixture', () => {
       });
 
       it('never prescribes an exercise the location cannot perform', () => {
-        const available = new Set(
-          fixture.location.equipment.filter((e) => e.available).map((e) => e.equipment),
-        );
-        available.add('bodyweight');
+        // The EFFECTIVE set: what is in the room, plus what those things stand
+        // in for (ENGINE.md §13). Rebuilding the literal inventory here would
+        // fail the first time a library entry names `dumbbell` without also
+        // naming `adjustable_dumbbell` — which is the very duplication the
+        // subsumption table exists to stop authors having to remember.
+        const available = effectiveEquipment(fixture.location);
         for (const block of result.today.blocks) {
           for (const pe of block.exercises) {
             if (pe.exercise.equipment.length === 0) continue;

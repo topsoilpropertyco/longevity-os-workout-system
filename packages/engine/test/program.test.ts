@@ -15,6 +15,7 @@ import { plan } from '../src/plan.js';
 import { DOCS_WORKED_EXAMPLE } from '../fixtures/days.js';
 import type { PlanInput, ProgramProgress } from '../src/types.js';
 import {
+  BASELINE_INJURIES,
   EXERCISES,
   HOME,
   KOT,
@@ -402,6 +403,23 @@ describe('a distance standard is prescribed as a distance', () => {
     expect(walk?.sets[0]?.rpe_target).toBeUndefined();
   });
 
+  it('shortens the walk on a short day rather than dropping what comes after it', () => {
+    // The same rule the ten-minute backward walk already follows: a shortened
+    // walk is still the program, a missing tibialis raise is not. Without it
+    // the newly honest six minutes eat the bottom of the session.
+    // 20 minutes for a five-step benchmark session: the walk's honest six
+    // minutes are more than its share of the clock.
+    const result = assemble(input({ ...standardsMonday, budgetMin: 20 }));
+    const walk = result.blocks
+      .flatMap((b) => b.exercises)
+      .find((e) => e.program_step_id === 'kot-standards-walk');
+    expect(walk?.sets[0]?.distance_mi ?? 1).toBeLessThan(0.25);
+    // Three minutes is the floor for timed work and it is the floor here too:
+    // below a quarter of a mile at 20 min/mi, a walk stops being the dose.
+    expect(walk?.sets[0]?.distance_mi ?? 0).toBeGreaterThanOrEqual(0.15);
+    expect(stepIds(result)).toContain('kot-standards-tib-raise');
+  });
+
   it('estimates the minutes the distance takes instead of guessing', () => {
     const result = assemble(input(standardsMonday));
     const walk = result.blocks
@@ -409,5 +427,66 @@ describe('a distance standard is prescribed as a distance', () => {
       .find((e) => e.program_step_id === 'kot-standards-walk');
     // A quarter mile at an easy 20 min/mi is 5 minutes, plus a minute of setup.
     expect(walk?.estimated_min ?? 0).toBeCloseTo(6, 1);
+  });
+});
+
+/** The low-back flag is what arms the McGill floor; nothing else about it matters here. */
+const LOW_BACK = BASELINE_INJURIES.find((i) => i.region === 'low_back')!;
+
+describe('nothing is dropped in silence', () => {
+  /**
+   * ENGINE.md §2 stage 12: everything the engine chose not to do goes in
+   * `notes`. Two things used to break that rule, and both mattered — a step
+   * that vanishes without explanation is indistinguishable from a bug, and
+   * Seth is the one standing in a gym wondering where his calf work went.
+   */
+
+  it('says which authored movements the clock ate', () => {
+    const result = assemble(input({ budgetMin: 15 }));
+    const note = result.notes.find((n) => n.startsWith('No room for'));
+    expect(note).toBeDefined();
+    // Named, so he can do the ones he cares about himself.
+    expect(note).toMatch(/Split Squat|Nordic|L-Sit|Squat/);
+    expect(note).toMatch(/the session your program wrote/);
+  });
+
+  it('says it once for the whole session, not once per block', () => {
+    // A Zero day is seven template blocks. Seven separate "ran out of time"
+    // lines is the noise that buries the notes worth reading.
+    const result = assemble(input({ budgetMin: 15 }));
+    expect(result.notes.filter((n) => n.startsWith('No room for') && n.includes('your program wrote'))).toHaveLength(1);
+  });
+
+  it('stays quiet when the whole authored session fits', () => {
+    const result = assemble(input({ budgetMin: 90 }));
+    expect(result.notes.filter((n) => n.includes('your program wrote'))).toHaveLength(0);
+  });
+
+  it('reads as a sentence when several movements are dropped', () => {
+    const note = assemble(input({ budgetMin: 15 })).notes.find((n) => n.startsWith('No room for')) ?? '';
+    // "A, B and C" — never a comma before the "and", and never a bare array.
+    expect(note).not.toMatch(/, and /);
+    expect(note).not.toContain('[');
+  });
+
+  it('says so when the low-back floor is skipped for want of minutes', () => {
+    // The code calls the McGill Big 3 "non-negotiable" and then a five-minute
+    // gate negotiates it away. Skipping it on a short day is right; skipping it
+    // silently means he never knows to do it himself.
+    const flare = input({
+      budgetMin: 15,
+      injuries: [LOW_BACK],
+    });
+    const note = assemble(flare).notes.find((n) => n.includes('McGill Big 3'));
+    expect(note).toBeDefined();
+    expect(note).toMatch(/low-back floor/);
+  });
+
+  it('does not mention the low-back floor when there is room for it', () => {
+    const fine = input({
+      budgetMin: 60,
+      injuries: [LOW_BACK],
+    });
+    expect(assemble(fine).notes.filter((n) => n.includes('McGill Big 3'))).toHaveLength(0);
   });
 });

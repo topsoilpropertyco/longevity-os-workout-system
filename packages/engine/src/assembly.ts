@@ -337,6 +337,7 @@ export function prescribe(args: {
   // swallow the 25 and prescribe a stretch instead of the dose the checklist
   // prints. A standard that states a count — reps, or a distance — IS the dose
   // (ENGINE.md §8); the default only fills a silence.
+  //
   // `repOverride` is the caller prescribing this movement as an engine-chosen
   // accessory rather than as the program step it happens to share a slug with
   // — the mobility block's 2 × 8, say. The program's count is not what gets
@@ -447,6 +448,18 @@ export function prescribe(args: {
     : rawHold;
   const cappedHoldSeconds = Math.min(rawHold, capSeconds);
 
+  // The same cap, in miles. A distance is time on the ground like any other, so
+  // on a day the program does not fit it is rationed exactly as a hold is:
+  // Standards' quarter-mile warm-up walk is six honest minutes, and spending
+  // all six on a thirty-minute day pushes the tibialis raise — the movement the
+  // phase is built on — off the bottom of the session. A shortened walk is
+  // still the program; a missing tibialis raise is not. The three-minute floor
+  // inside `capSeconds` carries over, so the walk never shrinks to a gesture.
+  const cappedDistanceMi =
+    statedDistanceMi !== undefined && args.timeCapMin
+      ? Math.min(statedDistanceMi, round(capSeconds / 60 / ASSEMBLY.minutes_per_mile_walk, 2))
+      : statedDistanceMi;
+
   // A step that states its own rest states it for a reason — the 30 seconds
   // between ATG split-squat sets is part of the protocol, not a default.
   const restS = step?.rest_s ?? (isUnrepped ? 30 : base.rest_s);
@@ -460,7 +473,7 @@ export function prescribe(args: {
     ...(isTimed ? { duration_s: cappedHoldSeconds } : {}),
     // The distance is per SET and never doubled for a per-side step: nobody
     // walks a quarter mile on each leg.
-    ...(statedDistanceMi !== undefined ? { distance_mi: statedDistanceMi } : {}),
+    ...(cappedDistanceMi !== undefined ? { distance_mi: cappedDistanceMi } : {}),
     ...(perSide ? { per_side: true } : {}),
     // The database's non-negative-load CHECK is waived only for assisted work,
     // so the flag has to travel with the prescription rather than be inferred later.
@@ -537,6 +550,19 @@ function sentences(parts: string[]): string {
  */
 export function assemble(input: AssemblyInput): AssemblyResult {
   const notes: string[] = [];
+  /**
+   * Authored movements the clock ate, across the whole session.
+   *
+   * A step the LOCATION cannot do already says so; a step that resolved fine
+   * and then ran out of minutes said nothing at all, which is the same hole
+   * with a different cause (ENGINE.md §2 stage 12: everything the engine chose
+   * not to do goes in `notes`).
+   *
+   * Session-scoped, not per block, because `tryAdd` runs once per block of the
+   * weekday template — seven of them on a Zero day — and seven separate "ran
+   * out of time" lines is the noise that buries the notes that matter.
+   */
+  const ranOutOfTime: string[] = [];
   const blocks: SessionBlock[] = [];
   const chosen: Exercise[] = [];
   const flagged = flaggedRegions(input.injuries);
@@ -555,7 +581,10 @@ export function assemble(input: AssemblyInput): AssemblyResult {
     let index = 0;
     for (const item of items) {
       index++;
-      if (remaining < ASSEMBLY.min_block_min) break;
+      if (remaining < ASSEMBLY.min_block_min) {
+        if (kind === 'program') ranOutOfTime.push(item.exercise.name);
+        continue;
+      }
 
       // The McGill Big 3 floor and the Core block both want the curl-up, and a
       // session listing the same movement twice reads as a bug to the person
@@ -601,6 +630,7 @@ export function assemble(input: AssemblyInput): AssemblyResult {
             continue;
           }
         }
+        if (kind === 'program') ranOutOfTime.push(item.exercise.name);
         continue;
       }
 
@@ -775,6 +805,17 @@ export function assemble(input: AssemblyInput): AssemblyResult {
   }
 
   // ── Low-back rehab floor: McGill Big 3, near-daily ─────────────────────────
+  // The code below calls this floor "non-negotiable", and then a five-minute
+  // gate negotiates it away without a word. Skipping it on a short day is the
+  // right call — five minutes of trunk work is not worth cutting the knee work
+  // the phase exists for — but a floor that quietly is not a floor is worse
+  // than no floor, because he would never know to do it himself.
+  if (flagged.has('low_back') && remaining < 5) {
+    notes.push(
+      'No room for the McGill Big 3 today. It is the low-back floor and it is near-daily — ' +
+        'worth five minutes of your own before bed.',
+    );
+  }
   if (flagged.has('low_back') && remaining >= 5) {
     const big3 = MCGILL_BIG_3.map((slug) => input.exercises.find((e) => e.slug === slug)).filter(
       (e): e is Exercise => Boolean(e),
@@ -809,6 +850,15 @@ export function assemble(input: AssemblyInput): AssemblyResult {
     tryAdd('mobility', input.type === 'recovery' ? 'Recovery' : 'Mobility', items);
   }
 
+  if (ranOutOfTime.length > 0) {
+    const names = [...new Set(ranOutOfTime)];
+    notes.push(
+      names.length === 1
+        ? `No room for ${names[0]} today — it is in the session your program wrote, but not in the minutes you gave it.`
+        : `No room for ${listNames(names)} today — they are in the session your program wrote, but not in the minutes you gave it.`,
+    );
+  }
+
   const estimatedMin = round(blocks.reduce((a, b) => a + b.estimated_min, 0), 1);
 
   const cardioLedDay = input.type === 'vo2' || input.type === 'zone2' || input.type === 'sprint' || input.type === 'recovery';
@@ -820,6 +870,18 @@ export function assemble(input: AssemblyInput): AssemblyResult {
   }
 
   return { blocks: sortBlocks(blocks), notes, estimatedMin };
+}
+
+/**
+ * "A", "A and B", "A, B and C" — a list a person reads, not an array rendered.
+ * The notes are the one place the engine speaks in sentences, so a stray comma
+ * before "and" is the sort of thing that makes a line read as machine output
+ * and stop being believed.
+ */
+function listNames(names: string[]): string {
+  const seen = [...new Set(names)];
+  if (seen.length <= 1) return seen[0] ?? '';
+  return `${seen.slice(0, -1).join(', ')} and ${seen[seen.length - 1]}`;
 }
 
 /**

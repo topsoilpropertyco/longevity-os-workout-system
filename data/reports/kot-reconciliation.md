@@ -189,7 +189,7 @@ A per-weekday playlist is better than nothing, but it is not a demonstration of 
 
 ## 6. Exercises the program needs that the library does not have
 
-Checked against 1951 records across `data/exercises.json` and `data/curated-exercises.json`.
+Checked against 1952 records across `data/exercises.json` and `data/curated-exercises.json`.
 Each row below resolves today to a **stand-in** so the program validates and the engine can plan,
 but the stand-in is not the movement. Add these to `scripts/curated-exercises.ts`.
 
@@ -197,7 +197,7 @@ but the stand-in is not the movement. Add these to `scripts/curated-exercises.ts
 | --- | --- | --- |
 | Bodyweight Walk (Warm-Up) | `zone-2-steady` | A plain easy-pace walk. The library has treadmill walking and generic Zone-2 cardio, but no "walk, any surface, easy pace" record. |
 | Calf Raise (Slant Board) | `fhl-calf-raise` | No slant-board calf raise. `fhl-calf-raise` is the same muscle intent (press through the big toe, deep bottom stretch) without the board. |
-| KOT Calf Raise | `seated-calf-raise` | No standing bent-knee ("knees over toes") calf raise. `seated-calf-raise` loads the same soleus/Achilles with a bent knee but seated, so the knee-forward position — the whole point — is lost. |
+| KOT Calf Raise | `kot-seated-calf-raise` | No STANDING bent-knee ("knees over toes") calf raise. `kot-seated-calf-raise` bends the knee and so loads the same soleus, but seated — the knee-forward position, which is the whole point, is lost. |
 | Standing Pigeon | `seated-piriformis-stretch` | No standing figure-4 / pigeon. `seated-piriformis-stretch` is the same muscle from a seated position. |
 | Body Squat (Slant Board) | `bodyweight-squat` | No slant-board squat. `bodyweight-squat` is a flat-footed squat; the board is what lets the knees travel. |
 | Slant Board Calf Raise (Loaded) | `fhl-calf-raise` | Same gap as the Zero slant-board calf raise, with load added. |
@@ -238,7 +238,7 @@ reached by its fallback, not by the implement the program names.
 | `back_extension_bench` | Home, Planet Fitness — Detroit, Bodyweight only | QL Extension |
 | `barbell` | Home, Planet Fitness — Detroit, Bodyweight only | ATG Deadlift; Jefferson Curl; Seated Good Morning |
 | `bench_adjustable` | Bodyweight only | Incline Dumbbell Press |
-| `bench_flat` | Bodyweight only | Bench Pullover; French Press; KOT Squat (Eccentric); Seated Good Morning; Single-Leg Elevated Pike |
+| `bench_flat` | Bodyweight only | Bench Pullover; French Press; KOT Calf Raise; KOT Squat (Eccentric); Seated Good Morning; Single-Leg Elevated Pike |
 | `bumper_plates` | Home, Planet Fitness — Detroit, Bodyweight only | ATG Deadlift |
 | `cable_machine` | Home, Bodyweight only | Low Cable Pull-In |
 | `dip_station` | Home, Planet Fitness — Detroit, Bodyweight only | ATG Dips; Dips |

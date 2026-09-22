@@ -583,9 +583,15 @@ const STEP_SPECS: Record<string, StepSpec> = {
   },
   'kot calf raise': {
     name: 'KOT Calf Raise',
-    slug: 'seated-calf-raise',
+    // Was `seated-calf-raise`, which is free-exercise-db's PIN-LOADED LEVER
+    // machine and needs a `selectorized_machine`. That made the movement
+    // unreachable in a bedroom, so it was dropped from every Zero session at
+    // home — the phase's own calf work, missing, with a note nobody could act
+    // on. `kot-seated-calf-raise` is the curated bent-knee version: a chair
+    // and bodyweight.
+    slug: 'kot-seated-calf-raise',
     block: 'lower_legs',
-    equipment: ['bodyweight', 'wall_space'],
+    equipment: ['bodyweight', 'bench_flat'],
     standard: { reps: 25 },
     progressions: [
       'Small knee bend, both feet.',
@@ -593,7 +599,10 @@ const STEP_SPECS: Record<string, StepSpec> = {
       'One leg at a time.',
       'Add a weight vest.',
     ],
-    library_gap: 'No standing bent-knee ("knees over toes") calf raise. `seated-calf-raise` loads the same soleus/Achilles with a bent knee but seated, so the knee-forward position — the whole point — is lost.',
+    substitutions: [
+      { equipment_missing: 'bench_flat', use_slug: 'fhl-calf-raise', note: 'Nowhere to sit: the standing big-toe calf raise trains the same tissue, with the knee straight.' },
+    ],
+    library_gap: 'No STANDING bent-knee ("knees over toes") calf raise. `kot-seated-calf-raise` bends the knee and so loads the same soleus, but seated — the knee-forward position, which is the whole point, is lost.',
     note: 'The checklist says "as prescribed"; the reps come from the Knee Ability Zero recap.',
   },
   'single leg calf raise': {
@@ -964,8 +973,14 @@ const STEP_SPECS: Record<string, StepSpec> = {
     slug: 'face-pull',
     block: 'upper_body',
     equipment: ['suspension_trainer'],
+    // Two substitutions, tried in order, because one is not enough: Planet
+    // Fitness has the cable tower, home has neither a TRX nor a cable. The old
+    // single fallback pointed at `face-pull`, which needs a cable — so at home
+    // the step resolved to nothing at all while its own note told him to use a
+    // band. `band-pull-apart` is the band movement the note meant.
     substitutions: [
-      { equipment_missing: 'suspension_trainer', use_slug: 'face-pull', note: 'Neither location has a TRX: Planet Fitness has the cable face pull; at home use a band anchored at head height.' },
+      { equipment_missing: 'suspension_trainer', use_slug: 'face-pull', note: 'No TRX at Planet Fitness: the cable tower does the same job at the same height.' },
+      { equipment_missing: 'cable_machine', use_slug: 'band-pull-apart', note: 'No TRX and no cable at home: a band pulled apart at eye height hits the same rear delts and lower traps.' },
     ],
   },
   'external rotation': {

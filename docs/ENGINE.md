@@ -34,7 +34,7 @@ The engine is **pure and deterministic**. It takes one `PlanInput` object and re
 
 Each stage consumes the one before it. Nothing loops back.
 
-**1. Normalize.** Sort histories, resolve bodyweight to the most recent metric, resolve HRmax by the precedence chain (ADR 0004), compute zone boundaries, filter the exercise library to what this location can actually do.
+**1. Normalize.** Sort histories, resolve bodyweight to the most recent metric, resolve HRmax by the precedence chain (ADR 0004), compute zone boundaries, filter the exercise library to what this location can actually do — including what stands in for what (§13).
 
 **2. Assess readiness.** Produce a `ReadinessAssessment`: band, 0–100 score, source, load multiplier, RPE cap, set delta, HRV-versus-baseline, and the reasons — plain strings that become the why line.
 
@@ -48,7 +48,7 @@ Each stage consumes the one before it. Nothing loops back.
 
 **7. Place the program slot.** If today is a program day, the program's steps come first. On a phased program the active phase's template for today's weekday supplies both the steps and their order (§8); otherwise the program's own ordering rule does, and KOT's is strictly ground-up: backward walk → lower legs → step-ups → split squat → deep squat.
 
-**8. Select exercises.** Fill the remaining slots in assembly priority order: power → strength → conditioning → Zone 2 → mobility. Every candidate must pass the equipment filter, the ledger, the injury register and the pairing exclusions. Barbell lifts at a barbell-free location are replaced by their `barbell_free` alternatives before selection, not after.
+**8. Select exercises.** Fill the remaining slots in assembly priority order: power → strength → conditioning → Zone 2 → mobility. Every candidate must pass the equipment filter (§13), the ledger, the injury register and the pairing exclusions. Barbell lifts at a barbell-free location are replaced by their `barbell_free` alternatives before selection, not after.
 
 **9. Prescribe sets, reps and load.** Goal-mode bands set sets and reps; history and double progression set the load; the readiness multiplier and any deload multiplier adjust it; the result is rounded to an increment the location can actually make (Bowflex 2.5 lb, a dumbbell rack 5 lb, a Smith bar plus plates over its effective bar weight).
 
@@ -278,6 +278,32 @@ render "25 each side" on the card.
 `ProgramStep.rest_s`, where a step states one, is now the prescribed rest. The
 30 seconds between ATG split-squat sets is part of the protocol, not a default.
 
+**The program's number beats the movement's default shape.** The library records
+the elephant walk as `force: static, pattern: mobility`, which is the engine's
+signal to prescribe a hold — 30 seconds, when nothing says otherwise. Zero's
+elephant walk says 25 reps. The 25 wins, and the default only fills a silence: a
+standard that states a count is the dose, and a stretch is not what the
+checklist asked for. The default is still there for a static movement the
+program gave no numbers at all, and for a movement the *engine* picked that
+merely shares a slug with a program step — a deep squat hold chosen as a
+cool-down is a hold, whatever the KOT step of the same name says.
+
+**A distance standard is prescribed as a distance.** `ProgramStandard.distance_mi`
+is miles, not reps and not seconds: Standards' bodyweight walk is a quarter
+mile, and it used to come back as the goal mode's "10 reps" because nothing read
+the field. It now produces a `PrescribedSet.distance_mi`, no rep count and no
+RPE target — "walk a quarter mile at RPE 8" is not an instruction anyone can
+follow — and the budget is charged the minutes it actually takes, at
+`ASSEMBLY.minutes_per_mile_walk` (20 min/mi, an easy 3 mph, which is the only
+pace this program prescribes a distance at). Costing it at its rep count
+budgeted a quarter-mile walk at one minute of setup and nothing else. An
+explicit `hold_s` or `duration_min` still wins, because that is the program
+stating a clock. On a day the program does not fit, the distance is rationed
+exactly as a hold is (§10) and for the same reason: a shortened walk is still
+the program, a missing tibialis raise is not. The three-minute floor that stops
+ten minutes of backward walking becoming a gesture is the floor here too, at
+0.15 of a mile.
+
 One more dose rule falls out of this: a step whose standard names reps or a hold
 but **no set count** is one set. A checklist line reading "25 reps" is the whole
 dose; multiplying it by the goal mode's three sets is the same class of error as
@@ -504,5 +530,66 @@ Because the engine is pure, testing it is just a table of inputs and expected ou
 - **Golden-file tests** on session assembly: the whole `PlanResult` is serialized and compared, so an unintended change anywhere shows up as a diff rather than as a surprise in March.
 - **Invariant assertions** that run against every fixture: no session violates the ledger; no session violates a pairing exclusion; no session exceeds its budget; no session prescribes equipment the location does not have; no barbell movement survives at a barbell-free location.
 - **Phased-program tests** in `test/program.test.ts`: phase gating, the weekday templates and their authored repeats, the three load rules and their interaction with readiness and deload, per-side volume and prescribed rest.
-- **381 tests** at the time of writing. `npm run test` from `packages/engine`, `npm run check` from the repo root for contracts, types, tests and data together.
+- **400 tests** at the time of writing. `npm run test` from `packages/engine`, `npm run check` from the repo root for contracts, types, tests and data together.
 - **Every engine change ships with a fixture or a test.** That is in `CLAUDE.md` and in `CONTRIBUTING.md`, and it is the reason the ledger stays a constraint rather than drifting into a suggestion.
+
+---
+
+## 13. Equipment, and what stands in for what
+
+An exercise names the equipment it **needs**. A location names what it **has**.
+The two vocabularies are written by different hands — the library by whoever
+ingested it, the location by Seth ticking a checklist — and matching them by
+identity alone loses real work. `seated-good-morning` asks for `bench_flat` or
+`dumbbell`; Home owns a `bench_adjustable` and a pair of `adjustable_dumbbell`s.
+Matched by identity, a Dense step vanishes from the session with nothing but a
+note to show for it, and "a hole in an authored session that nobody can see is
+indistinguishable from a bug" (§8).
+
+So `packages/engine/src/equipment.ts` carries an explicit subsumption table.
+Not a fuzzy name match: fuzzy matching pairs `smith_machine` with `barbell`,
+which is the one pairing RESEARCH §2 is explicit is false and the whole reason
+`barbell_free` alternatives exist. Every entry is a claim that Seth can
+physically perform the movement with what is in the room, and a wrong claim puts
+him under a bar that is not there. Enumerated, one-directional unless stated,
+and conservative: the cost of an omission is a substitution, the cost of a wrong
+entry is an injury.
+
+| Has | Satisfies a requirement for | Why |
+| --- | --- | --- |
+| `bench_adjustable` | `bench_flat` | An adjustable bench drops to flat and does everything a flat bench does. **Not the reverse** — a flat bench cannot incline, and an incline press performed flat is a different exercise. |
+| `adjustable_dumbbell` | `dumbbell` | Both are a pair of dumbbells in his hands. |
+| `dumbbell` | `adjustable_dumbbell` | The same claim in the other direction, and it holds: nothing in the library needs the *selecting*, only the pair. |
+| `functional_trainer` | `cable_machine` | A functional trainer is a cable stack with two independently adjustable pulleys. **Not the reverse** — a single fixed-height column cannot reproduce the dual-pulley work (a low cable pull-in at ankle height, a face pull at eye height), and RESEARCH §2 lists the two as separate items because a club may have one and not the other. |
+
+**Considered and deliberately left out**, with the reason, because the omissions
+are as much a part of the table as the entries:
+
+| Pair | Why not |
+| --- | --- |
+| `smith_machine` → `barbell` | RESEARCH §2. No barbell at Planet Fitness; the Smith bar is counterbalanced to 15–20 lb, fixed in one plane, and cannot be unracked or bailed. This is the pairing `barbell_free` exists to avoid. |
+| `power_rack` → `barbell` | A rack is not a bar, and a bar is not a rack. |
+| `trap_bar`, `fixed_barbell`, `ez_curl_bar` → `barbell` | Different bar paths and grips, and fixed bars stop at ~70 lb. |
+| `barbell` → `fixed_barbell` | Arguably true, but no seeded location owns a free barbell, so the entry buys nothing and would still have to be right. |
+| `kettlebell` ↔ `dumbbell` | The same for a swing or a goblet squat, not for a press, a row or a bench — the offset centre of mass is the point of the tool. |
+| `leg_press`, `calf_machine`, … → `selectorized_machine` | Backwards. A club with a leg press does own a selectorized machine, but the generic requirement stands for whichever station the movement names, and a seated calf raise cannot be done on a lat pulldown. |
+| `assisted_pullup_machine` → `pull_up_bar` | Some are kneeling-pad only: no dead hang, no hanging leg raise, no unassisted pull-up. |
+| `rings` → `suspension_trainer` | True in a gym with rings; no seeded location has either, so it is an untested claim earning nothing. |
+| `recumbent_bike` ↔ `stationary_bike`, `arc_trainer` → `elliptical` | Close, and both seeded gyms list both anyway. `availableModalities` in `cardio.ts` already decides what a location can do aerobically. |
+| `slam_ball` ↔ `medicine_ball` | A slammed medicine ball bounces back at his face; a slam ball cannot be used for a wall ball. |
+| `track_or_open_space` ↔ `outdoor_route` | A field is not a three-mile route, and a route is not a measured straight. |
+| `bench_flat` → `plyo_box` | A box jump onto a bench is how people break shins. |
+| `bench_adjustable` → `nordic_support` | Only with a strap or a partner. The bench at Home happens to have a foot catch; benches in general do not, and the table is about the category. |
+
+Two rules keep the table honest:
+
+1. **Requirements are matched against the effective set; loads are priced off
+   the real item.** `resolveEquipment` always returns equipment the location
+   actually owns, never the requirement it satisfied — answering `dumbbell` for
+   a house that owns a Bowflex would price the prescription off a 5–75 lb rack
+   in 5 lb steps that is not in the room. Home's dumbbell work rounds to 2.5 lb
+   a hand and stops at 52.5, because that is what `location.equipment` says.
+2. **Nothing may claim to be a barbell, a rack or a Smith.** `test/equipment.test.ts`
+   asserts it over the table itself, so a future entry cannot quietly add one,
+   and `isBarbellFreeLocation` deliberately reads the literal inventory rather
+   than the effective set: it is asking whether there is a bar in the room.

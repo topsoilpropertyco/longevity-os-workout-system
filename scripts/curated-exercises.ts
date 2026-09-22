@@ -252,6 +252,39 @@ const CURATED: Exercise[] = [
     source: 'curated',
   },
   {
+    id: 'kot-seated-calf-raise',
+    name: 'KOT Calf Raise (Seated, Bent Knee)',
+    slug: 'kot-seated-calf-raise',
+    aliases: ['seated calf raise (bodyweight)', 'bent-knee calf raise', 'soleus raise'],
+    pattern: 'isolation_lower',
+    force: 'push',
+    mechanic: 'isolation',
+    level: 'beginner',
+    // A chair. That is the whole equipment list, which is the point: the
+    // free-exercise-db record of the same name is a PIN-LOADED LEVER MACHINE
+    // needing `selectorized_machine`, so pointing the step at it made the
+    // movement unreachable in a bedroom and it was dropped from every Zero
+    // session at home with a note nobody could act on.
+    equipment: ['bodyweight', 'bench_flat'],
+    region_loads: { calves_achilles: 1 },
+    load_style: 'bodyweight',
+    barbell_free: true,
+    eccentric_dominant: false,
+    plyo_contacts_per_rep: 0,
+    kot_step: 'lower_legs',
+    cue: 'Knees bent, heels up — this one is the soleus, so the standing version does not replace it.',
+    instructions: [
+      'Sit on a chair or bench with the feet flat and the knees bent to about 90°.',
+      'Drive through the balls of the feet and raise the heels as high as they will go.',
+      'Pause at the top, then lower until the heels are back on the floor and the calf is at full stretch.',
+      'Bending the knee takes the gastrocnemius out of it and leaves the soleus — the muscle that has to hold you on a landing, and the one a standing calf raise misses.',
+      'Add load by resting a dumbbell across the knees once bodyweight is easy.',
+    ],
+    preferred_alternatives: ['fhl-calf-raise', 'single-leg-calf-raise'],
+    rehab_for: ['calves_achilles'],
+    source: 'curated',
+  },
+  {
     id: 'single-leg-calf-raise',
     name: 'Single-Leg Calf Raise',
     slug: 'single-leg-calf-raise',
