@@ -364,8 +364,13 @@ describe('the program\'s own number beats the movement\'s default shape', () => 
     const elephant = result.blocks
       .flatMap((b) => b.exercises)
       .find((e) => e.program_step_id === 'kot-zero-elephant-walk');
-    // 60 s setup + 25 × 3.5 s = 147 s ≈ 2.45 min, not the 1.5 min a 30 s hold costs.
-    expect(elephant?.estimated_min ?? 0).toBeGreaterThan(2);
+    // The point is that 25 reps costs MORE than the 30-second default hold it
+    // used to fall through to — not a particular number of minutes, which
+    // depends on a setup table that is allowed to change. So: at least the reps
+    // themselves, and more than the half-minute the default would have charged.
+    const repSeconds = 25 * 3.5;
+    expect(elephant?.estimated_min ?? 0).toBeGreaterThan(repSeconds / 60);
+    expect(elephant?.estimated_min ?? 0).toBeGreaterThan(30 / 60);
   });
 
   it('still gives a hold to a static movement the program gave no count', () => {
@@ -425,8 +430,11 @@ describe('a distance standard is prescribed as a distance', () => {
     const walk = result.blocks
       .flatMap((b) => b.exercises)
       .find((e) => e.program_step_id === 'kot-standards-walk');
-    // A quarter mile at an easy 20 min/mi is 5 minutes, plus a minute of setup.
-    expect(walk?.estimated_min ?? 0).toBeCloseTo(6, 1);
+    // A quarter mile at an easy 20 min/mi is five minutes of walking. The
+    // assertion is the walking, not the walking plus whatever setup happens to
+    // cost this week.
+    expect(walk?.estimated_min ?? 0).toBeGreaterThanOrEqual(5);
+    expect(walk?.estimated_min ?? 0).toBeLessThan(7);
   });
 });
 

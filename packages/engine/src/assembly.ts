@@ -28,6 +28,7 @@ import type {
   GymLocation,
   Injury,
   Ledger,
+  LoadStyle,
   PrescribedExercise,
   PrescribedSet,
   Program,
@@ -46,6 +47,16 @@ import { phaseLabel } from './why.js';
 
 /** A static hold with no stated standard: 30 seconds a side is the usual dose. */
 const DEFAULT_HOLD_S = 30;
+
+/**
+ * The block ids a program uses for its own opening and closing work.
+ *
+ * These are `Program.blocks[].id` values, not titles. Knees Over Toes uses
+ * exactly these two; a program that names its blocks anything else simply gets
+ * the generic bookends, which is the right default.
+ */
+const PROGRAM_WARMUP_BLOCK = 'warm_up';
+const PROGRAM_COOLDOWN_BLOCK = 'mobility_cooldown';
 
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -198,6 +209,17 @@ export interface AssemblyResult {
   blocks: SessionBlock[];
   notes: string[];
   estimatedMin: number;
+  /**
+   * True when the program's own weekday template already opens and closes the
+   * session, so the generic bookends would be a second warm-up on top of the
+   * first.
+   *
+   * Knees Over Toes Zero starts with a five-to-ten minute walk and ends with
+   * four held stretches. Adding five generic minutes either side turned a
+   * session the program says takes ten to twenty into one that read as
+   * fifty-three — and told him to warm up for a walk.
+   */
+  suppliesOwnBookends: { warmup: boolean; cooldown: boolean };
 }
 
 /**
@@ -207,7 +229,7 @@ export interface AssemblyResult {
  * minute backward walk is budgeted at one minute of setup and the session
  * silently overruns by nine.
  */
-export function estimateMinutes(sets: PrescribedSet[]): number {
+export function estimateMinutes(sets: PrescribedSet[], loadStyle?: LoadStyle): number {
   const work = sets.reduce((a, s) => {
     if (s.duration_s !== undefined) return a + s.duration_s;
     // A distance costs the time it takes to cover it. Without this a
@@ -218,7 +240,19 @@ export function estimateMinutes(sets: PrescribedSet[]): number {
     return a + s.reps * ASSEMBLY.seconds_per_rep;
   }, 0);
   const rest = sets.slice(0, -1).reduce((a, s) => a + s.rest_s, 0);
-  return round((ASSEMBLY.setup_s_per_exercise + work + rest) / 60, 2);
+  return round((setupSeconds(loadStyle) + work + rest) / 60, 2);
+}
+
+/**
+ * How long it takes to get to the first rep. See the reasoning on
+ * `ASSEMBLY.setup_s_by_load_style`: a wall tibialis raise and a loaded barbell
+ * are not the same errand, and charging them the same minute is what made a
+ * ten-to-twenty-minute rehab session read as fifty-three.
+ */
+export function setupSeconds(loadStyle?: LoadStyle): number {
+  if (!loadStyle) return ASSEMBLY.setup_s_per_exercise;
+  const table = ASSEMBLY.setup_s_by_load_style as Record<string, number | undefined>;
+  return table[loadStyle] ?? ASSEMBLY.setup_s_per_exercise;
 }
 
 /**
@@ -495,7 +529,7 @@ export function prescribe(args: {
     prediction,
     why: sentences(reasons),
     program_step_id: programStepId ?? step?.id,
-    estimated_min: estimateMinutes(sets),
+    estimated_min: estimateMinutes(sets, exercise.load_style),
   };
 }
 
@@ -563,6 +597,7 @@ export function assemble(input: AssemblyInput): AssemblyResult {
    * out of time" lines is the noise that buries the notes that matter.
    */
   const ranOutOfTime: string[] = [];
+  const ownBookends = { warmup: false, cooldown: false };
   const blocks: SessionBlock[] = [];
   const chosen: Exercise[] = [];
   const flagged = flaggedRegions(input.injuries);
@@ -622,7 +657,7 @@ export function assemble(input: AssemblyInput): AssemblyResult {
         // Try trimming a set before giving up on the movement entirely.
         if (p.sets.length > 1) {
           const trimmed = { ...p, sets: p.sets.slice(0, -1) };
-          trimmed.estimated_min = estimateMinutes(trimmed.sets);
+          trimmed.estimated_min = estimateMinutes(trimmed.sets, item.exercise.load_style);
           if (trimmed.estimated_min <= remaining + ASSEMBLY.overrun_tolerance_min) {
             prescribed.push(trimmed);
             chosen.push(item.exercise);
@@ -718,13 +753,23 @@ export function assemble(input: AssemblyInput): AssemblyResult {
       // stretches, which is not the session the program prescribes.
       const before = blocks.length;
       for (const block of day.blocks) {
-        const items = block.step_ids
+        const steps = block.step_ids
           .map((id) => program.steps.find((st) => st.id === id))
-          .filter((st): st is ProgramStep => Boolean(st))
-          .map(itemFor)
-          .filter((x): x is NonNullable<typeof x> => x !== null);
+          .filter((st): st is ProgramStep => Boolean(st));
+        const items = steps.map(itemFor).filter((x): x is NonNullable<typeof x> => x !== null);
         if (items.length === 0) continue;
+        const placedBefore = blocks.length;
         tryAdd('program', `${phase ? phaseLabel(phase.name) : program.name} — ${block.title}`, items);
+        // Did the program itself open or close the session? Decided on the
+        // BLOCK the steps belong to, not on the template's block title, because
+        // the title is prose that can be renamed and the block id is the
+        // program's own structure. And only when the block actually landed —
+        // a warm-up that did not fit is not a warm-up he did.
+        if (blocks.length > placedBefore) {
+          const ids = new Set(steps.map((st) => st.block));
+          if (ids.has(PROGRAM_WARMUP_BLOCK)) ownBookends.warmup = true;
+          if (ids.has(PROGRAM_COOLDOWN_BLOCK)) ownBookends.cooldown = true;
+        }
       }
       // Counted in blocks actually placed, not items offered: a step can resolve
       // to a movement and still not fit the minutes, and a session with no
@@ -869,7 +914,7 @@ export function assemble(input: AssemblyInput): AssemblyResult {
     notes.push(`${Math.round(remaining)} min of the budget went unused — the constraints ran out of safe options before the clock did.`);
   }
 
-  return { blocks: sortBlocks(blocks), notes, estimatedMin };
+  return { blocks: sortBlocks(blocks), notes, estimatedMin, suppliesOwnBookends: ownBookends };
 }
 
 /**

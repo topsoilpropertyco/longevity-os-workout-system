@@ -137,7 +137,7 @@ export function swapCandidates(input: SwapInput): SwapCandidate[] {
       score,
       reason: reasonFor(ex, reference, difficulty, patternMatch === 1, overlap, preferred.has(ex.slug)),
       sets,
-      estimated_min: estimateMinutes(sets),
+      estimated_min: estimateMinutes(sets, ex.load_style),
     });
   }
 

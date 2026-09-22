@@ -350,7 +350,38 @@ export const NORDIC_WEEKLY = [1, 2] as [number, number];
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const ASSEMBLY = {
-  /** Seconds of setup per exercise: finding it, adjusting it, getting into position. */
+  /**
+   * Seconds of setup per exercise: finding it, adjusting it, getting into
+   * position. It is NOT one number, because the movements are not one kind.
+   *
+   * A flat 60 seconds was costing a tibialis raise — stand against a wall,
+   * pull the toes up — the same minute as loading a barbell. On a Knees Over
+   * Toes Zero day, which is fourteen bodyweight movements done back to back on
+   * a bedroom floor, that alone was fourteen minutes of setup inside a session
+   * the program itself says takes ten to twenty. The number was not wrong for
+   * the movement it was written for; it was applied to every other movement
+   * too.
+   *
+   * Keyed on `load_style`, which is the field that actually says how much
+   * apparatus stands between him and the first rep.
+   */
+  setup_s_by_load_style: {
+    /** Stand up and start. A wall, a mat, the floor. */
+    none: 15,
+    bodyweight: 20,
+    /** Anchor it, check the tension. */
+    band: 30,
+    /** Pick them up; on the Bowflex, dial them. */
+    single_implement: 40,
+    total_dumbbell_pair: 45,
+    /** Find the station, set the pin, adjust the seat. */
+    stack: 60,
+    assisted: 60,
+    smith: 60,
+    /** Find the plates, load them, unrack. */
+    barbell: 90,
+  } as const,
+  /** When `load_style` says nothing useful. */
   setup_s_per_exercise: 60,
   /** Seconds per working rep, averaged across tempos. */
   seconds_per_rep: 3.5,
