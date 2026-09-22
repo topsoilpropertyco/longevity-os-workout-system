@@ -1019,6 +1019,48 @@
   },
   {
     "aliases": [
+      "seated calf raise (bodyweight)",
+      "bent-knee calf raise",
+      "soleus raise"
+    ],
+    "barbell_free": true,
+    "cue": "Knees bent, heels up — this one is the soleus, so the standing version does not replace it.",
+    "eccentric_dominant": false,
+    "equipment": [
+      "bodyweight",
+      "bench_flat"
+    ],
+    "force": "push",
+    "id": "kot-seated-calf-raise",
+    "instructions": [
+      "Sit on a chair or bench with the feet flat and the knees bent to about 90°.",
+      "Drive through the balls of the feet and raise the heels as high as they will go.",
+      "Pause at the top, then lower until the heels are back on the floor and the calf is at full stretch.",
+      "Bending the knee takes the gastrocnemius out of it and leaves the soleus — the muscle that has to hold you on a landing, and the one a standing calf raise misses.",
+      "Add load by resting a dumbbell across the knees once bodyweight is easy."
+    ],
+    "kot_step": "lower_legs",
+    "level": "beginner",
+    "load_style": "bodyweight",
+    "mechanic": "isolation",
+    "name": "KOT Calf Raise (Seated, Bent Knee)",
+    "pattern": "isolation_lower",
+    "plyo_contacts_per_rep": 0,
+    "preferred_alternatives": [
+      "fhl-calf-raise",
+      "single-leg-calf-raise"
+    ],
+    "region_loads": {
+      "calves_achilles": 1
+    },
+    "rehab_for": [
+      "calves_achilles"
+    ],
+    "slug": "kot-seated-calf-raise",
+    "source": "curated"
+  },
+  {
+    "aliases": [
       "l sit hold",
       "floor l-sit",
       "parallette l-sit"

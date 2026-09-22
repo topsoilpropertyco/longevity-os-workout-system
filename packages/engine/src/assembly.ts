@@ -550,6 +550,19 @@ function sentences(parts: string[]): string {
  */
 export function assemble(input: AssemblyInput): AssemblyResult {
   const notes: string[] = [];
+  /**
+   * Authored movements the clock ate, across the whole session.
+   *
+   * A step the LOCATION cannot do already says so; a step that resolved fine
+   * and then ran out of minutes said nothing at all, which is the same hole
+   * with a different cause (ENGINE.md §2 stage 12: everything the engine chose
+   * not to do goes in `notes`).
+   *
+   * Session-scoped, not per block, because `tryAdd` runs once per block of the
+   * weekday template — seven of them on a Zero day — and seven separate "ran
+   * out of time" lines is the noise that buries the notes that matter.
+   */
+  const ranOutOfTime: string[] = [];
   const blocks: SessionBlock[] = [];
   const chosen: Exercise[] = [];
   const flagged = flaggedRegions(input.injuries);
@@ -568,7 +581,10 @@ export function assemble(input: AssemblyInput): AssemblyResult {
     let index = 0;
     for (const item of items) {
       index++;
-      if (remaining < ASSEMBLY.min_block_min) break;
+      if (remaining < ASSEMBLY.min_block_min) {
+        if (kind === 'program') ranOutOfTime.push(item.exercise.name);
+        continue;
+      }
 
       // The McGill Big 3 floor and the Core block both want the curl-up, and a
       // session listing the same movement twice reads as a bug to the person
@@ -614,6 +630,7 @@ export function assemble(input: AssemblyInput): AssemblyResult {
             continue;
           }
         }
+        if (kind === 'program') ranOutOfTime.push(item.exercise.name);
         continue;
       }
 
@@ -788,6 +805,17 @@ export function assemble(input: AssemblyInput): AssemblyResult {
   }
 
   // ── Low-back rehab floor: McGill Big 3, near-daily ─────────────────────────
+  // The code below calls this floor "non-negotiable", and then a five-minute
+  // gate negotiates it away without a word. Skipping it on a short day is the
+  // right call — five minutes of trunk work is not worth cutting the knee work
+  // the phase exists for — but a floor that quietly is not a floor is worse
+  // than no floor, because he would never know to do it himself.
+  if (flagged.has('low_back') && remaining < 5) {
+    notes.push(
+      'No room for the McGill Big 3 today. It is the low-back floor and it is near-daily — ' +
+        'worth five minutes of your own before bed.',
+    );
+  }
   if (flagged.has('low_back') && remaining >= 5) {
     const big3 = MCGILL_BIG_3.map((slug) => input.exercises.find((e) => e.slug === slug)).filter(
       (e): e is Exercise => Boolean(e),
@@ -822,6 +850,15 @@ export function assemble(input: AssemblyInput): AssemblyResult {
     tryAdd('mobility', input.type === 'recovery' ? 'Recovery' : 'Mobility', items);
   }
 
+  if (ranOutOfTime.length > 0) {
+    const names = [...new Set(ranOutOfTime)];
+    notes.push(
+      names.length === 1
+        ? `No room for ${names[0]} today — it is in the session your program wrote, but not in the minutes you gave it.`
+        : `No room for ${listNames(names)} today — they are in the session your program wrote, but not in the minutes you gave it.`,
+    );
+  }
+
   const estimatedMin = round(blocks.reduce((a, b) => a + b.estimated_min, 0), 1);
 
   const cardioLedDay = input.type === 'vo2' || input.type === 'zone2' || input.type === 'sprint' || input.type === 'recovery';
@@ -833,6 +870,18 @@ export function assemble(input: AssemblyInput): AssemblyResult {
   }
 
   return { blocks: sortBlocks(blocks), notes, estimatedMin };
+}
+
+/**
+ * "A", "A and B", "A, B and C" — a list a person reads, not an array rendered.
+ * The notes are the one place the engine speaks in sentences, so a stray comma
+ * before "and" is the sort of thing that makes a line read as machine output
+ * and stop being believed.
+ */
+function listNames(names: string[]): string {
+  const seen = [...new Set(names)];
+  if (seen.length <= 1) return seen[0] ?? '';
+  return `${seen.slice(0, -1).join(', ')} and ${seen[seen.length - 1]}`;
 }
 
 /**
