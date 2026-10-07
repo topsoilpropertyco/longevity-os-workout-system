@@ -62,7 +62,12 @@ export default function ExerciseMedia({
         />
       )}
 
-      {!thumb && (
+      {/*
+        The credit belongs to the clip, not to the box. A poster frame with no
+        Gym Visual media behind it was still printing "(c) Gym visual" over the
+        placeholder, crediting them for a drawing they did not make.
+      */}
+      {!thumb && src && (
         <span
           className="absolute bottom-1.5 right-2 rounded-full px-2 py-0.5 text-[0.5625rem] font-semibold"
           style={{ background: 'color-mix(in srgb, var(--bg) 70%, transparent)', color: 'var(--ink-3)' }}

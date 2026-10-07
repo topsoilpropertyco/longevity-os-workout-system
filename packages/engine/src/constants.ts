@@ -383,6 +383,23 @@ export const ASSEMBLY = {
   } as const,
   /** When `load_style` says nothing useful. */
   setup_s_per_exercise: 60,
+  /**
+   * The rep count at which a program step's stated standard reads as ONE
+   * qualifying effort rather than as the dose for a single working set.
+   *
+   * The Knees Over Toes checklist writes both kinds on the same line. "25
+   * tibialis raises" is the standard itself — a thing done once, to the number,
+   * and running it through the goal band would prescribe 75. "5 reps each side
+   * at 25% bodyweight per hand" is a working set — prescribing it alone gives
+   * him a third of the split-squat work the program is named for.
+   *
+   * Nothing in the checklist marks which is which, so the rep count has to: at
+   * or above this, the number IS the set; below it, the number is the target
+   * for each of the goal band's sets. A step that states its own `sets` never
+   * reaches this rule.
+   */
+  program_single_set_reps: 20,
+
   /** Seconds per working rep, averaged across tempos. */
   seconds_per_rep: 3.5,
   /**

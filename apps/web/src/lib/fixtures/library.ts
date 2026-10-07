@@ -7,7 +7,193 @@
  * engine's `Exercise`; nothing here is engine logic.
  */
 
-import type { Equipment, Exercise, MovementPattern, Region, RegionLoadMap } from '../engine-bridge';
+import type {
+  Equipment,
+  Exercise,
+  ExerciseMedia,
+  MovementPattern,
+  Region,
+  RegionLoadMap,
+} from '../engine-bridge';
+
+/**
+ * Demo media. Maps each demo slug to a clip from the free exercise set so the
+ * session screen renders a real loop before Supabase is configured; the live
+ * library carries its own `media` and never reaches this table.
+ *
+ * GIFs and thumbnails are (c) Gym visual (https://gymvisual.com/) and the
+ * credit stays on screen wherever they are shown.
+ *
+ * Slugs missing here have no honest match in the free set -- the KOT-specific
+ * work, mostly (tibialis raise, reverse Nordic, Patrick step, backward walk,
+ * pogo hops, 90/90, bird dog). They render the poster frame instead of a clip
+ * that shows the wrong movement.
+ */
+const DEMO_MEDIA: Record<string, ExerciseMedia> = {
+  // ~ band assist; the gym machine assist looks the same from the side
+  assisted_pull_up: {
+    gif_url: 'https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/0017-kiJ4Z2K.gif',
+    thumb_url: 'https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/images/0017-kiJ4Z2K.jpg',
+    attribution: '\u00a9 Gym visual',
+  },
+  // ~ standard split squat; the KOT version goes deeper — see the cue
+  atg_split_squat: {
+    gif_url: 'https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/2368-9E25EOx.gif',
+    thumb_url: 'https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/images/2368-9E25EOx.jpg',
+    attribution: '\u00a9 Gym visual',
+  },
+  back_extension: {
+    gif_url: 'https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/0573-rUXfn3R.gif',
+    thumb_url: 'https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/images/0573-rUXfn3R.jpg',
+    attribution: '\u00a9 Gym visual',
+  },
+  // ~ depth drop variation
+  box_jump: {
+    gif_url: 'https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/1374-iPm26QU.gif',
+    thumb_url: 'https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/images/1374-iPm26QU.jpg',
+    attribution: '\u00a9 Gym visual',
+  },
+  broad_jump: {
+    gif_url: 'https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/1472-uZKq7lo.gif',
+    thumb_url: 'https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/images/1472-uZKq7lo.jpg',
+    attribution: '\u00a9 Gym visual',
+  },
+  bulgarian_split_squat: {
+    gif_url: 'https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/0410-qx4fgX7.gif',
+    thumb_url: 'https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/images/0410-qx4fgX7.jpg',
+    attribution: '\u00a9 Gym visual',
+  },
+  calf_raise: {
+    gif_url: 'https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/1373-bJYHBIN.gif',
+    thumb_url: 'https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/images/1373-bJYHBIN.jpg',
+    attribution: '\u00a9 Gym visual',
+  },
+  chest_press_machine: {
+    gif_url: 'https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/0577-T0yTjgW.gif',
+    thumb_url: 'https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/images/0577-T0yTjgW.jpg',
+    attribution: '\u00a9 Gym visual',
+  },
+  // ~ floor version of the same stretch
+  couch_stretch: {
+    gif_url: 'https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/1512-qBcKorM.gif',
+    thumb_url: 'https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/images/1512-qBcKorM.jpg',
+    attribution: '\u00a9 Gym visual',
+  },
+  db_bench_press: {
+    gif_url: 'https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/0025-EIeI8Vf.gif',
+    thumb_url: 'https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/images/0025-EIeI8Vf.jpg',
+    attribution: '\u00a9 Gym visual',
+  },
+  db_incline_press: {
+    gif_url: 'https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/0314-ns0SIbU.gif',
+    thumb_url: 'https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/images/0314-ns0SIbU.jpg',
+    attribution: '\u00a9 Gym visual',
+  },
+  db_rdl: {
+    gif_url: 'https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/1459-rR0LJzx.gif',
+    thumb_url: 'https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/images/1459-rR0LJzx.jpg',
+    attribution: '\u00a9 Gym visual',
+  },
+  db_row: {
+    gif_url: 'https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/0293-BJ0Hz5L.gif',
+    thumb_url: 'https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/images/0293-BJ0Hz5L.jpg',
+    attribution: '\u00a9 Gym visual',
+  },
+  db_shoulder_press: {
+    gif_url: 'https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/0766-903mzG8.gif',
+    thumb_url: 'https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/images/0766-903mzG8.jpg',
+    attribution: '\u00a9 Gym visual',
+  },
+  // ~ kettlebell shown; same movement with dumbbells
+  db_thruster: {
+    gif_url: 'https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/0550-yWxMvB5.gif',
+    thumb_url: 'https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/images/0550-yWxMvB5.jpg',
+    attribution: '\u00a9 Gym visual',
+  },
+  farmer_carry: {
+    gif_url: 'https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/2133-qPEzJjA.gif',
+    thumb_url: 'https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/images/2133-qPEzJjA.jpg',
+    attribution: '\u00a9 Gym visual',
+  },
+  goblet_squat: {
+    gif_url: 'https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/1760-yn8yg1r.gif',
+    thumb_url: 'https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/images/1760-yn8yg1r.jpg',
+    attribution: '\u00a9 Gym visual',
+  },
+  // ~ straight-leg version shown
+  hanging_knee_raise: {
+    gif_url: 'https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/0472-I3tsCnC.gif',
+    thumb_url: 'https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/images/0472-I3tsCnC.jpg',
+    attribution: '\u00a9 Gym visual',
+  },
+  lat_pulldown: {
+    gif_url: 'https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/2330-LEprlgG.gif',
+    thumb_url: 'https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/images/2330-LEprlgG.jpg',
+    attribution: '\u00a9 Gym visual',
+  },
+  leg_curl_machine: {
+    gif_url: 'https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/0599-Zg3XY7P.gif',
+    thumb_url: 'https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/images/0599-Zg3XY7P.jpg',
+    attribution: '\u00a9 Gym visual',
+  },
+  leg_press: {
+    gif_url: 'https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/0760-7zdxRTl.gif',
+    thumb_url: 'https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/images/0760-7zdxRTl.jpg',
+    attribution: '\u00a9 Gym visual',
+  },
+  mcgill_curl_up: {
+    gif_url: 'https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/3016-g2oKspu.gif',
+    thumb_url: 'https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/images/3016-g2oKspu.jpg',
+    attribution: '\u00a9 Gym visual',
+  },
+  nordic_curl: {
+    gif_url: 'https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/0496-ms7tjSG.gif',
+    thumb_url: 'https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/images/0496-ms7tjSG.jpg',
+    attribution: '\u00a9 Gym visual',
+  },
+  // ~ flat step; the Poliquin version uses a low step and a heel drop
+  poliquin_step_up: {
+    gif_url: 'https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/0431-aXtJhlg.gif',
+    thumb_url: 'https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/images/0431-aXtJhlg.jpg',
+    attribution: '\u00a9 Gym visual',
+  },
+  pull_up: {
+    gif_url: 'https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/0652-lBDjFxJ.gif',
+    thumb_url: 'https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/images/0652-lBDjFxJ.jpg',
+    attribution: '\u00a9 Gym visual',
+  },
+  push_up: {
+    gif_url: 'https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/0662-I4hDWkc.gif',
+    thumb_url: 'https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/images/0662-I4hDWkc.jpg',
+    attribution: '\u00a9 Gym visual',
+  },
+  seated_cable_row: {
+    gif_url: 'https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/0861-fUBheHs.gif',
+    thumb_url: 'https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/images/0861-fUBheHs.jpg',
+    attribution: '\u00a9 Gym visual',
+  },
+  // ~ hip-adduction variation
+  side_plank: {
+    gif_url: 'https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/1775-VO2qeJg.gif',
+    thumb_url: 'https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/images/1775-VO2qeJg.jpg',
+    attribution: '\u00a9 Gym visual',
+  },
+  smith_squat: {
+    gif_url: 'https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/0852-JZuApnB.gif',
+    thumb_url: 'https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/images/0852-JZuApnB.jpg',
+    attribution: '\u00a9 Gym visual',
+  },
+  vo2_bike_4x4: {
+    gif_url: 'https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/2138-H1PESYI.gif',
+    thumb_url: 'https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/images/2138-H1PESYI.jpg',
+    attribution: '\u00a9 Gym visual',
+  },
+  zone2_treadmill: {
+    gif_url: 'https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/3666-rjiM4L3.gif',
+    thumb_url: 'https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/images/3666-rjiM4L3.jpg',
+    attribution: '\u00a9 Gym visual',
+  },
+};
 
 type ExSpec = Partial<Exercise> & {
   slug: string;
@@ -39,7 +225,7 @@ function ex(spec: ExSpec): Exercise {
     ...(spec.cue ? { cue: spec.cue } : {}),
     ...(spec.preferred_alternatives ? { preferred_alternatives: spec.preferred_alternatives } : {}),
     ...(spec.rehab_for ? { rehab_for: spec.rehab_for } : {}),
-    ...(spec.media ? { media: spec.media } : {}),
+    ...((spec.media ?? DEMO_MEDIA[spec.slug]) ? { media: spec.media ?? DEMO_MEDIA[spec.slug] } : {}),
   };
 }
 
