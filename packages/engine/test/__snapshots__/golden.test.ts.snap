@@ -384,7 +384,7 @@ exports[`golden plans > high_readiness is unchanged 1`] = `
     },
     {
       "date": "2026-09-23",
-      "minutes": 50.4,
+      "minutes": 50.7,
       "type": "kot",
     },
     {
@@ -394,7 +394,7 @@ exports[`golden plans > high_readiness is unchanged 1`] = `
     },
     {
       "date": "2026-09-25",
-      "minutes": 50.4,
+      "minutes": 50.7,
       "type": "kot",
     },
     {
@@ -548,7 +548,7 @@ exports[`golden plans > injury_flare is unchanged 1`] = `
     },
     {
       "date": "2026-09-23",
-      "minutes": 50.4,
+      "minutes": 50.7,
       "type": "kot",
     },
     {
@@ -558,7 +558,7 @@ exports[`golden plans > injury_flare is unchanged 1`] = `
     },
     {
       "date": "2026-09-25",
-      "minutes": 50.4,
+      "minutes": 50.7,
       "type": "kot",
     },
     {
@@ -573,7 +573,7 @@ exports[`golden plans > injury_flare is unchanged 1`] = `
     },
     {
       "date": "2026-09-28",
-      "minutes": 50.4,
+      "minutes": 50.7,
       "type": "kot",
     },
   ],
@@ -704,7 +704,7 @@ exports[`golden plans > low_readiness is unchanged 1`] = `
     },
     {
       "date": "2026-09-23",
-      "minutes": 41.7,
+      "minutes": 43,
       "type": "kot",
     },
     {
@@ -714,7 +714,7 @@ exports[`golden plans > low_readiness is unchanged 1`] = `
     },
     {
       "date": "2026-09-25",
-      "minutes": 41.7,
+      "minutes": 43,
       "type": "kot",
     },
     {
@@ -860,7 +860,7 @@ exports[`golden plans > ninety_min_pf is unchanged 1`] = `
     },
     {
       "date": "2026-09-23",
-      "minutes": 64.5,
+      "minutes": 71.3,
       "type": "kot",
     },
     {
@@ -870,13 +870,13 @@ exports[`golden plans > ninety_min_pf is unchanged 1`] = `
     },
     {
       "date": "2026-09-25",
-      "minutes": 64.5,
+      "minutes": 71.3,
       "type": "kot",
     },
     {
       "date": "2026-09-26",
-      "minutes": 29.2,
-      "type": "strength",
+      "minutes": 16.8,
+      "type": "mobility",
     },
     {
       "date": "2026-09-27",
@@ -970,7 +970,7 @@ exports[`the worked example in docs/ENGINE.md > is unchanged 1`] = `
     },
     {
       "date": "2026-09-23",
-      "minutes": 41.1,
+      "minutes": 37.3,
       "type": "kot",
     },
     {
@@ -980,7 +980,7 @@ exports[`the worked example in docs/ENGINE.md > is unchanged 1`] = `
     },
     {
       "date": "2026-09-25",
-      "minutes": 41.1,
+      "minutes": 37.3,
       "type": "kot",
     },
     {
@@ -995,7 +995,7 @@ exports[`the worked example in docs/ENGINE.md > is unchanged 1`] = `
     },
     {
       "date": "2026-09-28",
-      "minutes": 41.1,
+      "minutes": 37.3,
       "type": "kot",
     },
   ],

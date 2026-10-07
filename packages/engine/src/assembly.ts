@@ -340,11 +340,16 @@ export function prescribe(args: {
   const std = step?.standard;
   const repRange: [number, number] =
     args.repOverride ?? (std?.reps ? [std.reps, std.reps] : base.reps);
-  // A checklist line that says "25 reps" and names no set count means one set of
-  // 25, not the goal mode's three of them. Multiplying a stated program dose by
-  // the goal band is the same error as overriding its rep count — 75 tibialis
-  // raises is not Knee Ability Zero.
-  const programSetDefault = std && std.sets === undefined ? 1 : base.sets;
+  // A checklist line that names no set count is one of two different things,
+  // and the rep count is the only thing in the data that tells them apart.
+  // "25 tibialis raises" is the standard — done once, to the number; running it
+  // through the goal band would prescribe 75, which is not Knee Ability Zero.
+  // "5 reps each side at 25% bodyweight per hand" is a working set, and
+  // prescribing one of it gives him a third of the split-squat work the program
+  // is named for. See ASSEMBLY.program_single_set_reps.
+  const statesSingleEffort =
+    std?.reps !== undefined && std.reps >= ASSEMBLY.program_single_set_reps;
+  const programSetDefault = statesSingleEffort ? 1 : base.sets;
   const setCount =
     args.setOverride ??
     (std?.sets ? Math.max(1, Math.round(std.sets * deloadVolumeMultiplier)) : programSetDefault);
